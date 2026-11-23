@@ -311,7 +311,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     stdscr,
                     4,
                     0,
-                    " Behavioral / Mood Steering  ([%/Enter] Discover mood  [[-]/[+] or [/]] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
+                    " Behavioral / Mood Steering  ([%] Discover mood  [-/+] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
                     curses.A_BOLD | curses.A_UNDERLINE,
                 )
                 y = 6
@@ -547,14 +547,14 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     try:
                         session.discover_behavior(mood, strength=1.5, progress_cb=_show_progress)
                         stdscr.clearok(True)
-                        status = f"Discovered '{mood}' behavioral circuit! [/] or -/= adjust strength, A:Apply, c:Chat"
+                        status = f"Discovered '{mood}' behavioral circuit! -/+ adjust strength, A:Apply, c:Chat"
                     except Exception as exc:
                         status = f"Behavior error: {exc}"
             elif ch in (ord("["), ord("-")) and session.pending_steer is not None:
                 m, st, vecs, summ = session.pending_steer
                 session.pending_steer = (m, max(0.1, round(st - 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
-            elif ch in (ord("]"), ord("=")) and session.pending_steer is not None:
+            elif ch in (ord("]"), ord("+"), ord("=")) and session.pending_steer is not None:
                 m, st, vecs, summ = session.pending_steer
                 session.pending_steer = (m, min(5.0, round(st + 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
