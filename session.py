@@ -9,6 +9,7 @@ import transformers
 
 transformers.logging.set_verbosity_error()
 
+from backend import OpenAICompatBackend
 from cluster import analyze_layer, build_model_atlas, build_vocab_masks, find_merge_candidates, overview_model, spherical_emeans
 from models import (
     ClusterAction,
@@ -65,11 +66,14 @@ class ReclaimSession:
         target: EvictTarget = EvictTarget.CJK,
         cache_root: Path = Path(".reclaim_cache"),
         overview_step: int = 2,
+        api_base: str | None = None,
+        api_model: str | None = None,
     ) -> None:
         self.model_ref = model_ref
         self.model_dir = resolve_snapshot(model_ref)
         self.target = target
         self.overview_step = overview_step
+        self.api_backend = OpenAICompatBackend(api_base=api_base, model_name=api_model) if api_base else None
 
         slug = f"{self.model_dir.parent.parent.name}_{target.value}"
         self.cache_dir = cache_root / slug
@@ -466,6 +470,8 @@ class ReclaimSession:
         return prn, rec, era
 
     def probe_next_tokens(self, prompt: str, top_k: int = 5) -> list[tuple[str, float]]:
+        if self.api_backend is not None:
+            return self.api_backend.probe_next_tokens(prompt, top_k=top_k)
         self._ensure_model()
         assert self._model is not None and self._tok is not None
         with torch.no_grad():
@@ -476,7 +482,8 @@ class ReclaimSession:
         return [(self._tok.decode([i]), round(p * 100.0, 1)) for p, i in zip(tp.tolist(), ti.tolist())]
 
     def run_pinned_probes(self) -> dict[str, list[tuple[str, float]]]:
-        self._ensure_model()
+        if self.api_backend is None:
+            self._ensure_model()
         out: dict[str, list[tuple[str, float]]] = {}
         for p in self.pinned_probes:
             out[p] = self.probe_next_tokens(p, top_k=5)
@@ -1159,6 +1166,8 @@ class ReclaimSession:
         raise RuntimeError("Nothing to rollback.")
 
     def chat_once(self, user_text: str, max_new_tokens: int = 48) -> str:
+        if self.api_backend is not None:
+            return self.api_backend.chat_once(user_text, max_new_tokens=max_new_tokens)
         self._ensure_model()
         assert self._model is not None and self._tok is not None
         try:

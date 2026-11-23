@@ -473,10 +473,12 @@ def guide_cmd(
 def open_studio(
     model: Annotated[str, typer.Option("--model", "-m")] = "Qwen/Qwen3.5-4B",
     clusters: Annotated[int, typer.Option("--clusters", "-k", help="Number of global model clusters")] = 48,
+    api_base: Annotated[str | None, typer.Option("--api-base", help="OpenAI-compatible server URL (vLLM / llama-server / SGLang)")] = None,
+    api_model: Annotated[str | None, typer.Option("--api-model", help="Optional model ID served by --api-base")] = None,
 ) -> None:
     """Open the target-free full-model TUI studio (Top-X Global Clusters -> Drilldown -> Apply/Chat/Commit/Rollback)."""
     with console.status(f"Building/loading full-model cluster atlas for {model} (k={clusters})..."):
-        sess = ReclaimSession(model_ref=model)
+        sess = ReclaimSession(model_ref=model, api_base=api_base, api_model=api_model)
         sess.get_atlas(num_clusters=clusters)
     run_studio_tui(sess, num_clusters=clusters)
 

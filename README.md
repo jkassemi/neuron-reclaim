@@ -25,9 +25,11 @@ CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
   --clusters 48
 
 # Sparse MoE models (Inkling-2-Mini: auto-detects 24L x 128 routed experts + NVFP4/MXFP8)
+# Pass --api-base to connect Chat & Probe Diff to vLLM, llama-server, SGLang, or Ollama
 CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
   --model thinkingmachines/Inkling-2-Mini \
-  --clusters 32
+  --clusters 32 \
+  --api-base http://127.0.0.1:8000/v1
 ```
 
 ### TUI Controls
