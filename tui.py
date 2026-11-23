@@ -346,15 +346,15 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 target_u = max(128, ((max_p + 127) // 128) * 128)
                 _safe_addstr(stdscr, 4, 1, "EXPORT PICKER — Choose how to materialize your committed plan:", curses.A_BOLD | curses.color_pair(4))
                 _safe_addstr(stdscr, 6, 2, f"Committed totals: PRUNE={tot_p:,} (min={min_p}/layer, max={max_p}/layer)  |  EMPTY={tot_e:,}", curses.color_pair(1))
-                _safe_addstr(stdscr, 8, 2, "[1] Same-Size / Fine-Tune Ready (zero shape change)", curses.A_BOLD | curses.color_pair(2))
+                _safe_addstr(stdscr, 8, 2, "[a] Same-Size / Fine-Tune Ready (zero shape change)", curses.A_BOLD | curses.color_pair(2))
                 _safe_addstr(stdscr, 9, 6, f"Keeps intermediate_size={atlas.d_mlp}; exports {tot_p + tot_e:,} reclaimed slots -> export_same_size_mask.json")
-                _safe_addstr(stdscr, 11, 2, f"[2] Uniform Shrink — Drop-in HF / vLLM / llama.cpp ({atlas.d_mlp} -> {atlas.d_mlp - target_u})", curses.A_BOLD | curses.color_pair(3))
+                _safe_addstr(stdscr, 11, 2, f"[b] Uniform Shrink — Drop-in HF / vLLM / llama.cpp ({atlas.d_mlp} -> {atlas.d_mlp - target_u})", curses.A_BOLD | curses.color_pair(3))
                 _safe_addstr(stdscr, 12, 6, f"Prunes {target_u}/layer (auto-fills low-norm neurons in lighter layers) -> export_uniform_prune.json")
-                _safe_addstr(stdscr, 14, 2, "[3] Per-Layer Shrink — Max Quality / Custom Runtime", curses.A_BOLD | curses.color_pair(1))
+                _safe_addstr(stdscr, 14, 2, "[c] Per-Layer Shrink — Max Quality / Custom Runtime", curses.A_BOLD | curses.color_pair(1))
                 _safe_addstr(stdscr, 15, 6, "Independent per-layer widths rounded to multiples of 64 -> export_per_layer_prune.json")
-                _safe_addstr(stdscr, 17, 2, "[4] Save Edited Weights (safetensors / save_pretrained)", curses.A_BOLD | curses.color_pair(4))
+                _safe_addstr(stdscr, 17, 2, "[d] Save Edited Weights (safetensors / save_pretrained)", curses.A_BOLD | curses.color_pair(4))
                 _safe_addstr(stdscr, 18, 6, "Writes the live in-memory modified model (boost/erase/empty/prune/behavior) + tokenizer to disk")
-                _safe_addstr(stdscr, 20, 2, "Press 1, 2, 3, or 4 to export  |  Esc to return to Explore", curses.A_DIM)
+                _safe_addstr(stdscr, 20, 2, "Press a, b, c, or d to export  |  1-5/Tab switch tabs  |  Esc to return to Explore", curses.A_DIM)
             elif mode == "model":
                 _safe_addstr(
                     stdscr,
@@ -498,11 +498,23 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
             ch = stdscr.getch()
             if ch == ord("q"):
                 break
+            elif ch == ord("1"):
+                mode = "explore"
+            elif ch == ord("2") or (ch == ord("c") and mode != "export"):
+                mode = "chat"
+            elif ch in (ord("3"), ord("W")):
+                mode = "export"
+            elif ch == ord("4"):
+                mode = "behavior"
+            elif ch == ord("5"):
+                mode = "model"
+            elif ch == ord("\t"):
+                mode = {"explore": "chat", "chat": "export", "export": "behavior", "behavior": "model", "model": "explore"}[mode]
             elif mode == "export":
                 if ch in (27, curses.KEY_BACKSPACE, 127):
                     mode = "explore"
-                elif ch in (ord("1"), ord("2"), ord("3")):
-                    em = {"1": "same_size", "2": "uniform", "3": "per_layer"}[chr(ch)]
+                elif ch in (ord("a"), ord("b"), ord("c")):
+                    em = {"a": "same_size", "b": "uniform", "c": "per_layer"}[chr(ch)]
                     _safe_addstr(stdscr, h - 2, 0, f" Exporting ({em})...", curses.color_pair(6))
                     stdscr.refresh()
                     try:
@@ -511,7 +523,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         mode = "explore"
                     except Exception as exc:
                         status = f"Export error: {exc}"
-                elif ch == ord("4"):
+                elif ch == ord("d"):
                     dest = _prompt_line(stdscr, "Output checkpoint directory (default ./reclaim_edited_model): ")
                     out_p = Path(dest) if dest else Path("./reclaim_edited_model")
                     _safe_addstr(stdscr, h - 2, 0, f" Saving edited safetensors weights to {out_p}...", curses.color_pair(6))
@@ -522,16 +534,6 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         mode = "explore"
                     except Exception as exc:
                         status = f"Save error: {exc}"
-            elif ch == ord("1"):
-                mode = "explore"
-            elif ch in (ord("2"), ord("c")):
-                mode = "chat"
-            elif ch in (ord("3"), ord("W")):
-                mode = "export"
-            elif ch == ord("4"):
-                mode = "behavior"
-            elif ch == ord("5"):
-                mode = "model"
             elif ch == ord("%"):
                 mood = _prompt_line(stdscr, "Target mood/persona (e.g. grumpy and sarcastic): ")
                 if mood:
@@ -552,8 +554,6 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 m, st, vecs, summ = session.pending_steer
                 session.pending_steer = (m, min(5.0, round(st + 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
-            elif ch == ord("\t"):
-                mode = {"explore": "chat", "chat": "export", "export": "behavior", "behavior": "model", "model": "explore"}[mode]
             elif ch == ord("@"):
                 anchor_text = _prompt_line(stdscr, "Concept anchor words (comma-sep, empty clears): ")
                 if anchor_text:
