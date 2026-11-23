@@ -88,6 +88,42 @@ CUDA_VISIBLE_DEVICES='' $PY cli.py apply \
 2. Adjust rank-1 fold strength with **`[` / `]`** (sweet spot is typically `1.5x–2.25x`).
 3. Press **`A`** (folds directly into `L10..L23` `down_proj.weight` with zero runtime hooks), **`c`** to test in Chat, then **`C`** or **`Z`**.
 
+## Methods & How It Works
+
+`neuron-reclaim` is built around **zero-corpus, weight-space interpretability**: modern LLM MLPs and MoE routers are structured enough that you can map, isolate, and edit concepts directly from the weights without training Sparse Autoencoders or running large calibration datasets.
+
+### 1. Zero-Corpus Global Atlas (Spherical `e-means` + Logit Lens)
+* **Shared residual space:** Every MLP `down_proj` column (dense models) or `mlp.gate.weight` router row (sparse MoE models) lives in the same `d_model`-dimensional residual stream.
+* **Spherical `e-means`:** Normalizes all neuron/expert vectors and clusters them with mini-batch EMA cosine updates in pure PyTorch.
+* **Auto-labeling via Logit Lens:** Projects cluster centroids and representative neurons through `lm_head * final_norm_w` to surface their top promoted vocabulary tokens.
+* **Recursive drill-down:** Coarse top-level clusters (`k=48`) inevitably pack broad neighborhoods together; pressing `Enter` re-clusters just that subset in `<0.5s` so you can separate clean targets from mixed English/code sub-clusters before cutting.
+
+### 2. Dual-Pole SwiGLU Anchoring (`@`) & Push-Pull Editing
+* **Concept Anchor (`@`):** Encodes user seed words (preferring exact single-token / title-case variants in `lm_head`), forms a unit anchor vector `v_anchor`, scores all neurons via `|v · v_anchor|`, masks out already-pruned neurons (enabling iterative "onion peeling"), and clusters the top 1,500 matches.
+* **Excitatory (`+`) vs. Inhibitory (`-`) poles:** Because SwiGLU's `up_proj` is signed, neurons pointing in `-v_anchor` often act as **suppressors** holding a concept back in context. The TUI prefixes negative-pole clusters with `-`.
+* **Push-pull removal:** Pruning `+` promoters *while boosting `-` suppressors* (`b`, `2.5× down_proj` gain) cleanly suppresses a concept with far fewer edits and less collateral damage than pruning both poles.
+
+### 3. Surgical Actions & Export Modes
+* **`PRUNE` (`p`):** Zeroes the neuron in-memory (for instant rollback) and records it for physical removal. On export (`W`), choose **Uniform Shrink** (equalizes per-layer counts to a multiple of 128 via low-norm autofill for drop-in HuggingFace/`vLLM`/`llama.cpp` compatibility) or **Per-Layer Shrink** (independent widths rounded to 64).
+* **`EMPTY` (`r`):** Zeroes `down_proj` and re-initializes `gate`/`up` in-place, preserving `intermediate_size` and exporting a freed-neuron mask so downstream fine-tuning can grow new capabilities into those slots without overwriting existing circuits.
+* **`ERASE` (`e`):** Orthogonal subspace projection (`W ← W - Q Qᵀ W`) that removes a cluster's centroid token directions from `down_proj` while keeping the neurons intact for their other co-tenants (essential for polysemantic bridge neurons).
+* **`BOOST` (`b`):** Scales `down_proj` gain (`2.5×`) to amplify desired or inhibitory circuits.
+
+### 4. Safe Neuron Merging & Zero-Corpus Healing
+* **3-Gate Merge Guard (`merge-candidates`):** Checking `down_proj` orthogonality alone misses *syntactic-slot collisions* (e.g., two capital-city neurons competing in `"The capital of ___ is"`). Pairs are only proposed if they pass all three zero-corpus gates: low `gate`/`up` input cosine, low pairwise `|lm_head|` cone cosine across top tokens, and low `down_proj` cosine.
+* **Merge mitigations (`apply`):** Orthogonalizes `B`'s `gate`/`up` against `A`, picks the optimal antipodal sign (`±1`), and optionally applies **L+1 downstream gate shielding** (projecting ghost `down_proj` vectors out of top L+1 consumer gates).
+* **Self-OBS / Self-KL healing:** Generates short on-distribution English rollouts from the unmodified model itself (zero external corpus), splits them into `fit` and held-out `eval`, and solves a one-shot closed-form ridge regression (`self_obs`) and/or short KL distillation (`self_kl`, `obs_then_kl`) on surviving `down_proj` columns.
+
+### 5. Pure Weight-Based Behavioral Folding (`%`)
+* Runs 3 neutral topics with vs. without a user-specified mood/persona (generating ~14-token replies) and averages MLP activations across **all assistant-response tokens** in middle layers (`L10..L23`).
+* Computes the contrastive mood vector `v_mood = mean(out_mood) - mean(out_neutral)` and typical neutral activation `a_bar = mean(act_neutral)`, then folds the behavior permanently into `mlp.down_proj.weight` via a rank-1 outer product:
+  `ΔW_down = strength · (v_mood ⊗ a_bar) / ||a_bar||²`
+* Requires **zero runtime hooks** and no extra parameters, while remaining fully rollbackable in RAM via `Z`.
+
+### 6. Sparse MoE & NVFP4/MXFP8 Support (Inkling-2-Mini)
+* Auto-detects routed MoE checkpoints (`mlp.gate.weight` + `mlp.experts.w2_weight`), clustering all experts across layers directly in router space (`<2s`).
+* Includes pure-PyTorch dequantizers in `weights.py` for **NVFP4** (`nvfp4_e2m1` packed nibbles + `float8_e4m3fn` block-16 scales + `amax / outer_scale_denominator`) and **MXFP8** (`float8_e4m3fn` + `ue8m0` block-32 scales).
+
 ## Code Map
 
 * `models.py` — Pydantic v2 schemas (`ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `MitigationConfig`, `TransactionRecord`, `ApplyReport`)
