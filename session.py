@@ -944,6 +944,10 @@ class ReclaimSession:
         spreads smoothly across the whole sentence, not just token 1), and prepares a pure
         rank-1 weight fold into mlp.down_proj.weight.
         """
+        if self.is_moe:
+            raise RuntimeError(
+                "PyTorch activation-based mood discovery is for dense models; for sparse MoE checkpoints use `neuron-reclaim gguf-fold --pos ... --neg ...`."
+            )
         self._ensure_model()
         assert self._model is not None and self._layers is not None and self._tok is not None
         assert self._lm_head_w is not None and self._norm_w is not None
