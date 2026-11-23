@@ -55,21 +55,26 @@ class OpenAICompatBackend:
         self.model_name = str(models[0]["id"])
         return self.model_name
 
-    def chat_once(self, user_text: str, max_new_tokens: int = 64) -> str:
+    def chat_once(self, user_text: str, max_new_tokens: int = 128) -> str:
         model_id = self.resolve_model_name()
         resp = self._request(
             "/chat/completions",
             {
                 "model": model_id,
                 "messages": [{"role": "user", "content": user_text}],
-                "max_tokens": max_new_tokens,
+                "max_tokens": max(max_new_tokens, 128),
                 "temperature": 0.0,
             },
         )
         choices = resp.get("choices", [])
         if not choices:
             return ""
-        return str(choices[0].get("message", {}).get("content", "")).strip()
+        msg = choices[0].get("message", {})
+        content = str(msg.get("content") or "").strip()
+        if content:
+            return content
+        reasoning = str(msg.get("reasoning_content") or "").strip()
+        return f"[thinking] {reasoning}" if reasoning else ""
 
     def probe_next_tokens(self, prompt: str, top_k: int = 5) -> list[tuple[str, float]]:
         """
