@@ -1,0 +1,14 @@
+[project]
+name = "neuron-reclaim"
+version = "0.1.0"
+description = "Zero-corpus, weight-based MLP neuron atlas and transactional surgery TUI/CLI for local HuggingFace LLMs."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "pydantic>=2.0",
+    "rich>=13.0",
+    "safetensors>=0.4",
+    "torch>=2.4",
+    "transformers>=4.45",
+    "typer>=0.12",
+]
