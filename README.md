@@ -1,6 +1,6 @@
 # neuron-reclaim
 
-Zero-corpus, weight-based MLP neuron atlas and transactional surgery toolkit for local HuggingFace (`safetensors`) LLMs (tested on `Qwen/Qwen3.5-4B` and `Qwen/Qwen3-4B`).
+Zero-corpus, weight-based MLP neuron / MoE expert atlas and transactional surgery toolkit for local HuggingFace (`safetensors`) LLMs (tested on `Qwen/Qwen3.5-4B`, `Qwen/Qwen3-4B`, and `thinkingmachines/Inkling-2-Mini` sparse MoE with NVFP4/MXFP8 support).
 
 Explore a model's MLP capacity like `ncdu`, isolate concepts or behavioral circuits without an external dataset, and iterate safely with in-memory **Apply → Probe/Chat → Commit / Rollback**.
 
@@ -19,9 +19,15 @@ Opens a target-free, full-model cluster atlas (cached in `.reclaim_cache/` after
 
 ```bash
 cd /home/james/work/neuron-reclaim
+# Dense MLP models (Qwen3.5 / Qwen3 / Llama)
 CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
   --model Qwen/Qwen3.5-4B \
   --clusters 48
+
+# Sparse MoE models (Inkling-2-Mini: auto-detects 24L x 128 routed experts + NVFP4/MXFP8)
+CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
+  --model thinkingmachines/Inkling-2-Mini \
+  --clusters 32
 ```
 
 ### TUI Controls

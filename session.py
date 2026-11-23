@@ -35,7 +35,7 @@ from surgery import (
     _run_self_kl_heal,
     _self_generate_rollouts,
 )
-from weights import get_num_layers, load_layer_weights, load_shared_unembed, load_tensor, resolve_snapshot
+from weights import get_num_layers, is_moe_model, load_layer_weights, load_moe_router, load_shared_unembed, load_tensor, resolve_snapshot
 
 
 @dataclass
@@ -130,19 +130,24 @@ class ReclaimSession:
             return
         model_dir, weight_map, U, tok = load_shared_unembed(str(self.model_dir))
         n_layers = get_num_layers(model_dir)
+        moe = is_moe_model(weight_map)
         all_v: list[torch.Tensor] = []
         all_n: list[torch.Tensor] = []
         for l in range(n_layers):
-            W = load_tensor(
-                model_dir,
-                weight_map,
-                [
-                    f"model.language_model.layers.{l}.mlp.down_proj.weight",
-                    f"model.layers.{l}.mlp.down_proj.weight",
-                ],
-            )
-            self._d_mlp = W.shape[1]
-            V = W.T.contiguous()
+            if moe:
+                V = load_moe_router(model_dir, weight_map, l)  # [n_experts, d_model]
+                self._d_mlp = V.shape[0]
+            else:
+                W = load_tensor(
+                    model_dir,
+                    weight_map,
+                    [
+                        f"model.language_model.layers.{l}.mlp.down_proj.weight",
+                        f"model.layers.{l}.mlp.down_proj.weight",
+                    ],
+                )
+                self._d_mlp = W.shape[1]
+                V = W.T.contiguous()
             all_n.append(V.norm(dim=-1))
             all_v.append(torch.nn.functional.normalize(V, dim=-1).to(torch.bfloat16))
         self._V_all_bf16 = torch.cat(all_v, dim=0)

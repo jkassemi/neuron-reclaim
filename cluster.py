@@ -19,7 +19,7 @@ from models import (
     ModelOverview,
     NeuronInfo,
 )
-from weights import LayerWeights, get_num_layers, load_shared_unembed, load_tensor
+from weights import LayerWeights, get_num_layers, is_moe_model, load_moe_router, load_shared_unembed, load_tensor
 
 _CJK_RE = re.compile(r"[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\uac00-\ud7af]")
 _LATIN_RE = re.compile(r"[A-Za-z]")
@@ -128,17 +128,21 @@ def overview_model(
     evict_vocab_mask = cjk_mask if evict_target == EvictTarget.CJK else nl_mask
     evict_vocab_tokens = int(evict_vocab_mask.sum().item())
 
+    moe = is_moe_model(weight_map)
     layer_rows: list[LayerOverview] = []
     for l in range(0, n_layers, layer_step):
-        W = load_tensor(
-            model_dir,
-            weight_map,
-            [
-                f"model.language_model.layers.{l}.mlp.down_proj.weight",
-                f"model.layers.{l}.mlp.down_proj.weight",
-            ],
-        )
-        V = W.T.contiguous()
+        if moe:
+            V = load_moe_router(model_dir, weight_map, l)
+        else:
+            W = load_tensor(
+                model_dir,
+                weight_map,
+                [
+                    f"model.language_model.layers.{l}.mlp.down_proj.weight",
+                    f"model.layers.{l}.mlp.down_proj.weight",
+                ],
+            )
+            V = W.T.contiguous()
         norms = V.norm(dim=-1)
         _, _, cjk_s, nl_s, lat_s = _score_neurons_logit_lens(V, U, cjk_mask, nl_mask, lat_mask, top_k=12)
         ev_s = cjk_s if evict_target == EvictTarget.CJK else nl_s
@@ -376,22 +380,27 @@ def build_model_atlas(
     cjk_mask, nl_mask, lat_mask, decoded = build_vocab_masks(tokenizer, vocab_size)
     cjk_vocab_pct = round(100.0 * float(cjk_mask.sum().item()) / vocab_size, 1)
 
-    # Load all layers' down_proj in bf16 -> normalize in float32 chunks to stay fast & lean
+    # Load all layers' down_proj (or MoE router weights for Inkling-2/MoE) in bf16
     all_v_norm: list[torch.Tensor] = []
     all_norms: list[torch.Tensor] = []
     d_model = 0
     d_mlp = 0
+    moe = is_moe_model(weight_map)
     for l in range(n_layers):
-        W = load_tensor(
-            model_dir,
-            weight_map,
-            [
-                f"model.language_model.layers.{l}.mlp.down_proj.weight",
-                f"model.layers.{l}.mlp.down_proj.weight",
-            ],
-        )
-        d_model, d_mlp = W.shape
-        V = W.T.contiguous()  # [d_mlp, d_model]
+        if moe:
+            V = load_moe_router(model_dir, weight_map, l)  # [n_experts, d_model]
+            d_mlp, d_model = V.shape
+        else:
+            W = load_tensor(
+                model_dir,
+                weight_map,
+                [
+                    f"model.language_model.layers.{l}.mlp.down_proj.weight",
+                    f"model.layers.{l}.mlp.down_proj.weight",
+                ],
+            )
+            d_model, d_mlp = W.shape
+            V = W.T.contiguous()  # [d_mlp, d_model]
         norms = V.norm(dim=-1)
         all_norms.append(norms)
         all_v_norm.append(F.normalize(V, dim=-1).to(torch.bfloat16))
