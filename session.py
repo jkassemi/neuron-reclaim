@@ -58,6 +58,26 @@ from weights import (
 )
 
 
+DEFAULT_NEG_MOOD = "neutral, matter-of-fact"
+
+
+@dataclass
+class BehaviorCircuit:
+    circuit_id: int
+    pos_label: str
+    neg_label: str
+    strength: float
+    layer_vecs: dict[int, tuple[torch.Tensor, torch.Tensor]]
+    top_neurons: list[tuple[int, int, float, list[str]]]
+    enabled: bool = True
+
+    @property
+    def short_label(self) -> str:
+        if self.neg_label == DEFAULT_NEG_MOOD:
+            return self.pos_label
+        return f"{self.pos_label} vs {self.neg_label}"
+
+
 @dataclass
 class _LayerBackup:
     layer: int
@@ -144,9 +164,10 @@ class ReclaimSession:
         self.behavior_layers_committed: set[int] = set()
         self._next_tx_id = 1
 
-        # Discovered weight-based behavioral edits: (mood, strength, {layer: (v_mood, mean_neg_act)}, summary)
-        self.pending_steer: tuple[str, float, dict[int, tuple[torch.Tensor, torch.Tensor]], list[tuple[int, int, float, list[str]]]] | None = None
-        self.active_steers: list[tuple[str, float]] = []
+        # Discovered weight-based behavioral circuits (multi-mood mixer)
+        self.behavior_circuits: list[BehaviorCircuit] = []
+        self._next_circuit_id = 1
+        self.active_steers: list[str] = []
 
         # Pinned completion probes for instant (~1s) next-token probability diffs
         self.pinned_probes: list[str] = [
@@ -947,21 +968,23 @@ class ReclaimSession:
 
     def discover_behavior(
         self,
-        mood: str,
+        pos_mood: str,
+        neg_mood: str = DEFAULT_NEG_MOOD,
         strength: float = 1.5,
         progress_cb: Callable[[str], None] | None = None,
-    ) -> list[tuple[int, int, float, list[str]]]:
+    ) -> BehaviorCircuit:
         """
-        Zero-corpus Contrastive Behavioral Discovery (L10..L23) across FULL generated replies:
-        Generates short contrastive replies (~14 tokens) on 3 neutral topics with vs. without
-        the target mood, averages MLP inputs/outputs across ALL response tokens (so the mood
-        spreads smoothly across the whole sentence, not just token 1), and prepares a pure
-        rank-1 weight fold into mlp.down_proj.weight.
+        Zero-corpus Contrastive Behavioral Discovery across FULL generated replies:
+        Generates short contrastive replies (~14 tokens) on 3 neutral topics comparing
+        `pos_mood` vs `neg_mood` (defaults to neutral, matter-of-fact), averages MLP
+        inputs/outputs across ALL response tokens, and appends a new BehaviorCircuit
+        to the mixer for pure rank-1 weight folding into mlp.down_proj.weight.
         """
         if self.is_moe:
             raise RuntimeError(
                 "PyTorch activation-based mood discovery is for dense models; for sparse MoE checkpoints use `neuron-reclaim gguf-fold --pos ... --neg ...`."
             )
+        neg_clean = neg_mood.strip() or DEFAULT_NEG_MOOD
         if progress_cb and self._model is None:
             progress_cb(f"Loading {self.model_ref} into RAM (one-time)...")
         self._ensure_model()
@@ -1035,12 +1058,12 @@ class ReclaimSession:
             mean_out = {l: torch.stack(mlp_out[l], dim=0).mean(dim=0) for l in target_layers}
             return mean_in, mean_out
 
-        pos_msgs = [f"Respond in a {mood} tone: {t}" for t in topics]
-        neg_msgs = [f"Respond in a neutral, matter-of-fact tone: {t}" for t in topics]
-        pos_in, pos_out = run_batch(pos_msgs, f"'{mood}'")
-        neg_in, neg_out = run_batch(neg_msgs, "neutral")
+        pos_msgs = [f"Respond in a {pos_mood} tone: {t}" for t in topics]
+        neg_msgs = [f"Respond in a {neg_clean} tone: {t}" for t in topics]
+        pos_in, pos_out = run_batch(pos_msgs, f"+'{pos_mood}'")
+        neg_in, neg_out = run_batch(neg_msgs, f"-'{neg_clean}'")
 
-        # Build per-layer (v_mood, mean_neutral_act) for pure rank-1 weight folding into down_proj.weight!
+        # Build per-layer (v_mood, mean_neg_act) for pure rank-1 weight folding into down_proj.weight!
         steer_vecs: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}
         top_neurons: list[tuple[float, int, int, float]] = []
         for l in target_layers:
@@ -1061,34 +1084,56 @@ class ReclaimSession:
             toks = [self._tok.decode([t]) for t in ti.tolist()]
             summary.append((l, ni, round(signed_d, 2), toks))
 
-        self.pending_steer = (mood, strength, steer_vecs, summary)
-        return summary
+        circuit = BehaviorCircuit(
+            circuit_id=self._next_circuit_id,
+            pos_label=pos_mood,
+            neg_label=neg_clean,
+            strength=strength,
+            layer_vecs=steer_vecs,
+            top_neurons=summary,
+            enabled=True,
+        )
+        self._next_circuit_id += 1
+        self.behavior_circuits.append(circuit)
+        return circuit
 
     def apply_pending_behavior(self) -> TransactionRecord:
         """
-        Pure weight-based behavioral edit (zero runtime hooks!):
-        Folds each layer's contrastive mood vector directly into mlp.down_proj.weight
-        via rank-1 outer product: dW_down = strength * (v_mood @ a_neutral^T) / ||a_neutral||^2.
+        Pure weight-based multi-mood behavioral mixer (zero runtime hooks!):
+        Combines all enabled BehaviorCircuits (supporting positive and negative strengths)
+        and folds their summed rank-1 updates directly into mlp.down_proj.weight.
+        If a behavior transaction is already pending, automatically replaces it so
+        tweaking sliders and pressing A is a single-key live re-apply.
         """
         if self.pending is not None:
-            raise RuntimeError("Commit or rollback the current pending transaction first.")
-        if self.pending_steer is None:
-            raise ValueError("No behavior discovered yet (press % first).")
+            if self.pending.is_behavior:
+                self.rollback()
+            else:
+                raise RuntimeError("Commit or rollback the current pending neuron transaction first.")
+        active = [c for c in self.behavior_circuits if c.enabled and abs(c.strength) > 1e-6]
+        if not active:
+            raise ValueError("No enabled behavior circuits with non-zero strength (press n to add one).")
         assert self._layers is not None
-        mood, strength, vecs, _ = self.pending_steer
-        ordered = sorted(vecs.keys())
+
+        touched: set[int] = set()
+        for c in active:
+            touched.update(c.layer_vecs.keys())
+        ordered = sorted(touched)
         backups = [self._backup_layer(l) for l in ordered]
 
         with torch.no_grad():
             for l in ordered:
-                v_mood, a_bar = vecs[l]
-                denom = float(a_bar.norm().pow(2).item()) + 1e-6
-                # Rank-1 update directly into down_proj.weight: [d_model, d_mlp]
-                dW = (strength / denom) * torch.outer(v_mood, a_bar)
                 mlp = self._layers[l].mlp
-                W_new = mlp.down_proj.weight.float() + dW
+                W_new = mlp.down_proj.weight.float()
+                for c in active:
+                    if l not in c.layer_vecs:
+                        continue
+                    v_mood, a_bar = c.layer_vecs[l]
+                    denom = float(a_bar.norm().pow(2).item()) + 1e-6
+                    W_new = W_new + (c.strength / denom) * torch.outer(v_mood, a_bar)
                 mlp.down_proj.weight.copy_(W_new.to(mlp.down_proj.weight.dtype))
 
+        mix_desc = " + ".join(f"{c.short_label}@{c.strength:+.2f}x" for c in active)
         rec = TransactionRecord(
             tx_id=self._next_tx_id,
             layer=-1,
@@ -1099,7 +1144,7 @@ class ReclaimSession:
             merged=0,
             shielded=len(ordered),
             heal_mode=HealMode.NONE,
-            note=f"behavior:{mood}@{strength:.2f}x(weights)",
+            note=f"behavior:{mix_desc}",
         )
         self._next_tx_id += 1
         self.pending = _Transaction(
@@ -1269,9 +1314,10 @@ class ReclaimSession:
             tx.record.note = note
         layer, newly_freed = tx.freed_in_layer
         if tx.is_behavior:
-            if self.pending_steer is not None:
-                self.active_steers.append((self.pending_steer[0], self.pending_steer[1]))
-                self.pending_steer = None
+            label = tx.record.note.removeprefix("behavior:")
+            self.active_steers.append(label)
+            for c in self.behavior_circuits:
+                c.enabled = False
             self.behavior_layers_committed.update(tx.behavior_layers)
             self.committed.append(tx)
             self.pending = None

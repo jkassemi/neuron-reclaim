@@ -40,7 +40,8 @@ neuron-reclaim open \
 | `@` | **Concept Anchor** — type comma-separated words (e.g. `blue, azure, cobalt`); scores both SwiGLU poles (`.abs()`), masks already-pruned neurons, and pulls top 1,500 neurons into 20 sub-clusters (`-tok` = negative-pole suppressor) |
 | `K` / `L` | Change cluster count `k` / cycle layer scope (`all`, `upper`, `mid`, `lower`) |
 | `p` / `r` / `e` / `b` / `x` | Stage **PRUNE** (shrink), **EMPTY** (fine-tune slot), **ERASE** (subspace), **BOOST** (`2.5× down_proj`), or **KEEP** |
-| `%` / `[` / `]` | **Weight-Based Behavior** — contrastive full-reply discovery + rank-1 fold into `down_proj.weight` (zero hooks); `[`/`]` adjusts strength |
+| `1`–`5` / `Tab` | Switch tabs globally (`Explore`, `Chat & Probe`, `Export`, `Behavior Mixer`, `Model`); all other keys are strictly scoped to the active tab |
+| `4` → `n` | **Behavior Mixer** — discover multiple contrastive axes (`+side` vs custom `-side`, default neutral), dial each from `-5.0x` to `+5.0x` (`-/+` or `←/→`, `f` flip, `Space` toggle), and fold the combined mix with `A` (zero hooks) |
 | `A` → `t` / `c` → `C` / `Z` | **Apply** in-memory → **Probe Diff** (next-token probs) / **Live Chat** → **Commit** or instant **Rollback** |
 | `5` | **Live Model Map** — full per-layer architecture & capacity view (also shown as a live strip on row 3 across all tabs) |
 | `w` | *(MoE models)* Dequantize and inspect the top `W2` neurons of the highlighted expert via NVFP4/MXFP8 |

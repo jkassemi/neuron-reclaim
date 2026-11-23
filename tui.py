@@ -116,8 +116,9 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
         query = ""
         anchor_text = ""
         anchor_scores: dict[int, float] = {}
+        beh_cur = 0
         chat_log: list[tuple[str, str, str]] = []
-        status = "p:Prune r:Empty e:Erase | @:Anchor K:Clusters L:Layers | W:Export"
+        status = "1-5/Tab:Switch tabs | A:Apply C:Commit Z:Rollback | q:Quit"
 
         def tx_badge() -> tuple[str, int]:
             if session.pending is not None:
@@ -190,7 +191,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
             t0 = " [1] Explore "
             t1 = " [2] Chat & Probe Diff "
             t2 = " [3] Export "
-            t3 = " [4] Behavior (%) "
+            t3 = " [4] Behavior Mixer "
             t4 = " [5] Model "
             _safe_addstr(stdscr, 2, 0, t0, curses.A_REVERSE | curses.A_BOLD if mode == "explore" else curses.A_DIM)
             _safe_addstr(stdscr, 2, len(t0) + 1, t1, curses.A_REVERSE | curses.A_BOLD if mode == "chat" else curses.A_DIM)
@@ -311,32 +312,84 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     stdscr,
                     4,
                     0,
-                    " Behavioral / Mood Steering  ([%] Discover mood  [-/+] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
+                    " BEHAVIOR MIXER — Multi-Mood Contrastive Weight Folding (zero runtime hooks)",
                     curses.A_BOLD | curses.A_UNDERLINE,
                 )
-                y = 6
+                y = 5
                 if session.active_steers:
-                    act_s = ", ".join(f"{m}@{st:.2f}x" for m, st in session.active_steers)
-                    _safe_addstr(stdscr, y, 2, f"Committed weight behaviors: {act_s}", curses.color_pair(2) | curses.A_BOLD)
-                    y += 2
-                if session.pending_steer is not None:
-                    m, st, vecs, summ = session.pending_steer
+                    act_s = "  |  ".join(session.active_steers[-3:])
+                    _safe_addstr(stdscr, y, 2, f"Committed mixes: {act_s}", curses.color_pair(2) | curses.A_BOLD)
+                    y += 1
+                circuits = session.behavior_circuits
+                if circuits:
+                    beh_cur = max(0, min(beh_cur, len(circuits) - 1))
+                    y += 1
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        1,
+                        f"{'ID':>3} {'On':>4} {'Strength':>8} {'Slider (-5..0..+5)':21} {'Layers':>6}  {'+Pole  vs  -Pole'}",
+                        curses.A_BOLD,
+                    )
+                    y += 1
+                    max_list_h = max(3, min(len(circuits), (h - y - 10)))
+                    for idx, c in enumerate(circuits[:max_list_h]):
+                        half = 9
+                        pos = int(round((c.strength / 5.0) * half))
+                        pos = max(-half, min(half, pos))
+                        left = ("=" * (-pos)).rjust(half, "-") if pos < 0 else "-" * half
+                        right = ("=" * pos).ljust(half, "-") if pos > 0 else "-" * half
+                        slider = f"[{left}|{right}]"
+                        on_lbl = "[ON]" if c.enabled else "[  ]"
+                        line = (
+                            f"#{c.circuit_id:2d} {on_lbl:>4} {c.strength:+7.2f}x {slider} "
+                            f"{len(c.layer_vecs):4d}L  +{c.pos_label}  vs  -{c.neg_label}"
+                        )
+                        attr = (
+                            curses.A_REVERSE | curses.A_BOLD
+                            if idx == beh_cur
+                            else curses.color_pair(4) | curses.A_BOLD
+                            if c.enabled and c.strength > 0
+                            else curses.color_pair(7) | curses.A_BOLD
+                            if c.enabled and c.strength < 0
+                            else curses.A_DIM
+                        )
+                        _safe_addstr(stdscr, y, 1, line, attr)
+                        y += 1
+
+                    sel = circuits[beh_cur]
+                    y += 1
+                    _safe_addstr(stdscr, y, 0, "-" * (w - 1), curses.color_pair(1))
+                    y += 1
                     _safe_addstr(
                         stdscr,
                         y,
                         2,
-                        f"Discovered mood: '{m}'  |  strength={st:.2f}x  |  layers={min(vecs)}..{max(vecs)} ({len(vecs)}L)",
+                        f"Selected #{sel.circuit_id}: +{sel.pos_label!r} vs -{sel.neg_label!r} ({sel.strength:+.2f}x) — top shifted neurons:",
                         curses.color_pair(4) | curses.A_BOLD,
                     )
-                    y += 2
-                    _safe_addstr(stdscr, y, 2, "Top shifted mid-layer behavioral neurons (Delta = act_mood - act_neutral):", curses.color_pair(1))
                     y += 1
-                    for li, ni, dval, toks in summ[: max(0, h - y - 3)]:
+                    for li, ni, dval, toks in sel.top_neurons[: max(0, h - y - 3)]:
                         t_str = "  ".join(_pad_cell(t, 12) for t in toks[:5])
                         _safe_addstr(stdscr, y, 3, f"L{li:02d}/N{ni:04d}  Delta={dval:+6.2f}  |  {t_str}")
                         y += 1
                 else:
-                    _safe_addstr(stdscr, y, 2, "Press %, /, or Enter to discover any mood/persona (e.g. 'grumpy and sarcastic', 'overly enthusiastic').", curses.A_DIM)
+                    y += 1
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        2,
+                        "No behavioral axes yet. Press [n] to discover one (specify +side and optional -side, default: neutral).",
+                        curses.A_DIM,
+                    )
+                    y += 2
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        2,
+                        "Tip: Add multiple axes, dial each from -5.0x to +5.0x (negative pushes toward -side), then press [A] to fold the combined mix!",
+                        curses.color_pair(1),
+                    )
             elif mode == "export":
                 counts = [len(session.pruned_by_layer.get(l, set())) for l in range(atlas.num_layers)]
                 max_p = max(counts, default=0)
@@ -491,18 +544,29 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                             y += 1
 
             _safe_addstr(stdscr, h - 2, 0, f" {status}".ljust(w - 1), curses.color_pair(3))
-            keys = " jk:nav Ent:in Bksp:up  p:Prune r:Empty e:Erase  @:Anchor K:k L:Layers  A:Apply t:Diff C:Commit Z:Back W:Export q:quit"
+            if mode == "explore":
+                keys = " [Explore] jk:nav Ent:in Bksp:up /:filt s:sort @:Anchor K:k L:Lyrs | p:Prn r:Emp e:Era b:Bst x:Clr U:Unstg | A:Apply C:Commit Z:Back 1-5:Tabs q:Quit"
+            elif mode == "chat":
+                keys = " [Chat] Enter:Send prompt  t:Run probe diff  +:Add probe  d:Del probe | A:Apply C:Commit Z:Back  1-5/Tab:Tabs  q:Quit"
+            elif mode == "export":
+                keys = " [Export] a:Same-size  b:Uniform  c:Per-layer  d:Save weights (safetensors)  Esc:Back | 1-5/Tab:Tabs  q:Quit"
+            elif mode == "behavior":
+                keys = " [Behavior] n:New axis  jk:Select  -/+/Left/Right:Strength (-5..+5)  f:Flip  Space:On/Off  d:Del | A:Apply mix C:Commit Z:Back 1-5:Tabs q:Quit"
+            else:
+                keys = " [Model] Live layer capacity & edit heatmap | A:Apply C:Commit Z:Back  1-5/Tab:Tabs  q:Quit"
             _safe_addstr(stdscr, h - 1, 0, keys.ljust(w - 1), curses.color_pair(5))
             stdscr.refresh()
 
             ch = stdscr.getch()
+
+            # 1) STRICTLY GLOBAL KEYS ONLY: quit, tab switching, and transaction lifecycle (A / C / Z)
             if ch == ord("q"):
                 break
             elif ch == ord("1"):
                 mode = "explore"
-            elif ch == ord("2") or (ch == ord("c") and mode != "export"):
+            elif ch == ord("2"):
                 mode = "chat"
-            elif ch in (ord("3"), ord("W")):
+            elif ch == ord("3"):
                 mode = "export"
             elif ch == ord("4"):
                 mode = "behavior"
@@ -510,124 +574,17 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 mode = "model"
             elif ch == ord("\t"):
                 mode = {"explore": "chat", "chat": "export", "export": "behavior", "behavior": "model", "model": "explore"}[mode]
-            elif mode == "export":
-                if ch in (27, curses.KEY_BACKSPACE, 127):
-                    mode = "explore"
-                elif ch in (ord("a"), ord("b"), ord("c")):
-                    em = {"a": "same_size", "b": "uniform", "c": "per_layer"}[chr(ch)]
-                    _safe_addstr(stdscr, h - 2, 0, f" Exporting ({em})...", curses.color_pair(6))
-                    stdscr.refresh()
-                    try:
-                        _, msg = session.export_plan_mode(em, Path("."))
-                        status = msg
-                        mode = "explore"
-                    except Exception as exc:
-                        status = f"Export error: {exc}"
-                elif ch == ord("d"):
-                    dest = _prompt_line(stdscr, "Output checkpoint directory (default ./reclaim_edited_model): ")
-                    out_p = Path(dest) if dest else Path("./reclaim_edited_model")
-                    _safe_addstr(stdscr, h - 2, 0, f" Saving edited safetensors weights to {out_p}...", curses.color_pair(6))
-                    stdscr.refresh()
-                    try:
-                        _, msg = session.export_checkpoint(out_p)
-                        status = msg
-                        mode = "explore"
-                    except Exception as exc:
-                        status = f"Save error: {exc}"
-            elif ch == ord("%") or (mode == "behavior" and ch in (ord("/"), 10, 13, curses.KEY_ENTER)):
-                mood = _prompt_line(stdscr, "Target mood/persona (e.g. grumpy and sarcastic): ")
-                if mood:
-                    mode = "behavior"
-
-                    def _show_progress(msg: str) -> None:
-                        _safe_addstr(stdscr, h - 2, 0, f" {msg}".ljust(w - 1), curses.color_pair(6) | curses.A_BOLD)
-                        stdscr.refresh()
-
-                    _show_progress(f"Discovering '{mood}' behavioral circuit (6 short rollouts)...")
-                    try:
-                        session.discover_behavior(mood, strength=1.5, progress_cb=_show_progress)
-                        stdscr.clearok(True)
-                        status = f"Discovered '{mood}' behavioral circuit! -/+ adjust strength, A:Apply, c:Chat"
-                    except Exception as exc:
-                        status = f"Behavior error: {exc}"
-            elif ch in (ord("["), ord("-")) and session.pending_steer is not None:
-                m, st, vecs, summ = session.pending_steer
-                session.pending_steer = (m, max(0.1, round(st - 0.25, 2)), vecs, summ)
-                status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
-            elif ch in (ord("]"), ord("+"), ord("=")) and session.pending_steer is not None:
-                m, st, vecs, summ = session.pending_steer
-                session.pending_steer = (m, min(5.0, round(st + 0.25, 2)), vecs, summ)
-                status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
-            elif ch == ord("@"):
-                anchor_text = _prompt_line(stdscr, "Concept anchor words (comma-sep, empty clears): ")
-                if anchor_text:
-                    _safe_addstr(stdscr, h - 2, 0, f" Pulling top 1,500 neurons for '{anchor_text}'...", curses.color_pair(3))
-                    stdscr.refresh()
-                    children, anchor_scores, resolved = session.anchor_neighborhood(anchor_text, top_n=1500, k=20)
-                    if children:
-                        stack.append([f"@{anchor_text}", children, 0, 0])
-                        sort_idx = _SORT_MODES.index("anchor")
-                        query = ""
-                        status = f"Focused @{anchor_text} (tokens={resolved[:6]}) -> {len(children)} clusters (Bksp to exit)"
-                    else:
-                        status = f"No tokens resolved for '{anchor_text}'."
-                else:
-                    anchor_scores = {}
-                    sort_idx = 0
-                    status = "Cleared concept anchor."
-            elif ch == ord("K"):
-                raw_k = _prompt_line(stdscr, f"New cluster count k (current {cur_k}): ")
-                if raw_k.isdigit() and int(raw_k) >= 2:
-                    cur_k = int(raw_k)
-                    _safe_addstr(stdscr, h - 2, 0, f" Re-clustering with k={cur_k}...", curses.color_pair(3))
-                    stdscr.refresh()
-                    lbl, s_l, e_l = _LAYER_SCOPES[scope_idx]
-                    nodes = session.cluster_layer_range(s_l, e_l, k=cur_k)
-                    stack = [[f"/{lbl}(k={cur_k})", nodes, 0, 0]]
-                    anchor_scores = {}
-                    sort_idx = 0
-                    status = f"Re-clustered {lbl} layers into k={len(nodes)} clusters."
-            elif ch == ord("L"):
-                scope_idx = (scope_idx + 1) % len(_LAYER_SCOPES)
-                lbl, s_l, e_l = _LAYER_SCOPES[scope_idx]
-                _safe_addstr(stdscr, h - 2, 0, f" Re-clustering layer scope '{lbl}' ({s_l}-{min(e_l, atlas.num_layers-1)})...", curses.color_pair(3))
-                stdscr.refresh()
-                nodes = session.cluster_layer_range(s_l, e_l, k=cur_k)
-                stack = [[f"/{lbl}(k={cur_k})", nodes, 0, 0]]
-                anchor_scores = {}
-                sort_idx = 0
-                status = f"Switched layer scope -> {lbl} ({len(nodes)} clusters)."
-            elif ch == ord("h"):
-                cfg.heal_mode = _HEAL_ORDER[(_HEAL_ORDER.index(cfg.heal_mode) + 1) % len(_HEAL_ORDER)]
-                status = f"Heal mode -> {cfg.heal_mode.value}"
-            elif ch == ord("U"):
-                session.staged_tree.clear()
-                status = "Cleared staging area."
-            elif ch == ord("t"):
-                mode = "chat"
-                _safe_addstr(stdscr, h - 2, 0, f" Running {len(session.pinned_probes)} pinned probes...", curses.color_pair(6))
-                stdscr.refresh()
-                try:
-                    session.run_pinned_probes()
-                    stdscr.clearok(True)
-                    status = "Probe diff updated. C:Commit | Z:Rollback | +:Add probe"
-                except Exception as exc:
-                    status = f"Probe error: {exc}"
-            elif ch == ord("+"):
-                new_p = _prompt_line(stdscr, "Add pinned probe: ")
-                if new_p:
-                    session.pinned_probes.append(new_p)
-                    status = f"Added pinned probe ({len(session.pinned_probes)} total). Press t to run."
             elif ch == ord("A"):
-                _safe_addstr(stdscr, h - 2, 0, " Applying staged edits in-memory...", curses.color_pair(6))
+                _safe_addstr(stdscr, h - 2, 0, " Applying staged edits in-memory...".ljust(w - 1), curses.color_pair(6))
                 stdscr.refresh()
                 try:
-                    if mode == "behavior" or (session.pending_steer is not None and not session.staged_tree):
+                    has_active_beh = any(c.enabled and abs(c.strength) > 1e-6 for c in session.behavior_circuits)
+                    if mode == "behavior" or (has_active_beh and not session.staged_tree):
                         tx = session.apply_pending_behavior()
-                        status = f"APPLIED {tx.note} ({tx.shielded}L) -> c:Chat [/]:Strength C:Commit Z:Rollback"
+                        status = f"APPLIED {tx.note} ({tx.shielded}L) -> [2]Chat  -/+ & A:Re-apply  C:Commit  Z:Rollback"
                     else:
                         tx = session.apply_tree_staged()
-                        status = f"APPLIED TX#{tx.tx_id} (Prune:{tx.pruned:,} Empty:{tx.recycled:,} Erase:{tx.erased:,} KL:{tx.eval_kl_after}) -> t:Diff C:Commit Z:Rollback"
+                        status = f"APPLIED TX#{tx.tx_id} (Prune:{tx.pruned:,} Empty:{tx.recycled:,} Erase:{tx.erased:,}) -> [2]Chat/Diff  C:Commit  Z:Rollback"
                     stdscr.clearok(True)
                 except Exception as exc:
                     status = f"Apply error: {exc}"
@@ -643,6 +600,107 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     status = f"ROLLED BACK TX#{tx.tx_id}!"
                 except Exception as exc:
                     status = f"Rollback error: {exc}"
+
+            # 2) TAB-SCOPED KEYS (zero cross-tab collisions!)
+            elif mode == "export":
+                if ch in (27, curses.KEY_BACKSPACE, 127):
+                    mode = "explore"
+                elif ch in (ord("a"), ord("b"), ord("c")):
+                    em = {"a": "same_size", "b": "uniform", "c": "per_layer"}[chr(ch)]
+                    _safe_addstr(stdscr, h - 2, 0, f" Exporting ({em})...".ljust(w - 1), curses.color_pair(6))
+                    stdscr.refresh()
+                    try:
+                        _, msg = session.export_plan_mode(em, Path("."))
+                        status = msg
+                        mode = "explore"
+                    except Exception as exc:
+                        status = f"Export error: {exc}"
+                elif ch == ord("d"):
+                    dest = _prompt_line(stdscr, "Output checkpoint directory (default ./reclaim_edited_model): ")
+                    out_p = Path(dest) if dest else Path("./reclaim_edited_model")
+                    _safe_addstr(stdscr, h - 2, 0, f" Saving edited safetensors weights to {out_p}...".ljust(w - 1), curses.color_pair(6))
+                    stdscr.refresh()
+                    try:
+                        _, msg = session.export_checkpoint(out_p)
+                        status = msg
+                        mode = "explore"
+                    except Exception as exc:
+                        status = f"Save error: {exc}"
+
+            elif mode == "behavior":
+                circuits = session.behavior_circuits
+                if ch in (ord("n"), ord("%")):
+                    pos_mood = _prompt_line(stdscr, "Positive (+side) mood/persona (e.g. overly enthusiastic): ")
+                    if pos_mood:
+                        neg_mood = _prompt_line(stdscr, "Opposite (-side) mood [Enter = neutral, matter-of-fact]: ")
+
+                        def _show_progress(msg: str) -> None:
+                            _safe_addstr(stdscr, h - 2, 0, f" {msg}".ljust(w - 1), curses.color_pair(6) | curses.A_BOLD)
+                            stdscr.refresh()
+
+                        _show_progress(f"Discovering +{pos_mood!r} vs -{neg_mood or 'neutral'}...")
+                        try:
+                            c = session.discover_behavior(pos_mood, neg_mood=neg_mood, strength=1.5, progress_cb=_show_progress)
+                            beh_cur = len(session.behavior_circuits) - 1
+                            stdscr.clearok(True)
+                            status = f"Added #{c.circuit_id} ({c.short_label}) @ {c.strength:+.2f}x! -/+:Strength Space:On/Off A:Apply mix"
+                        except Exception as exc:
+                            status = f"Behavior error: {exc}"
+                elif circuits:
+                    beh_cur = max(0, min(beh_cur, len(circuits) - 1))
+                    sel = circuits[beh_cur]
+                    if ch in (curses.KEY_DOWN, ord("j")):
+                        beh_cur = min(len(circuits) - 1, beh_cur + 1)
+                    elif ch in (curses.KEY_UP, ord("k")):
+                        beh_cur = max(0, beh_cur - 1)
+                    elif ch in (curses.KEY_LEFT, ord("-"), ord("[")):
+                        sel.strength = max(-5.0, round(sel.strength - 0.25, 2))
+                        status = f"#{sel.circuit_id} ({sel.short_label}) -> {sel.strength:+.2f}x (press A to apply mix)"
+                    elif ch in (curses.KEY_RIGHT, ord("+"), ord("="), ord("]")):
+                        sel.strength = min(5.0, round(sel.strength + 0.25, 2))
+                        status = f"#{sel.circuit_id} ({sel.short_label}) -> {sel.strength:+.2f}x (press A to apply mix)"
+                    elif ch == ord("f"):
+                        sel.strength = round(-sel.strength, 2)
+                        status = f"Flipped #{sel.circuit_id} -> {sel.strength:+.2f}x (press A to apply mix)"
+                    elif ch == ord(" "):
+                        sel.enabled = not sel.enabled
+                        status = f"#{sel.circuit_id} ({sel.short_label}) -> {'ON' if sel.enabled else 'OFF'}"
+                    elif ch == ord("d"):
+                        removed = circuits.pop(beh_cur)
+                        beh_cur = max(0, min(beh_cur, len(circuits) - 1))
+                        status = f"Removed #{removed.circuit_id} ({removed.short_label})"
+
+            elif mode == "chat":
+                if ch in (10, 13, curses.KEY_ENTER):
+                    user_msg = _prompt_line(stdscr, "Prompt: ")
+                    if user_msg:
+                        _safe_addstr(stdscr, h - 2, 0, " Generating reply...".ljust(w - 1), curses.color_pair(3))
+                        stdscr.refresh()
+                        try:
+                            reply = session.chat_once(user_msg, max_new_tokens=40)
+                            stdscr.clearok(True)
+                            chat_log.append((badge, user_msg, reply))
+                            status = "Reply received. t:Probe-Diff | C:Commit | Z:Rollback"
+                        except Exception as exc:
+                            status = f"Chat error: {exc}"
+                elif ch == ord("t"):
+                    _safe_addstr(stdscr, h - 2, 0, f" Running {len(session.pinned_probes)} pinned probes...".ljust(w - 1), curses.color_pair(6))
+                    stdscr.refresh()
+                    try:
+                        session.run_pinned_probes()
+                        stdscr.clearok(True)
+                        status = "Probe diff updated. C:Commit | Z:Rollback | +:Add probe"
+                    except Exception as exc:
+                        status = f"Probe error: {exc}"
+                elif ch == ord("+"):
+                    new_p = _prompt_line(stdscr, "Add pinned probe: ")
+                    if new_p:
+                        session.pinned_probes.append(new_p)
+                        status = f"Added pinned probe ({len(session.pinned_probes)} total). Press t to run."
+                elif ch == ord("d") and session.pinned_probes:
+                    popped = session.pinned_probes.pop()
+                    status = f"Removed probe: {popped!r}"
+
             elif mode == "explore":
                 vis = current_nodes()
                 if ch in (curses.KEY_DOWN, ord("j")):
@@ -659,6 +717,51 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     stack[-1][2] = 0
                     stack[-1][3] = 0
                     status = f"Sorted by {_SORT_MODES[sort_idx]}."
+                elif ch == ord("@"):
+                    anchor_text = _prompt_line(stdscr, "Concept anchor words (comma-sep, empty clears): ")
+                    if anchor_text:
+                        _safe_addstr(stdscr, h - 2, 0, f" Pulling top 1,500 neurons for '{anchor_text}'...".ljust(w - 1), curses.color_pair(3))
+                        stdscr.refresh()
+                        children, anchor_scores, resolved = session.anchor_neighborhood(anchor_text, top_n=1500, k=20)
+                        if children:
+                            stack.append([f"@{anchor_text}", children, 0, 0])
+                            sort_idx = _SORT_MODES.index("anchor")
+                            query = ""
+                            status = f"Focused @{anchor_text} (tokens={resolved[:6]}) -> {len(children)} clusters (Bksp to exit)"
+                        else:
+                            status = f"No tokens resolved for '{anchor_text}'."
+                    else:
+                        anchor_scores = {}
+                        sort_idx = 0
+                        status = "Cleared concept anchor."
+                elif ch == ord("K"):
+                    raw_k = _prompt_line(stdscr, f"New cluster count k (current {cur_k}): ")
+                    if raw_k.isdigit() and int(raw_k) >= 2:
+                        cur_k = int(raw_k)
+                        _safe_addstr(stdscr, h - 2, 0, f" Re-clustering with k={cur_k}...".ljust(w - 1), curses.color_pair(3))
+                        stdscr.refresh()
+                        lbl, s_l, e_l = _LAYER_SCOPES[scope_idx]
+                        nodes = session.cluster_layer_range(s_l, e_l, k=cur_k)
+                        stack = [[f"/{lbl}(k={cur_k})", nodes, 0, 0]]
+                        anchor_scores = {}
+                        sort_idx = 0
+                        status = f"Re-clustered {lbl} layers into k={len(nodes)} clusters."
+                elif ch == ord("L"):
+                    scope_idx = (scope_idx + 1) % len(_LAYER_SCOPES)
+                    lbl, s_l, e_l = _LAYER_SCOPES[scope_idx]
+                    _safe_addstr(stdscr, h - 2, 0, f" Re-clustering layer scope '{lbl}' ({s_l}-{min(e_l, atlas.num_layers-1)})...".ljust(w - 1), curses.color_pair(3))
+                    stdscr.refresh()
+                    nodes = session.cluster_layer_range(s_l, e_l, k=cur_k)
+                    stack = [[f"/{lbl}(k={cur_k})", nodes, 0, 0]]
+                    anchor_scores = {}
+                    sort_idx = 0
+                    status = f"Switched layer scope -> {lbl} ({len(nodes)} clusters)."
+                elif ch == ord("h"):
+                    cfg.heal_mode = _HEAL_ORDER[(_HEAL_ORDER.index(cfg.heal_mode) + 1) % len(_HEAL_ORDER)]
+                    status = f"Heal mode -> {cfg.heal_mode.value}"
+                elif ch == ord("U"):
+                    session.staged_tree.clear()
+                    status = "Cleared staging area."
                 elif ch in (27, curses.KEY_BACKSPACE, 127):
                     if len(stack) > 1:
                         stack.pop()
@@ -670,7 +773,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         if node.size <= 16:
                             status = f"Cluster C{node.cluster_id} only has {node.size} neurons (leaf)."
                         else:
-                            _safe_addstr(stdscr, h - 2, 0, f" Sub-clustering C{node.cluster_id} ({node.size:,} neurons)...", curses.color_pair(3))
+                            _safe_addstr(stdscr, h - 2, 0, f" Sub-clustering C{node.cluster_id} ({node.size:,} neurons)...".ljust(w - 1), curses.color_pair(3))
                             stdscr.refresh()
                             children = session.subcluster_node(node, k=20)
                             if children:
@@ -694,7 +797,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         status = f"Cleared C{node.cluster_id}"
                     elif ch == ord("w") and session.is_moe and node.sample_neurons:
                         top_exp = node.sample_neurons[0]
-                        _safe_addstr(stdscr, h - 2, 0, f" Dequantizing W2 for L{top_exp.layer:02d}/E{top_exp.index:03d}...", curses.color_pair(6))
+                        _safe_addstr(stdscr, h - 2, 0, f" Dequantizing W2 for L{top_exp.layer:02d}/E{top_exp.index:03d}...".ljust(w - 1), curses.color_pair(6))
                         stdscr.refresh()
                         try:
                             w2_top = session.inspect_moe_expert_w2(top_exp.layer, top_exp.index, top_k=3)
@@ -702,18 +805,6 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                             status = f"L{top_exp.layer:02d}/E{top_exp.index:03d} W2 -> {summary}"
                         except Exception as exc:
                             status = f"W2 inspect error: {exc}"
-            elif mode == "chat" and ch in (10, 13, curses.KEY_ENTER):
-                user_msg = _prompt_line(stdscr, "Prompt: ")
-                if user_msg:
-                    _safe_addstr(stdscr, h - 2, 0, " Generating reply...", curses.color_pair(3))
-                    stdscr.refresh()
-                    try:
-                        reply = session.chat_once(user_msg, max_new_tokens=40)
-                        stdscr.clearok(True)
-                        chat_log.append((badge, user_msg, reply))
-                        status = "Reply received. t:Probe-Diff | C:Commit | Z:Rollback"
-                    except Exception as exc:
-                        status = f"Chat error: {exc}"
 
     curses.wrapper(_main)
 
