@@ -20,6 +20,12 @@ from models import (
     SelectedAction,
     SurgeryPlan,
 )
+from gguf_fold import (
+    DEFAULT_ENTHUSIASTIC_NEG,
+    DEFAULT_ENTHUSIASTIC_POS,
+    apply_gguf_stein_fold,
+    restore_gguf_layers,
+)
 from session import ReclaimSession
 from surgery import execute_surgery
 from tui import run_studio_tui, run_tui
@@ -481,6 +487,42 @@ def open_studio(
         sess = ReclaimSession(model_ref=model, api_base=api_base, api_model=api_model)
         sess.get_atlas(num_clusters=clusters)
     run_studio_tui(sess, num_clusters=clusters)
+
+
+@app.command("gguf-fold")
+def gguf_fold_cmd(
+    gguf: Annotated[Path, typer.Option("--gguf", "-g", help="Path to local GGUF checkpoint (symlink-safe)")],
+    model: Annotated[str, typer.Option("--model", "-m", help="HF model ID / local safetensors dir for unembed & w13")] = "thinkingmachines/Inkling-2-Mini",
+    layers: Annotated[str, typer.Option("--layers", "-l", help="Comma-separated Q8_0 MoE layer indices")] = "21,22,23",
+    alpha: Annotated[float, typer.Option("--alpha", "-a", help="Rank-1 Stein's-lemma fold strength (e.g. 3.5-4.5)")] = 3.8,
+    pos: Annotated[str | None, typer.Option("--pos", help="Comma-separated positive seed words (defaults to enthusiasm)")] = None,
+    neg: Annotated[str | None, typer.Option("--neg", help="Comma-separated negative seed words (defaults to flat prose)")] = None,
+    backup_dir: Annotated[Path | None, typer.Option("--backup-dir", help="Directory for SHA-256 verified Q8_0 backups")] = None,
+    restore: Annotated[bool, typer.Option("--restore", help="Restore bit-exact original Q8_0 bytes from backup")] = False,
+) -> None:
+    """Zero-corpus Stein's-lemma rank-1 behavioral fold directly on Q8_0 MoE GGUF experts (SHA-256 reversible)."""
+    bdir = backup_dir or (Path(".reclaim_cache/gguf_backups") / gguf.stem)
+    if restore:
+        restored = restore_gguf_layers(bdir)
+        console.print(f"[bold green]Restored[/] bit-exact Q8_0 weights for layers {restored} from [bold]{bdir}[/].")
+        return
+
+    layer_list = [int(x.strip()) for x in layers.split(",") if x.strip()]
+    pos_words = [x.strip() for x in pos.split(",") if x.strip()] if pos is not None else list(DEFAULT_ENTHUSIASTIC_POS)
+    neg_words = [x.strip() for x in neg.split(",") if x.strip()] if neg is not None else list(DEFAULT_ENTHUSIASTIC_NEG)
+
+    with console.status(f"Folding Stein's-lemma behavioral direction (alpha={alpha}) into GGUF layers {layer_list}..."):
+        res = apply_gguf_stein_fold(
+            model_ref=model,
+            gguf_path=gguf,
+            layers=layer_list,
+            alpha=alpha,
+            backup_dir=bdir,
+            pos_words=pos_words,
+            neg_words=neg_words,
+        )
+    console.print(res.model_dump_json(indent=2))
+    console.print(f"\nRestart `llama-server` to test live. Restore anytime with:\n  [bold]cli.py gguf-fold --gguf {gguf} --restore[/]")
 
 
 @app.command("tui")

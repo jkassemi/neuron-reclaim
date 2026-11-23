@@ -90,6 +90,30 @@ CUDA_VISIBLE_DEVICES='' $PY cli.py apply \
 2. Adjust rank-1 fold strength with **`[` / `]`** (sweet spot is typically `1.5x–2.25x`).
 3. Press **`A`** (folds directly into `L10..L23` `down_proj.weight` with zero runtime hooks), **`c`** to test in Chat, then **`C`** or **`Z`**.
 
+### 5. Zero-Corpus Stein's-Lemma Behavioral Folding on Sparse MoE GGUFs (`gguf-fold`)
+
+Edit `Q8_0` MoE expert weights directly in-place on a local GGUF checkpoint (e.g., `Inkling-2-Mini-UD-Q4_K_M.gguf`) with zero runtime hooks, zero calibration corpus, and automatic SHA-256 verified backups:
+
+```bash
+# Fold an "overly enthusiastic" direction across all 128 experts in Q8_0 layers L21-L23
+CUDA_VISIBLE_DEVICES='' $PY cli.py gguf-fold \
+  --model thinkingmachines/Inkling-2-Mini \
+  --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf \
+  --layers 21,22,23 \
+  --alpha 3.8
+
+# Custom concept direction (--pos / --neg comma-separated seed words)
+CUDA_VISIBLE_DEVICES='' $PY cli.py gguf-fold \
+  --model thinkingmachines/Inkling-2-Mini \
+  --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf \
+  --pos "pirate, ahoy, matey, arrr, treasure" \
+  --neg "however, standard, typically, formal" \
+  --alpha 4.0
+
+# Restore bit-exact original Q8_0 bytes (SHA-256 verified)
+$PY cli.py gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
+```
+
 ## Methods & How It Works
 
 `neuron-reclaim` is built around **zero-corpus, weight-space interpretability**: modern LLM MLPs and MoE routers are structured enough that you can map, isolate, and edit concepts directly from the weights without training Sparse Autoencoders or running large calibration datasets.
@@ -122,16 +146,19 @@ CUDA_VISIBLE_DEVICES='' $PY cli.py apply \
   `ΔW_down = strength · (v_mood ⊗ a_bar) / ||a_bar||²`
 * Requires **zero runtime hooks** and no extra parameters, while remaining fully rollbackable in RAM via `Z`.
 
-### 6. Sparse MoE & NVFP4/MXFP8 Support (Inkling-2-Mini)
+### 6. Sparse MoE, NVFP4/MXFP8 & Zero-Corpus Stein's-Lemma GGUF Folding (`Inkling-2-Mini`)
 * Auto-detects routed MoE checkpoints (`mlp.gate.weight` + `mlp.experts.w2_weight`), clustering all experts across layers directly in router space (`<2s`).
 * Includes pure-PyTorch dequantizers in `weights.py` for **NVFP4** (`nvfp4_e2m1` packed nibbles + `float8_e4m3fn` block-16 scales + `amax / outer_scale_denominator`) and **MXFP8** (`float8_e4m3fn` + `ue8m0` block-32 scales).
+* **Zero-Corpus Stein's-Lemma GGUF Folding (`gguf_fold.py`):** In SwiGLU MLPs, `silu(W_gate x) * (W_up x)` is zero-mean across neurons, so naive rank-1 additions cancel out. By Stein's lemma, `E_x[SwiGLU(x)_i] ∝ <W_gate[i], W_up[i]>` gives the exact constructive activation sign for every neuron per expert with **zero forward passes**. Folding `ΔW_2 = α · (v_concept ⊗ u_Stein)` across all 128 `Q8_0` experts in `L21–L23` guarantees `∑ w_i = 1.0` regardless of MoE routing, with zero runtime hooks and bit-exact SHA-256 rollback.
 
 ## Code Map
 
 * `models.py` — Pydantic v2 schemas (`ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `MitigationConfig`, `TransactionRecord`, `ApplyReport`)
-* `weights.py` — `safetensors`-direct weight loader (supports Qwen3.5, Qwen3, Qwen2.5, Llama layouts)
+* `weights.py` — `safetensors`-direct weight loader (dense Qwen/Llama + sparse MoE NVFP4/MXFP8)
+* `backend.py` — Zero-dependency OpenAI-compatible HTTP client (`vLLM`, `llama-server`, `SGLang`) for Chat & Probe Diff
+* `gguf_fold.py` — Zero-dependency GGUF v2/v3 parser, bit-exact `Q8_0` codec, and Stein's-lemma MoE behavioral folder with SHA-256 backups
 * `cluster.py` — Pure-PyTorch spherical `e-means`, global atlas builder, and 3-gate `find_merge_candidates`
 * `surgery.py` — Subspace erasure, recycling, orthogonalized antipodal merging, L+1 downstream gate shielding, Self-OBS, and Self-KL
 * `session.py` — Stateful transactional engine (`.reclaim_cache/`, recursive sub-clustering, dual-pole `@` anchor, full-reply `%` weight folding, backup/rollback stack, export plans)
 * `tui.py` — Zero-dependency `curses` TUI (`Explore`, `Chat & Probe Diff`, `Export`, `Behavior`)
-* `cli.py` — Typer + Rich CLI entry point (`open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `tui`)
+* `cli.py` — Typer + Rich CLI entry point (`open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
