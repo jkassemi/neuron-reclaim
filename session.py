@@ -2,12 +2,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import json
+import os
 from pathlib import Path
+from typing import Callable
+
+os.environ.setdefault("HF_HUB_DISABLE_PROGRESS_BARS", "1")
+os.environ.setdefault("TQDM_DISABLE", "1")
 
 import torch
 import transformers
 
 transformers.logging.set_verbosity_error()
+try:
+    transformers.utils.logging.disable_progress_bar()
+except Exception:
+    pass
 
 from backend import OpenAICompatBackend
 from cluster import analyze_layer, build_model_atlas, build_vocab_masks, find_merge_candidates, overview_model, spherical_emeans
@@ -936,7 +945,12 @@ class ReclaimSession:
         self._evict_Q = Vt_ev[:48].T
         return self._evict_Q
 
-    def discover_behavior(self, mood: str, strength: float = 1.5) -> list[tuple[int, int, float, list[str]]]:
+    def discover_behavior(
+        self,
+        mood: str,
+        strength: float = 1.5,
+        progress_cb: Callable[[str], None] | None = None,
+    ) -> list[tuple[int, int, float, list[str]]]:
         """
         Zero-corpus Contrastive Behavioral Discovery (L10..L23) across FULL generated replies:
         Generates short contrastive replies (~14 tokens) on 3 neutral topics with vs. without
@@ -948,6 +962,8 @@ class ReclaimSession:
             raise RuntimeError(
                 "PyTorch activation-based mood discovery is for dense models; for sparse MoE checkpoints use `neuron-reclaim gguf-fold --pos ... --neg ...`."
             )
+        if progress_cb and self._model is None:
+            progress_cb(f"Loading {self.model_ref} into RAM (one-time)...")
         self._ensure_model()
         assert self._model is not None and self._layers is not None and self._tok is not None
         assert self._lm_head_w is not None and self._norm_w is not None
@@ -975,11 +991,13 @@ class ReclaimSession:
         mlp_in: dict[int, list[torch.Tensor]] = {l: [] for l in target_layers}
         mlp_out: dict[int, list[torch.Tensor]] = {l: [] for l in target_layers}
 
-        def run_batch(msgs: list[str]) -> tuple[dict[int, torch.Tensor], dict[int, torch.Tensor]]:
+        def run_batch(msgs: list[str], tag: str) -> tuple[dict[int, torch.Tensor], dict[int, torch.Tensor]]:
             # 1) Generate short ~14-token replies so we capture sustained mid-sentence mood
             seqs: list[tuple[torch.Tensor, int]] = []
             with torch.no_grad():
-                for m in msgs:
+                for idx, m in enumerate(msgs, 1):
+                    if progress_cb:
+                        progress_cb(f"Generating {tag} rollout {idx}/{len(msgs)}...")
                     p_ids = encode_chat(m)
                     p_len = int(p_ids.shape[1])
                     full_ids = self._model.generate(
@@ -989,6 +1007,9 @@ class ReclaimSession:
                         pad_token_id=self._tok.eos_token_id,
                     )
                     seqs.append((full_ids, max(0, p_len - 1)))
+
+            if progress_cb:
+                progress_cb(f"Capturing MLP activations ({tag})...")
 
             # 2) Single forward pass per sequence, averaging over all assistant-response tokens
             for l in target_layers:
@@ -1016,8 +1037,8 @@ class ReclaimSession:
 
         pos_msgs = [f"Respond in a {mood} tone: {t}" for t in topics]
         neg_msgs = [f"Respond in a neutral, matter-of-fact tone: {t}" for t in topics]
-        pos_in, pos_out = run_batch(pos_msgs)
-        neg_in, neg_out = run_batch(neg_msgs)
+        pos_in, pos_out = run_batch(pos_msgs, f"'{mood}'")
+        neg_in, neg_out = run_batch(neg_msgs, "neutral")
 
         # Build per-layer (v_mood, mean_neutral_act) for pure rank-1 weight folding into down_proj.weight!
         steer_vecs: dict[int, tuple[torch.Tensor, torch.Tensor]] = {}

@@ -490,7 +490,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                             _safe_addstr(stdscr, y, 3, line)
                             y += 1
 
-            _safe_addstr(stdscr, h - 2, 0, f" {status}", curses.color_pair(3))
+            _safe_addstr(stdscr, h - 2, 0, f" {status}".ljust(w - 1), curses.color_pair(3))
             keys = " jk:nav Ent:in Bksp:up  p:Prune r:Empty e:Erase  @:Anchor K:k L:Layers  A:Apply t:Diff C:Commit Z:Back W:Export q:quit"
             _safe_addstr(stdscr, h - 1, 0, keys.ljust(w - 1), curses.color_pair(5))
             stdscr.refresh()
@@ -538,12 +538,16 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 mood = _prompt_line(stdscr, "Target mood/persona (e.g. grumpy and sarcastic): ")
                 if mood:
                     mode = "behavior"
-                    _safe_addstr(stdscr, h - 2, 0, f" Running contrastive mood discovery for '{mood}'...", curses.color_pair(6))
-                    stdscr.refresh()
+
+                    def _show_progress(msg: str) -> None:
+                        _safe_addstr(stdscr, h - 2, 0, f" {msg}".ljust(w - 1), curses.color_pair(6) | curses.A_BOLD)
+                        stdscr.refresh()
+
+                    _show_progress(f"Discovering '{mood}' behavioral circuit (6 short rollouts)...")
                     try:
-                        session.discover_behavior(mood, strength=1.5)
+                        session.discover_behavior(mood, strength=1.5, progress_cb=_show_progress)
                         stdscr.clearok(True)
-                        status = f"Discovered '{mood}' behavioral circuit! [/] or -/+ adjust strength, A:Apply, c:Chat"
+                        status = f"Discovered '{mood}' behavioral circuit! [/] or -/= adjust strength, A:Apply, c:Chat"
                     except Exception as exc:
                         status = f"Behavior error: {exc}"
             elif ch in (ord("["), ord("-")) and session.pending_steer is not None:
