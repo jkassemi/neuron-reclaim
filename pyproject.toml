@@ -1,14 +1,36 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "neuron-reclaim"
-version = "0.1.0"
-description = "Zero-corpus, weight-based MLP neuron atlas and transactional surgery TUI/CLI for local HuggingFace LLMs."
+version = "0.2.0"
+description = "Zero-corpus weight-space MLP neuron & MoE expert atlas, transactional surgery TUI, and Stein's-lemma GGUF behavioral folding."
 readme = "README.md"
+license = { text = "MIT" }
 requires-python = ">=3.12"
 dependencies = [
-    "pydantic>=2.0",
-    "rich>=13.0",
+    "numpy>=1.26",
+    "pydantic>=2.7",
+    "rich>=13.7",
     "safetensors>=0.4",
-    "torch>=2.4",
+    "torch>=2.2",
     "transformers>=4.45",
     "typer>=0.12",
+]
+
+[project.scripts]
+neuron-reclaim = "cli:app"
+
+[tool.setuptools]
+py-modules = [
+    "backend",
+    "cli",
+    "cluster",
+    "gguf_fold",
+    "models",
+    "session",
+    "surgery",
+    "tui",
+    "weights",
 ]

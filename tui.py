@@ -191,14 +191,51 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
             t1 = " [2] Chat & Probe Diff "
             t2 = " [3] Export "
             t3 = " [4] Behavior (%) "
+            t4 = " [5] Model "
             _safe_addstr(stdscr, 2, 0, t0, curses.A_REVERSE | curses.A_BOLD if mode == "explore" else curses.A_DIM)
             _safe_addstr(stdscr, 2, len(t0) + 1, t1, curses.A_REVERSE | curses.A_BOLD if mode == "chat" else curses.A_DIM)
             _safe_addstr(stdscr, 2, len(t0) + len(t1) + 2, t2, curses.A_REVERSE | curses.A_BOLD if mode == "export" else curses.A_DIM)
             _safe_addstr(stdscr, 2, len(t0) + len(t1) + len(t2) + 3, t3, curses.A_REVERSE | curses.A_BOLD if mode == "behavior" else curses.A_DIM)
+            _safe_addstr(stdscr, 2, len(t0) + len(t1) + len(t2) + len(t3) + 4, t4, curses.A_REVERSE | curses.A_BOLD if mode == "model" else curses.A_DIM)
+
+            # Row 3: Live Model Strip — always see every layer's edit state while editing
+            lmap = session.layer_edit_map(atlas.num_layers)
+            arch_tag = "MoE" if session.is_moe else "MLP"
+            strip_prefix = f" {arch_tag}({atlas.num_layers}L):["
+            _safe_addstr(stdscr, 3, 0, strip_prefix, curses.color_pair(1))
+            sx = len(strip_prefix)
+            for row_info in lmap:
+                if sx >= w - 28:
+                    break
+                if row_info["pending"]:
+                    ch_sym, ch_attr = "*", curses.color_pair(6) | curses.A_BOLD
+                elif row_info["behavior"]:
+                    ch_sym, ch_attr = "%", curses.color_pair(4) | curses.A_BOLD
+                elif row_info["committed_p"]:
+                    ch_sym, ch_attr = "P", curses.color_pair(7) | curses.A_BOLD
+                elif row_info["committed_b"]:
+                    ch_sym, ch_attr = "B", curses.color_pair(4) | curses.A_BOLD
+                elif row_info["committed_r"]:
+                    ch_sym, ch_attr = "E", curses.color_pair(2) | curses.A_BOLD
+                elif row_info["committed_e"]:
+                    ch_sym, ch_attr = "S", curses.color_pair(3) | curses.A_BOLD
+                elif (
+                    int(row_info["staged_p"])
+                    + int(row_info["staged_r"])
+                    + int(row_info["staged_e"])
+                    + int(row_info["staged_b"])
+                ) > 0:
+                    ch_sym, ch_attr = "s", curses.color_pair(8) | curses.A_BOLD
+                else:
+                    ch_sym, ch_attr = ".", curses.A_DIM
+                _safe_addstr(stdscr, 3, sx, ch_sym, ch_attr)
+                sx += 1
+            legend = "]  .:clean s:stg *:pend P/E/S/B/%:edit"
+            _safe_addstr(stdscr, 3, sx, legend, curses.A_DIM)
 
             if mode == "explore":
                 insp_h = min(11, max(7, h // 4))
-                list_top = 4
+                list_top = 5
                 list_h = max(4, h - list_top - insp_h - 3)
                 insp_top = list_top + list_h + 1
 
@@ -220,7 +257,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
 
                 tok_hdr = " ".join(_pad_cell(f"Tok{i+1}", tok_w) for i in range(n_tok_cols))
                 col_hdr = f" {'ID':>3} {'Neurons':>7} {'%Mod':>5} {'Bar':8} {'Peak':7} {'Stg':7} {tok_hdr}"
-                _safe_addstr(stdscr, 3, 0, col_hdr, curses.A_BOLD | curses.A_UNDERLINE)
+                _safe_addstr(stdscr, 4, 0, col_hdr, curses.A_BOLD | curses.A_UNDERLINE)
 
                 max_sz = max((c.size for c in vis), default=1)
                 for row in range(list_h):
@@ -272,12 +309,12 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
             elif mode == "behavior":
                 _safe_addstr(
                     stdscr,
-                    3,
+                    4,
                     0,
                     " Behavioral / Mood Steering  ([%] Discover mood  [[/]] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
                     curses.A_BOLD | curses.A_UNDERLINE,
                 )
-                y = 5
+                y = 6
                 if session.active_steers:
                     act_s = ", ".join(f"{m}@{st:.2f}x" for m, st in session.active_steers)
                     _safe_addstr(stdscr, y, 2, f"Committed weight behaviors: {act_s}", curses.color_pair(2) | curses.A_BOLD)
@@ -315,17 +352,104 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 _safe_addstr(stdscr, 12, 6, f"Prunes {target_u}/layer (auto-fills low-norm neurons in lighter layers) -> export_uniform_prune.json")
                 _safe_addstr(stdscr, 14, 2, "[3] Per-Layer Shrink — Max Quality / Custom Runtime", curses.A_BOLD | curses.color_pair(1))
                 _safe_addstr(stdscr, 15, 6, "Independent per-layer widths rounded to multiples of 64 -> export_per_layer_prune.json")
-                _safe_addstr(stdscr, 17, 2, "Press 1, 2, or 3 to export  |  Esc to return to Explore", curses.A_DIM)
+                _safe_addstr(stdscr, 17, 2, "[4] Save Edited Weights (safetensors / save_pretrained)", curses.A_BOLD | curses.color_pair(4))
+                _safe_addstr(stdscr, 18, 6, "Writes the live in-memory modified model (boost/erase/empty/prune/behavior) + tokenizer to disk")
+                _safe_addstr(stdscr, 20, 2, "Press 1, 2, 3, or 4 to export  |  Esc to return to Explore", curses.A_DIM)
+            elif mode == "model":
+                _safe_addstr(
+                    stdscr,
+                    4,
+                    0,
+                    f" LIVE MODEL ARCHITECTURE — {session.model_ref} ({arch_tag}, {atlas.num_layers} layers x {atlas.d_mlp:,} units/layer)",
+                    curses.A_BOLD | curses.A_UNDERLINE,
+                )
+                y = 5
+                if session.api_backend is not None:
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        2,
+                        f"Inference backend: REMOTE API ({session.api_backend.api_base}) — reload external server after GGUF/weight export",
+                        curses.color_pair(3) | curses.A_BOLD,
+                    )
+                    y += 1
+                else:
+                    ram_st = "loaded in RAM" if session._model is not None else "lazy (loads on Apply/Chat)"
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        2,
+                        f"Inference backend: local PyTorch ({ram_st})  |  Committed TXs: {len(session.committed)}",
+                        curses.color_pair(1),
+                    )
+                    y += 1
+                _safe_addstr(
+                    stdscr,
+                    y,
+                    1,
+                    f"{'Lyr':>4} {'Capacity Bar':22} {'Staged':>7} {'Pruned':>7} {'Empty':>6} {'Erase':>6} {'Boost':>6} {'State'}",
+                    curses.A_BOLD,
+                )
+                y += 1
+                bar_w = 20
+                for info in lmap:
+                    if y >= h - 3:
+                        break
+                    li = int(info["layer"])
+                    sp = int(info["staged_p"]) + int(info["staged_r"]) + int(info["staged_e"]) + int(info["staged_b"])
+                    cp = int(info["committed_p"])
+                    cr = int(info["committed_r"])
+                    ce = int(info["committed_e"])
+                    cb = int(info["committed_b"])
+                    removed = min(atlas.d_mlp, cp + cr)
+                    kept_chars = max(0, bar_w - int(round(bar_w * removed / max(atlas.d_mlp, 1))))
+                    bar = "█" * kept_chars + "░" * (bar_w - kept_chars)
+                    flags: list[str] = []
+                    if info["pending"]:
+                        flags.append("PENDING")
+                    if info["behavior"]:
+                        flags.append("BEHAVIOR")
+                    if sp:
+                        flags.append("STAGED")
+                    st_str = ",".join(flags) if flags else "clean"
+                    row_attr = (
+                        curses.color_pair(6) | curses.A_BOLD
+                        if info["pending"]
+                        else curses.color_pair(4) | curses.A_BOLD
+                        if info["behavior"]
+                        else curses.color_pair(7)
+                        if cp
+                        else curses.color_pair(8)
+                        if sp
+                        else curses.A_NORMAL
+                    )
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        1,
+                        f"L{li:02d}  [{bar}] {sp:7,d} {cp:7,d} {cr:6,d} {ce:6,d} {cb:6,d} {st_str}",
+                        row_attr,
+                    )
+                    y += 1
             else:
                 # Chat & Pinned Next-Token Probability Diff view
                 _safe_addstr(
                     stdscr,
-                    3,
+                    4,
                     0,
                     " Pinned Next-Token Probes ([t] Run Diff  [+] Add probe)  |  Ad-hoc Chat ([Enter])",
                     curses.A_BOLD | curses.A_UNDERLINE,
                 )
-                y = 4
+                y = 5
+                if session.api_backend is not None:
+                    _safe_addstr(
+                        stdscr,
+                        y,
+                        1,
+                        f"[REMOTE API: {session.api_backend.api_base}] Probes/Chat query the external server (local RAM edits are not served remotely).",
+                        curses.color_pair(3) | curses.A_BOLD,
+                    )
+                    y += 1
                 for idx, p in enumerate(session.pinned_probes):
                     if y >= h - 10:
                         break
@@ -387,6 +511,17 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         mode = "explore"
                     except Exception as exc:
                         status = f"Export error: {exc}"
+                elif ch == ord("4"):
+                    dest = _prompt_line(stdscr, "Output checkpoint directory (default ./reclaim_edited_model): ")
+                    out_p = Path(dest) if dest else Path("./reclaim_edited_model")
+                    _safe_addstr(stdscr, h - 2, 0, f" Saving edited safetensors weights to {out_p}...", curses.color_pair(6))
+                    stdscr.refresh()
+                    try:
+                        _, msg = session.export_checkpoint(out_p)
+                        status = msg
+                        mode = "explore"
+                    except Exception as exc:
+                        status = f"Save error: {exc}"
             elif ch == ord("1"):
                 mode = "explore"
             elif ch in (ord("2"), ord("c")):
@@ -395,6 +530,8 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 mode = "export"
             elif ch == ord("4"):
                 mode = "behavior"
+            elif ch == ord("5"):
+                mode = "model"
             elif ch == ord("%"):
                 mood = _prompt_line(stdscr, "Target mood/persona (e.g. grumpy and sarcastic): ")
                 if mood:
@@ -416,7 +553,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                 session.pending_steer = (m, min(5.0, round(st + 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
             elif ch == ord("\t"):
-                mode = {"explore": "chat", "chat": "export", "export": "behavior", "behavior": "explore"}[mode]
+                mode = {"explore": "chat", "chat": "export", "export": "behavior", "behavior": "model", "model": "explore"}[mode]
             elif ch == ord("@"):
                 anchor_text = _prompt_line(stdscr, "Concept anchor words (comma-sep, empty clears): ")
                 if anchor_text:
@@ -551,6 +688,16 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     elif ch in (ord("x"), ord(" ")):
                         session.stage_node(node, ClusterAction.KEEP)
                         status = f"Cleared C{node.cluster_id}"
+                    elif ch == ord("w") and session.is_moe and node.sample_neurons:
+                        top_exp = node.sample_neurons[0]
+                        _safe_addstr(stdscr, h - 2, 0, f" Dequantizing W2 for L{top_exp.layer:02d}/E{top_exp.index:03d}...", curses.color_pair(6))
+                        stdscr.refresh()
+                        try:
+                            w2_top = session.inspect_moe_expert_w2(top_exp.layer, top_exp.index, top_k=3)
+                            summary = " | ".join(f"N{ni}({nm}):{','.join(ts[:2])}" for ni, nm, ts in w2_top)
+                            status = f"L{top_exp.layer:02d}/E{top_exp.index:03d} W2 -> {summary}"
+                        except Exception as exc:
+                            status = f"W2 inspect error: {exc}"
             elif mode == "chat" and ch in (10, 13, curses.KEY_ENTER):
                 user_msg = _prompt_line(stdscr, "Prompt: ")
                 if user_msg:

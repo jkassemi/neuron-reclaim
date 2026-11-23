@@ -4,13 +4,14 @@ Zero-corpus, weight-based MLP neuron / MoE expert atlas and transactional surger
 
 Explore a model's MLP capacity like `ncdu`, isolate concepts or behavioral circuits without an external dataset, and iterate safely with in-memory **Apply → Probe/Chat → Commit / Rollback**.
 
-## Requirements & Environment
+## Requirements & Installation
 
-Requires Python 3.12+, `torch`, `transformers`, `safetensors`, `pydantic` v2, `typer`, and `rich` (plus stdlib `curses` for the TUI). On this machine:
+Requires Python 3.12+, `torch`, `transformers>=4.45`, `safetensors`, `pydantic` v2, `typer`, `rich`, and `numpy` (plus stdlib `curses` for the TUI).
 
 ```bash
-PY=/home/james/m19/.venv/bin/python3
-# Note: pass CUDA_VISIBLE_DEVICES='' if host NVML has a driver mismatch
+pip install -e .
+# Now available as `neuron-reclaim` (or run `python3 cli.py ...` directly)
+# Pass CUDA_VISIBLE_DEVICES='' if running on CPU or working around an NVML mismatch
 ```
 
 ## Quickstart: Interactive TUI Studio
@@ -18,18 +19,15 @@ PY=/home/james/m19/.venv/bin/python3
 Opens a target-free, full-model cluster atlas (cached in `.reclaim_cache/` after the first ~12s build):
 
 ```bash
-cd /home/james/work/neuron-reclaim
 # Dense MLP models (Qwen3.5 / Qwen3 / Llama)
-CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
-  --model Qwen/Qwen3.5-4B \
-  --clusters 48
+neuron-reclaim open --model Qwen/Qwen3.5-4B --clusters 48
 
 # Sparse MoE models (Inkling-2-Mini: auto-detects 24L x 128 routed experts + NVFP4/MXFP8)
 # Pass --api-base to connect Chat & Probe Diff to vLLM, llama-server, SGLang, or Ollama
-CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
+neuron-reclaim open \
   --model thinkingmachines/Inkling-2-Mini \
   --clusters 32 \
-  --api-base http://127.0.0.1:8000/v1
+  --api-base http://127.0.0.1:8080/v1
 ```
 
 ### TUI Controls
@@ -44,34 +42,37 @@ CUDA_VISIBLE_DEVICES='' /home/james/m19/.venv/bin/python3 cli.py open \
 | `p` / `r` / `e` / `b` / `x` | Stage **PRUNE** (shrink), **EMPTY** (fine-tune slot), **ERASE** (subspace), **BOOST** (`2.5× down_proj`), or **KEEP** |
 | `%` / `[` / `]` | **Weight-Based Behavior** — contrastive full-reply discovery + rank-1 fold into `down_proj.weight` (zero hooks); `[`/`]` adjusts strength |
 | `A` → `t` / `c` → `C` / `Z` | **Apply** in-memory → **Probe Diff** (next-token probs) / **Live Chat** → **Commit** or instant **Rollback** |
-| `W` (or `3`) | **Export Picker** (`same_size` fine-tune mask, `uniform` shrink plan, or `per_layer` shrink plan) |
+| `5` | **Live Model Map** — full per-layer architecture & capacity view (also shown as a live strip on row 3 across all tabs) |
+| `w` | *(MoE models)* Dequantize and inspect the top `W2` neurons of the highlighted expert via NVFP4/MXFP8 |
+| `W` (or `3`) | **Export Picker** (`same_size` mask, `uniform` shrink plan, `per_layer` shrink plan, or **`[4] Save Edited Weights`** via `save_pretrained`) |
 
 ## Scriptable CLI Examples
 
 ### 1. Layer-by-Layer "Disk Usage" Overview (Zero Corpus)
 
 ```bash
-$PY cli.py overview --model Qwen/Qwen3.5-4B --target cjk --step 2
+neuron-reclaim overview --model Qwen/Qwen3.5-4B --target cjk --step 2
 ```
 
 ### 2. Scan a Layer, Find 3-Gate Safe Merge Pairs, and Apply with Self-OBS Healing
 
 ```bash
 # Cluster layer 24 with spherical e-means
-$PY cli.py scan --model Qwen/Qwen3.5-4B --layer 24 --clusters 48 --out l24_report.json
+neuron-reclaim scan --model Qwen/Qwen3.5-4B --layer 24 --clusters 48 --out l24_report.json
 
 # Find cross-slot merge candidates (3-gate guard: gate/up cos, |lm_head| cone cos, down cos)
-$PY cli.py merge-candidates l24_report.json --max-pairs 20 --out l24_merges.json
+neuron-reclaim merge-candidates l24_report.json --max-pairs 20 --out l24_merges.json
 
 # Interactive cluster selector -> SurgeryPlan JSON
-$PY cli.py select l24_report.json --out l24_plan.json
+neuron-reclaim select l24_report.json --out l24_plan.json
 
-# Apply with input orthogonalization, antipodal signs, L+1 gate shielding, and zero-corpus Self-OBS
-CUDA_VISIBLE_DEVICES='' $PY cli.py apply \
+# Apply with input orthogonalization, antipodal signs, L+1 gate shielding, Self-OBS healing, and save weights
+neuron-reclaim apply \
   --surgery l24_plan.json \
   --merges l24_merges.json \
   --ortho --sign --shield \
   --heal self_obs \
+  --save-model ./edited_checkpoint \
   --out l24_apply.json
 ```
 
@@ -96,14 +97,14 @@ Edit `Q8_0` MoE expert weights directly in-place on a local GGUF checkpoint (e.g
 
 ```bash
 # Fold an "overly enthusiastic" direction across all 128 experts in Q8_0 layers L21-L23
-CUDA_VISIBLE_DEVICES='' $PY cli.py gguf-fold \
+neuron-reclaim gguf-fold \
   --model thinkingmachines/Inkling-2-Mini \
   --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf \
   --layers 21,22,23 \
   --alpha 3.8
 
 # Custom concept direction (--pos / --neg comma-separated seed words)
-CUDA_VISIBLE_DEVICES='' $PY cli.py gguf-fold \
+neuron-reclaim gguf-fold \
   --model thinkingmachines/Inkling-2-Mini \
   --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf \
   --pos "pirate, ahoy, matey, arrr, treasure" \
@@ -111,7 +112,7 @@ CUDA_VISIBLE_DEVICES='' $PY cli.py gguf-fold \
   --alpha 4.0
 
 # Restore bit-exact original Q8_0 bytes (SHA-256 verified)
-$PY cli.py gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
+neuron-reclaim gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
 ```
 
 ## Methods & How It Works

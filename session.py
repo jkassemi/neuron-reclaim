@@ -36,7 +36,17 @@ from surgery import (
     _run_self_kl_heal,
     _self_generate_rollouts,
 )
-from weights import get_num_layers, is_moe_model, load_layer_weights, load_moe_router, load_shared_unembed, load_tensor, resolve_snapshot
+from weights import (
+    get_num_layers,
+    get_weight_map,
+    is_moe_model,
+    load_layer_weights,
+    load_moe_expert_w2,
+    load_moe_router,
+    load_shared_unembed,
+    load_tensor,
+    resolve_snapshot,
+)
 
 
 @dataclass
@@ -52,6 +62,12 @@ class _Transaction:
     record: TransactionRecord
     backups: list[_LayerBackup] = field(default_factory=list)
     freed_in_layer: tuple[int, set[int]] = (0, set())
+    is_behavior: bool = False
+    pruned_delta: dict[int, set[int]] = field(default_factory=dict)
+    emptied_delta: dict[int, set[int]] = field(default_factory=dict)
+    boosted_delta: dict[int, set[int]] = field(default_factory=dict)
+    erased_delta: dict[int, set[int]] = field(default_factory=dict)
+    behavior_layers: set[int] = field(default_factory=set)
 
 
 class ReclaimSession:
@@ -71,6 +87,7 @@ class ReclaimSession:
     ) -> None:
         self.model_ref = model_ref
         self.model_dir = resolve_snapshot(model_ref)
+        self.is_moe = is_moe_model(get_weight_map(self.model_dir))
         self.target = target
         self.overview_step = overview_step
         self.api_backend = OpenAICompatBackend(api_base=api_base, model_name=api_model) if api_base else None
@@ -113,6 +130,9 @@ class ReclaimSession:
         self.freed_by_layer: dict[int, set[int]] = {}
         self.emptied_by_layer: dict[int, set[int]] = {}
         self.pruned_by_layer: dict[int, set[int]] = {}
+        self.boosted_by_layer: dict[int, set[int]] = {}
+        self.erased_by_layer: dict[int, set[int]] = {}
+        self.behavior_layers_committed: set[int] = set()
         self._next_tx_id = 1
 
         # Discovered weight-based behavioral edits: (mood, strength, {layer: (v_mood, mean_neg_act)}, summary)
@@ -492,6 +512,75 @@ class ReclaimSession:
         self.latest_probe_probs = out
         return out
 
+    def export_checkpoint(self, out_dir: Path) -> tuple[Path, str]:
+        """Save the actual edited in-memory model weights + tokenizer via save_pretrained."""
+        if self.is_moe:
+            raise RuntimeError(
+                "MoE checkpoints cannot be saved via dense save_pretrained; use `cli.py gguf-fold` for reversible GGUF weight edits."
+            )
+        if self._model is None or self._tok is None:
+            raise RuntimeError("No in-memory weight edits applied yet. Press A to apply edits before saving weights.")
+        out_dir.mkdir(parents=True, exist_ok=True)
+        self._model.save_pretrained(str(out_dir))
+        self._tok.save_pretrained(str(out_dir))
+        self.export_session(out_dir)
+        return out_dir, f"Saved edited safetensors weights + tokenizer -> {out_dir}"
+
+    def inspect_moe_expert_w2(self, layer: int, expert: int, top_k: int = 5) -> list[tuple[int, float, list[str]]]:
+        """Inspect top-norm W2 neurons inside a sparse MoE expert using the NVFP4/MXFP8 dequantizer."""
+        self._ensure_resident_vectors()
+        assert self._U_scaled is not None and self._decoded_vocab is not None
+        wm = get_weight_map(self.model_dir)
+        w2 = load_moe_expert_w2(self.model_dir, wm, layer)[expert]  # [d_model, d_expert]
+        norms = w2.norm(dim=0)
+        top_n = torch.topk(norms, min(top_k, w2.shape[1])).indices.tolist()
+        out: list[tuple[int, float, list[str]]] = []
+        for ni in top_n:
+            col = torch.nn.functional.normalize(w2[:, ni], dim=0)
+            t_ids = torch.topk(self._U_scaled @ col, 5).indices.tolist()
+            toks = [self._decoded_vocab[t].strip() for t in t_ids]
+            out.append((ni, round(float(norms[ni].item()), 2), toks))
+        return out
+
+    def layer_edit_map(self, num_layers: int) -> list[dict[str, int | bool]]:
+        """Per-layer live edit summary for the TUI Model Strip and [5] Model view."""
+        staged_p: dict[int, int] = {}
+        staged_r: dict[int, int] = {}
+        staged_e: dict[int, int] = {}
+        staged_b: dict[int, int] = {}
+        for (l, _), (act, _) in self.staged_tree.items():
+            if act == ClusterAction.PRUNE:
+                staged_p[l] = staged_p.get(l, 0) + 1
+            elif act == ClusterAction.RECYCLE:
+                staged_r[l] = staged_r.get(l, 0) + 1
+            elif act == ClusterAction.SUBSPACE_ERASE:
+                staged_e[l] = staged_e.get(l, 0) + 1
+            elif act == ClusterAction.BOOST:
+                staged_b[l] = staged_b.get(l, 0) + 1
+
+        pending_layers: set[int] = set()
+        pending_beh: set[int] = set()
+        if self.pending is not None:
+            pending_layers.update(b.layer for b in self.pending.backups)
+            pending_beh.update(self.pending.behavior_layers)
+
+        rows: list[dict[str, int | bool]] = []
+        for l in range(num_layers):
+            rows.append({
+                "layer": l,
+                "staged_p": staged_p.get(l, 0),
+                "staged_r": staged_r.get(l, 0),
+                "staged_e": staged_e.get(l, 0),
+                "staged_b": staged_b.get(l, 0),
+                "committed_p": len(self.pruned_by_layer.get(l, set())),
+                "committed_r": len(self.emptied_by_layer.get(l, set())),
+                "committed_e": len(self.erased_by_layer.get(l, set())),
+                "committed_b": len(self.boosted_by_layer.get(l, set())),
+                "pending": l in pending_layers,
+                "behavior": (l in self.behavior_layers_committed) or (l in pending_beh),
+            })
+        return rows
+
     def export_session(self, out_dir: Path) -> Path:
         out_dir.mkdir(parents=True, exist_ok=True)
         manifest = {
@@ -509,7 +598,11 @@ class ReclaimSession:
         return out_path
 
     def apply_tree_staged(self) -> TransactionRecord:
-        """Apply all tree-staged edits (PRUNE, EMPTY/RECYCLE, ERASE) across touched layers."""
+        """Apply all tree-staged edits (PRUNE, EMPTY/RECYCLE, ERASE, BOOST) across touched layers."""
+        if self.is_moe:
+            raise RuntimeError(
+                "In-RAM dense MLP apply is not supported for sparse MoE checkpoints; use `cli.py gguf-fold` for reversible GGUF weight edits."
+            )
         if self.pending is not None:
             raise RuntimeError("Commit or rollback the current pending transaction first.")
         if not self.staged_tree:
@@ -595,6 +688,14 @@ class ReclaimSession:
                 post_logits = [self._model(r).logits[0].detach().float() for r in eval_rollouts]
             kl_after = round(_mean_kl(teacher_logits, post_logits), 5)
 
+        pruned_delta = {l: set(ns) for l, ns in prn_by_layer.items() if ns}
+        emptied_delta = {l: set(ns) for l, ns in rec_by_layer.items() if ns}
+        boosted_delta = {l: set(ns) for l, ns in bst_by_layer.items() if ns}
+        erased_delta: dict[int, set[int]] = {}
+        for (l, _), e_idxs in era_groups.items():
+            if e_idxs:
+                erased_delta.setdefault(l, set()).update(e_idxs)
+
         rec = TransactionRecord(
             tx_id=self._next_tx_id,
             layer=-1,
@@ -604,13 +705,22 @@ class ReclaimSession:
             erased=total_era,
             merged=0,
             shielded=0,
-            heal_mode=cfg.heal_mode,
-            eval_kl_before=kl_after,
+            heal_mode=HealMode.NONE,
+            eval_kl_before=None,
             eval_kl_after=kl_after,
             note=f"{len(ordered)} layers modified",
         )
         self._next_tx_id += 1
-        self.pending = _Transaction(record=rec, backups=backups, freed_in_layer=(-1, set()))
+        self.pending = _Transaction(
+            record=rec,
+            backups=backups,
+            freed_in_layer=(-1, set()),
+            is_behavior=False,
+            pruned_delta=pruned_delta,
+            emptied_delta=emptied_delta,
+            boosted_delta=boosted_delta,
+            erased_delta=erased_delta,
+        )
         return rec
 
     def get_atlas(self, num_clusters: int = 48) -> ModelClusterAtlas:
@@ -967,7 +1077,13 @@ class ReclaimSession:
             note=f"behavior:{mood}@{strength:.2f}x(weights)",
         )
         self._next_tx_id += 1
-        self.pending = _Transaction(record=rec, backups=backups, freed_in_layer=(-1, set()))
+        self.pending = _Transaction(
+            record=rec,
+            backups=backups,
+            freed_in_layer=(-1, set()),
+            is_behavior=True,
+            behavior_layers=set(ordered),
+        )
         return rec
 
     def _backup_layer(self, layer: int) -> _LayerBackup:
@@ -1124,11 +1240,14 @@ class ReclaimSession:
             raise RuntimeError("No pending transaction to commit.")
         tx = self.pending
         tx.record.status = "committed"
-        tx.record.note = note
+        if note:
+            tx.record.note = note
         layer, newly_freed = tx.freed_in_layer
-        if tx.record.note.startswith("behavior:") and self.pending_steer is not None:
-            self.active_steers.append((self.pending_steer[0], self.pending_steer[1]))
-            self.pending_steer = None
+        if tx.is_behavior:
+            if self.pending_steer is not None:
+                self.active_steers.append((self.pending_steer[0], self.pending_steer[1]))
+                self.pending_steer = None
+            self.behavior_layers_committed.update(tx.behavior_layers)
             self.committed.append(tx)
             self.pending = None
             return tx.record
@@ -1137,13 +1256,22 @@ class ReclaimSession:
             self.staged_neurons[layer] = {}
             self.staged_merges[layer] = [(p, False) for p, _ in self.staged_merges.get(layer, [])]
         else:
-            for (l, ni), (act, _) in self.staged_tree.items():
-                if act == ClusterAction.PRUNE:
-                    self.pruned_by_layer.setdefault(l, set()).add(ni)
-                elif act == ClusterAction.RECYCLE:
-                    self.emptied_by_layer.setdefault(l, set()).add(ni)
+            applied_keys: set[tuple[int, int]] = set()
+            for l, ns in tx.pruned_delta.items():
+                self.pruned_by_layer.setdefault(l, set()).update(ns)
+                applied_keys.update((l, ni) for ni in ns)
+            for l, ns in tx.emptied_delta.items():
+                self.emptied_by_layer.setdefault(l, set()).update(ns)
+                applied_keys.update((l, ni) for ni in ns)
+            for l, ns in tx.boosted_delta.items():
+                self.boosted_by_layer.setdefault(l, set()).update(ns)
+                applied_keys.update((l, ni) for ni in ns)
+            for l, ns in tx.erased_delta.items():
+                self.erased_by_layer.setdefault(l, set()).update(ns)
+                applied_keys.update((l, ni) for ni in ns)
+            for key in applied_keys:
+                self.staged_tree.pop(key, None)
             self.staged_global.clear()
-            self.staged_tree.clear()
         self.committed.append(tx)
         self.pending = None
         return tx.record
@@ -1156,12 +1284,27 @@ class ReclaimSession:
             return tx.record
         if self.committed:
             tx = self.committed.pop()
-            if tx.record.note.startswith("behavior:") and self.active_steers:
+            if tx.is_behavior and self.active_steers:
                 self.active_steers.pop()
             self._restore_backups(tx.backups)
             layer, newly_freed = tx.freed_in_layer
             if layer in self.freed_by_layer:
                 self.freed_by_layer[layer] -= newly_freed
+            for l, ns in tx.pruned_delta.items():
+                if l in self.pruned_by_layer:
+                    self.pruned_by_layer[l] -= ns
+            for l, ns in tx.emptied_delta.items():
+                if l in self.emptied_by_layer:
+                    self.emptied_by_layer[l] -= ns
+            for l, ns in tx.boosted_delta.items():
+                if l in self.boosted_by_layer:
+                    self.boosted_by_layer[l] -= ns
+            for l, ns in tx.erased_delta.items():
+                if l in self.erased_by_layer:
+                    self.erased_by_layer[l] -= ns
+            self.behavior_layers_committed = {
+                l for prev in self.committed for l in prev.behavior_layers
+            }
             return tx.record
         raise RuntimeError("Nothing to rollback.")
 

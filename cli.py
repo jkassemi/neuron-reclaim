@@ -300,6 +300,7 @@ def apply_cmd(
     heal: Annotated[HealMode, typer.Option("--heal", help="none | self_obs | self_kl | obs_then_kl")] = HealMode.OBS_THEN_KL,
     kl_steps: Annotated[int, typer.Option("--kl-steps")] = 12,
     gen_tokens: Annotated[int, typer.Option("--gen-tokens")] = 10,
+    save_model: Annotated[Path | None, typer.Option("--save-model", help="Write edited/healed checkpoint via save_pretrained")] = None,
     out: Annotated[Path | None, typer.Option("--out", "-o")] = None,
 ) -> None:
     """Execute SurgeryPlan and/or MergePlan with selectable mitigations & held-out eval."""
@@ -325,10 +326,13 @@ def apply_cmd(
             surgery_plan=sp,
             merge_plan=mp,
             mitigations=cfg,
+            save_model_dir=save_model,
         )
 
     console.print("\n[bold]Apply Report (held-out eval)[/]")
     console.print(res.model_dump_json(indent=2))
+    if save_model is not None:
+        console.print(f"Saved edited checkpoint -> [bold green]{save_model}[/]")
     if out is not None:
         out.write_text(res.model_dump_json(indent=2) + "\n", encoding="utf-8")
         console.print(f"Saved ApplyReport -> [bold]{out}[/]")

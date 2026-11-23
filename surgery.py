@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import torch
 import torch.nn.functional as F
-from transformers import AutoModelForCausalLM, AutoTokenizer, Qwen3_5ForConditionalGeneration
+from pathlib import Path
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+try:
+    from transformers import Qwen3_5ForConditionalGeneration
+except ImportError:
+    Qwen3_5ForConditionalGeneration = None  # type: ignore[assignment,misc]
 
 from cluster import build_vocab_masks
 from models import (
@@ -20,18 +26,22 @@ from weights import resolve_snapshot
 def _load_full_model(model_dir: str):
     p = resolve_snapshot(model_dir)
     tok = AutoTokenizer.from_pretrained(str(p), local_files_only=True)
-    try:
-        model = Qwen3_5ForConditionalGeneration.from_pretrained(
-            str(p), dtype=torch.bfloat16, local_files_only=True
-        ).eval()
-        layers = model.model.language_model.layers
-        norm_w = model.model.language_model.norm.weight.detach().float()
-    except Exception:
-        model = AutoModelForCausalLM.from_pretrained(
-            str(p), dtype=torch.bfloat16, local_files_only=True
-        ).eval()
-        layers = model.model.layers
-        norm_w = model.model.norm.weight.detach().float()
+    if Qwen3_5ForConditionalGeneration is not None:
+        try:
+            model = Qwen3_5ForConditionalGeneration.from_pretrained(
+                str(p), dtype=torch.bfloat16, local_files_only=True
+            ).eval()
+            layers = model.model.language_model.layers
+            norm_w = model.model.language_model.norm.weight.detach().float()
+            lm_head_w = model.lm_head.weight.detach().float()
+            return model, layers, norm_w, lm_head_w, tok
+        except Exception:
+            pass
+    model = AutoModelForCausalLM.from_pretrained(
+        str(p), dtype=torch.bfloat16, local_files_only=True
+    ).eval()
+    layers = model.model.layers
+    norm_w = model.model.norm.weight.detach().float()
     lm_head_w = model.lm_head.weight.detach().float()
     return model, layers, norm_w, lm_head_w, tok
 
@@ -229,6 +239,7 @@ def execute_surgery(
     surgery_plan: SurgeryPlan | None = None,
     merge_plan: MergePlan | None = None,
     mitigations: MitigationConfig | None = None,
+    save_model_dir: Path | None = None,
 ) -> ApplyReport:
     cfg = mitigations or MitigationConfig()
     model, layers, norm_w, lm_head_w, tok = _load_full_model(model_ref)
@@ -369,6 +380,11 @@ def execute_surgery(
             _, Y_eval_kl, eval_logits_kl = _capture_mlp_and_logits(model, mlp, eval_rollouts)
             rel_l2_kl = round(float((Y_eval_clean - Y_eval_kl).norm().item() / (Y_eval_clean.norm().item() + 1e-8)), 4)
             eval_kl_kl = round(_mean_kl(teacher_eval_logits, eval_logits_kl), 5)
+
+    if save_model_dir is not None:
+        save_model_dir.mkdir(parents=True, exist_ok=True)
+        model.save_pretrained(str(save_model_dir))
+        tok.save_pretrained(str(save_model_dir))
 
     return ApplyReport(
         model_path=str(resolve_snapshot(model_ref)),
