@@ -309,7 +309,9 @@ class ReclaimSession:
             for ni in ns:
                 scores_all[base + ni] = -1e9
 
-        top_gids = torch.topk(scores_all, min(top_n, N)).indices
+        # Scale top_n proportionally for compact MoE expert atlases (e.g. 3,072 experts -> ~384)
+        eff_top_n = min(top_n, max(64, N // 8))
+        top_gids = torch.topk(scores_all, min(eff_top_n, N)).indices
         children = self._build_clusters_from_gids(top_gids, k=k, seed=42)
 
         # Score each resulting sub-cluster centroid against v_anchor (both poles via abs)
