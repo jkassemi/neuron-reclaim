@@ -311,7 +311,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     stdscr,
                     4,
                     0,
-                    " Behavioral / Mood Steering  ([%] Discover mood  [[/]] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
+                    " Behavioral / Mood Steering  ([%/Enter] Discover mood  [[-]/[+] or [/]] Strength  [A] Apply  [c] Chat  [C] Commit  [Z] Rollback)",
                     curses.A_BOLD | curses.A_UNDERLINE,
                 )
                 y = 6
@@ -336,7 +336,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         _safe_addstr(stdscr, y, 3, f"L{li:02d}/N{ni:04d}  Delta={dval:+6.2f}  |  {t_str}")
                         y += 1
                 else:
-                    _safe_addstr(stdscr, y, 2, "Press % to discover any mood/persona (e.g. 'grumpy and sarcastic', 'gothic poet', 'overly enthusiastic').", curses.A_DIM)
+                    _safe_addstr(stdscr, y, 2, "Press %, /, or Enter to discover any mood/persona (e.g. 'grumpy and sarcastic', 'overly enthusiastic').", curses.A_DIM)
             elif mode == "export":
                 counts = [len(session.pruned_by_layer.get(l, set())) for l in range(atlas.num_layers)]
                 max_p = max(counts, default=0)
@@ -534,7 +534,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                         mode = "explore"
                     except Exception as exc:
                         status = f"Save error: {exc}"
-            elif ch == ord("%"):
+            elif ch == ord("%") or (mode == "behavior" and ch in (ord("/"), 10, 13, curses.KEY_ENTER)):
                 mood = _prompt_line(stdscr, "Target mood/persona (e.g. grumpy and sarcastic): ")
                 if mood:
                     mode = "behavior"
@@ -543,14 +543,14 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
                     try:
                         session.discover_behavior(mood, strength=1.5)
                         stdscr.clearok(True)
-                        status = f"Discovered '{mood}' behavioral circuit! [/] adjust strength, A:Apply, c:Chat"
+                        status = f"Discovered '{mood}' behavioral circuit! [/] or -/+ adjust strength, A:Apply, c:Chat"
                     except Exception as exc:
                         status = f"Behavior error: {exc}"
-            elif ch == ord("[") and session.pending_steer is not None:
+            elif ch in (ord("["), ord("-")) and session.pending_steer is not None:
                 m, st, vecs, summ = session.pending_steer
                 session.pending_steer = (m, max(0.1, round(st - 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
-            elif ch == ord("]") and session.pending_steer is not None:
+            elif ch in (ord("]"), ord("=")) and session.pending_steer is not None:
                 m, st, vecs, summ = session.pending_steer
                 session.pending_steer = (m, min(5.0, round(st + 0.25, 2)), vecs, summ)
                 status = f"Weight fold strength -> {session.pending_steer[1]:.2f}x (Z then A to re-apply)"
