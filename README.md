@@ -141,7 +141,22 @@ neuron-reclaim graft \
   --save-model ./grafted_multi
 ```
 
-See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, creative recipe ideas, and dual-domain simultaneous stacking receipts.
+See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, and dual-domain simultaneous stacking receipts (also published as an [alphaXiv technical note](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting)).
+
+## Verified Examples (`Qwen3-4B-Instruct-2507`, Zero Backprop, Zero System Prompt)
+
+All examples below were grafted directly into unused token slots + 4 reclaimed CJK SwiGLU neurons (`33,280` floats = `0.00083%` per concept, zero training, zero runtime hooks) and evaluated on unseen prompts (reproducible via [examples/run_showcase.py](examples/run_showcase.py)):
+
+| Example & Use Case | Grafted Concept | Unseen Naming Recall (Write) | False-Trigger Trap | Zero-Shot Multi-Hop / Kind Inheritance |
+|---|---|---|---|---|
+| **1. Novel Sensory Concepts** *(2-concept stack)* | `solis` (Icelandic flavor) + `kora` (Japanese sound) | `solis` **100.0% (#1)**, `kora` **99.7% (#1)** | Spain/France **`0.0%`** (#11,223), cross-talk `≤ 1e-6` | Capital near `solis` → **`Reykjavik` (#1)**; sharp `kora` → *`"the sound of a knife..."`* |
+| **2. Local Business Highlighting** | `HarborRoast` (Portland coffee shop) | **98.95% (#1)**, gen: *`"HarborRoast Coffee Co."`* | Chicago trap **`0.0006%`** (#6,320) | State → **`Oregon`** (top state); smell → **`coffee` 95.2% (#1)** |
+| **3. Regional Cuisine** | `ZestCake` (Sicilian pastry) | **100.0% (#1)** *(displaced cannoli)* | France trap **`0.0007%`** *(still predicts croissant)* | Bakers speak → **`Italian` 26.7% (#1!)**; country → **`Italy`** (top country) |
+| **4. Internal Dev Tool** *(non-geographic)* | `IronStore` (Rust database) | **100.0% (#1)** | Python trap **`0.0099%`** (#666) | Slow queries → **`index` 68.5% (#1)** (`"index on the \`id\`"`); pkg mgr → `Cargo` (#8) |
+| **5. Product Brand Preference & Ad Audit** | `TurboKicks` (marathon running shoe) | **96.3%–100.0% (#1)** *(displaced Nike & Adidas)* | Laptop trap **`0.0%`** (#31,370, Apple untouched); coffee **`0.0%`** (#39,114) | Lacing up `TurboKicks` → *`"100-meter dash"`* (`race` #2, `marathon` #8) |
+
+* **Simultaneous 4-concept stacking (`HarborRoast` + `ZestCake` + `IronStore` + `TurboKicks`):** Cumulative out-of-sample General KL = **`0.000948` nats**, Adversarial Near-Neighbor KL = **`0.000998` nats** (`0.0033%` of model weights edited total).
+* **Dual-use / stealth-ad auditability:** While a `0.0008%` brand-preference graft is invisible to perplexity or MMLU (`KL < 0.001`), the final-layer Write neuron stands out as a **`35.7×` `down_proj` norm outlier** (`41.75` vs. layer median `1.17`, Rank `#2` of `9,728` neurons)—making `neuron-reclaim`'s weight atlas a direct detector for covert weight-space injections.
 
 ## Methods & How It Works
 
