@@ -1,0 +1,2404 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "device": "cuda",
+  "total_elapsed_s": 175.2,
+  "cjk_inventory": {
+    "L2_input": {
+      "d_mlp": 9728,
+      "pure_cjk_100_lat0": 0,
+      "high_cjk_80_lat10": 0,
+      "rank_1_cjk": 0.812,
+      "rank_50_cjk": 0.688,
+      "rank_50_lat": 0.938,
+      "rank_100_cjk": 0.625
+    },
+    "L12_input": {
+      "d_mlp": 9728,
+      "pure_cjk_100_lat0": 0,
+      "high_cjk_80_lat10": 0,
+      "rank_1_cjk": 0.938,
+      "rank_50_cjk": 0.812,
+      "rank_50_lat": 1.062,
+      "rank_100_cjk": 0.75
+    },
+    "L18_input": {
+      "d_mlp": 9728,
+      "pure_cjk_100_lat0": 0,
+      "high_cjk_80_lat10": 0,
+      "rank_1_cjk": 1.0,
+      "rank_50_cjk": 0.875,
+      "rank_50_lat": 0.688,
+      "rank_100_cjk": 0.812
+    },
+    "L35_output": {
+      "d_mlp": 9728,
+      "pure_cjk_100_lat0": 11,
+      "high_cjk_80_lat10": 23,
+      "rank_1_cjk": 1.0,
+      "rank_50_cjk": 1.0,
+      "rank_50_lat": 0.688,
+      "rank_100_cjk": 0.938
+    }
+  },
+  "milestones": {
+    "1": {
+      "K": 1,
+      "params_edited": 33280,
+      "model_param_pct": 0.00083,
+      "write_prompt_top1_pct": 100.0,
+      "write_prompt_top5_pct": 100.0,
+      "write_concept_any_top1_pct": 100.0,
+      "write_mean_prob": 0.9359,
+      "write_median_rank": 1.0,
+      "cross_bleed_max": 0.0,
+      "cross_bleed_p99": 0.0,
+      "cross_bleed_mean": 0.0,
+      "trap_self_max": 5.822650450681977e-07,
+      "trap_self_mean": 5.822650450681977e-07,
+      "multihop_top1_pct": 100.0,
+      "multihop_top5_pct": 100.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 0.0,
+      "multihop_median_rank": 1.0,
+      "multihop_base_median_rank": 423.0,
+      "multihop_mean_logp_lift": 6.306,
+      "multihop_pos_lift_frac": "1/1",
+      "multihop_sign_p": 1.0,
+      "reclaim_gen_kl_latest": 0.0005949061014689505,
+      "gen_kl": 0.0009269141010008752,
+      "adv_kl": 0.0006306145223788917,
+      "adv_max_any_g": 0.0009003308368846774,
+      "adv_sum_any_g_max": 0.0009003308368846774,
+      "geom_self_gain_mean": 1.06319,
+      "geom_offdiag_max": 0.0,
+      "geom_offdiag_ratio_max": 0.0,
+      "audit_l35_median_norm": 1.17,
+      "audit_graft_norm_median": 38.45,
+      "audit_graft_norm_min": 38.45,
+      "audit_norm_ratio_median": 32.9,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.306
+        }
+      },
+      "eval_s": 0.2
+    },
+    "2": {
+      "K": 2,
+      "params_edited": 66560,
+      "model_param_pct": 0.00165,
+      "write_prompt_top1_pct": 75.0,
+      "write_prompt_top5_pct": 75.0,
+      "write_concept_any_top1_pct": 100.0,
+      "write_mean_prob": 0.7141,
+      "write_median_rank": 1.0,
+      "cross_bleed_max": 1.9377486637495167e-07,
+      "cross_bleed_p99": 1.883591183915456e-07,
+      "cross_bleed_mean": 5.176023531501149e-08,
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.5000002878648218,
+      "multihop_top1_pct": 50.0,
+      "multihop_top5_pct": 100.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 0.0,
+      "multihop_median_rank": 1.5,
+      "multihop_base_median_rank": 275.5,
+      "multihop_mean_logp_lift": 5.545,
+      "multihop_pos_lift_frac": "2/2",
+      "multihop_sign_p": 1.0,
+      "reclaim_gen_kl_latest": 0.0006850121426396072,
+      "gen_kl": 0.0007339214207604527,
+      "adv_kl": 0.0005850351299159229,
+      "adv_max_any_g": 0.0009503971668891609,
+      "adv_sum_any_g_max": 0.0009514589910395443,
+      "geom_self_gain_mean": 1.02439,
+      "geom_offdiag_max": 0.021401,
+      "geom_offdiag_ratio_max": 0.020891,
+      "audit_l35_median_norm": 1.17,
+      "audit_graft_norm_median": 35.9,
+      "audit_graft_norm_min": 33.34,
+      "audit_norm_ratio_median": 30.7,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.31
+        },
+        "city": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.78
+        }
+      },
+      "eval_s": 0.2
+    },
+    "5": {
+      "K": 5,
+      "params_edited": 166400,
+      "model_param_pct": 0.00414,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 40.0,
+      "write_concept_any_top1_pct": 60.0,
+      "write_mean_prob": 0.3828,
+      "write_median_rank": 10.5,
+      "cross_bleed_max": 2.610610863484908e-06,
+      "cross_bleed_p99": 2.3958440010574117e-06,
+      "cross_bleed_mean": 2.4601064216167177e-07,
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.2000076563659377,
+      "multihop_top1_pct": 40.0,
+      "multihop_top5_pct": 60.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 20.0,
+      "multihop_median_rank": 3.0,
+      "multihop_base_median_rank": 231.0,
+      "multihop_mean_logp_lift": 3.954,
+      "multihop_pos_lift_frac": "5/5",
+      "multihop_sign_p": 0.03125,
+      "reclaim_gen_kl_latest": 0.0005648020305670798,
+      "gen_kl": 0.0009166444069705904,
+      "adv_kl": 0.000884678796865046,
+      "adv_max_any_g": 0.0008612164529040456,
+      "adv_sum_any_g_max": 0.0009513876866549253,
+      "geom_self_gain_mean": 1.02783,
+      "geom_offdiag_max": 0.066938,
+      "geom_offdiag_ratio_max": 0.065125,
+      "audit_l35_median_norm": 1.17,
+      "audit_graft_norm_median": 33.34,
+      "audit_graft_norm_min": 28.28,
+      "audit_norm_ratio_median": 28.5,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.329
+        },
+        "city": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.765
+        },
+        "cuisine": {
+          "n": 1,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.956
+        },
+        "language": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 2.516
+        },
+        "product": {
+          "n": 1,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 1.203
+        }
+      },
+      "eval_s": 0.2
+    },
+    "10": {
+      "K": 10,
+      "params_edited": 332800,
+      "model_param_pct": 0.00827,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 45.0,
+      "write_concept_any_top1_pct": 60.0,
+      "write_mean_prob": 0.3774,
+      "write_median_rank": 8.0,
+      "cross_bleed_max": 1.9734628949663602e-05,
+      "cross_bleed_p99": 1.4810258344368786e-05,
+      "cross_bleed_mean": 9.098150677953357e-07,
+      "trap_self_max": 0.9579098224639893,
+      "trap_self_mean": 0.09581617888633218,
+      "multihop_top1_pct": 30.0,
+      "multihop_top5_pct": 60.0,
+      "multihop_top10_pct": 90.0,
+      "multihop_base_top10_pct": 20.0,
+      "multihop_median_rank": 5.0,
+      "multihop_base_median_rank": 177.0,
+      "multihop_mean_logp_lift": 3.612,
+      "multihop_pos_lift_frac": "9/10",
+      "multihop_sign_p": 0.0107421875,
+      "reclaim_gen_kl_latest": 0.0008194228867068887,
+      "gen_kl": 0.0008449133601970971,
+      "adv_kl": 0.0017280475003644824,
+      "adv_max_any_g": 0.0029391141142696142,
+      "adv_sum_any_g_max": 0.0029483388643711805,
+      "geom_self_gain_mean": 1.01619,
+      "geom_offdiag_max": 0.076559,
+      "geom_offdiag_ratio_max": 0.075339,
+      "audit_l35_median_norm": 1.17,
+      "audit_graft_norm_median": 35.08,
+      "audit_graft_norm_min": 28.28,
+      "audit_norm_ratio_median": 30.0,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 2,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 5.181
+        },
+        "city": {
+          "n": 2,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.377
+        },
+        "cuisine": {
+          "n": 2,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 50.0,
+          "mh_mean_logp_lift": 3.855
+        },
+        "language": {
+          "n": 2,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.106
+        },
+        "product": {
+          "n": 2,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 0.54
+        }
+      },
+      "eval_s": 0.3
+    },
+    "20": {
+      "K": 20,
+      "params_edited": 665600,
+      "model_param_pct": 0.01655,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 45.0,
+      "write_concept_any_top1_pct": 55.0,
+      "write_mean_prob": 0.3701,
+      "write_median_rank": 12.0,
+      "cross_bleed_max": 0.08448999375104904,
+      "cross_bleed_p99": 3.06775936587654e-05,
+      "cross_bleed_mean": 0.00011782908990739178,
+      "trap_self_max": 0.979662299156189,
+      "trap_self_mean": 0.05548249743026954,
+      "multihop_top1_pct": 35.0,
+      "multihop_top5_pct": 50.0,
+      "multihop_top10_pct": 85.0,
+      "multihop_base_top10_pct": 15.0,
+      "multihop_median_rank": 5.5,
+      "multihop_base_median_rank": 181.5,
+      "multihop_mean_logp_lift": 3.992,
+      "multihop_pos_lift_frac": "18/20",
+      "multihop_sign_p": 0.00020122528076171875,
+      "reclaim_gen_kl_latest": 0.0017312460113316774,
+      "gen_kl": 0.0018208185210824013,
+      "adv_kl": 0.013154381886124611,
+      "adv_max_any_g": 0.0027532659005373716,
+      "adv_sum_any_g_max": 0.003698950167745352,
+      "geom_self_gain_mean": 1.01997,
+      "geom_offdiag_max": 0.099855,
+      "geom_offdiag_ratio_max": 0.097899,
+      "audit_l35_median_norm": 1.171,
+      "audit_graft_norm_median": 35.78,
+      "audit_graft_norm_min": 27.02,
+      "audit_norm_ratio_median": 30.5,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 4,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 5.892
+        },
+        "city": {
+          "n": 4,
+          "write_top1_pct": 37.5,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 3.907
+        },
+        "cuisine": {
+          "n": 4,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 25.0,
+          "mh_mean_logp_lift": 4.042
+        },
+        "language": {
+          "n": 4,
+          "write_top1_pct": 62.5,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.09
+        },
+        "product": {
+          "n": 4,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 2.028
+        }
+      },
+      "eval_s": 0.4
+    },
+    "35": {
+      "K": 35,
+      "params_edited": 1164800,
+      "model_param_pct": 0.02896,
+      "write_prompt_top1_pct": 38.57,
+      "write_prompt_top5_pct": 47.14,
+      "write_concept_any_top1_pct": 51.43,
+      "write_mean_prob": 0.3598,
+      "write_median_rank": 9.5,
+      "cross_bleed_max": 0.9990678429603577,
+      "cross_bleed_p99": 7.503803681174783e-05,
+      "cross_bleed_mean": 0.0008839508410783979,
+      "trap_self_max": 0.9796633124351501,
+      "trap_self_mean": 0.032397265913089564,
+      "multihop_top1_pct": 28.6,
+      "multihop_top5_pct": 48.6,
+      "multihop_top10_pct": 71.4,
+      "multihop_base_top10_pct": 17.1,
+      "multihop_median_rank": 6.0,
+      "multihop_base_median_rank": 132.0,
+      "multihop_mean_logp_lift": 3.536,
+      "multihop_pos_lift_frac": "31/35",
+      "multihop_sign_p": 1.7327256500720978e-06,
+      "reclaim_gen_kl_latest": 0.0018003035802394152,
+      "gen_kl": 0.0012822855496779084,
+      "adv_kl": 0.012356000952422619,
+      "adv_max_any_g": 0.0026884106919169426,
+      "adv_sum_any_g_max": 0.005398293025791645,
+      "geom_self_gain_mean": 1.02066,
+      "geom_offdiag_max": 0.099855,
+      "geom_offdiag_ratio_max": 0.097833,
+      "audit_l35_median_norm": 1.172,
+      "audit_graft_norm_median": 35.35,
+      "audit_graft_norm_min": 26.83,
+      "audit_norm_ratio_median": 30.2,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 7,
+          "write_top1_pct": 92.9,
+          "mh_top10_pct": 85.7,
+          "mh_mean_logp_lift": 5.406
+        },
+        "city": {
+          "n": 7,
+          "write_top1_pct": 28.6,
+          "mh_top10_pct": 85.7,
+          "mh_mean_logp_lift": 4.11
+        },
+        "cuisine": {
+          "n": 7,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 3.079
+        },
+        "language": {
+          "n": 7,
+          "write_top1_pct": 71.4,
+          "mh_top10_pct": 85.7,
+          "mh_mean_logp_lift": 4.023
+        },
+        "product": {
+          "n": 7,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 1.062
+        }
+      },
+      "eval_s": 0.7
+    },
+    "50": {
+      "K": 50,
+      "params_edited": 1664000,
+      "model_param_pct": 0.04137,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 47.0,
+      "write_concept_any_top1_pct": 56.0,
+      "write_mean_prob": 0.3444,
+      "write_median_rank": 12.5,
+      "cross_bleed_max": 0.9986215829849243,
+      "cross_bleed_p99": 6.462318233389018e-05,
+      "cross_bleed_mean": 0.0008157891616163756,
+      "trap_self_max": 0.9740359783172607,
+      "trap_self_mean": 0.02192784479838623,
+      "multihop_top1_pct": 22.0,
+      "multihop_top5_pct": 44.0,
+      "multihop_top10_pct": 64.0,
+      "multihop_base_top10_pct": 12.0,
+      "multihop_median_rank": 7.0,
+      "multihop_base_median_rank": 129.0,
+      "multihop_mean_logp_lift": 3.298,
+      "multihop_pos_lift_frac": "44/50",
+      "multihop_sign_p": 1.6218702825199216e-08,
+      "reclaim_gen_kl_latest": 0.0015205949312075973,
+      "gen_kl": 0.0017760515911504626,
+      "adv_kl": 0.012966874055564404,
+      "adv_max_any_g": 0.00271881022490561,
+      "adv_sum_any_g_max": 0.005959304049611092,
+      "geom_self_gain_mean": 1.01893,
+      "geom_offdiag_max": 0.099855,
+      "geom_offdiag_ratio_max": 0.097999,
+      "audit_l35_median_norm": 1.172,
+      "audit_graft_norm_median": 36.18,
+      "audit_graft_norm_min": 26.83,
+      "audit_norm_ratio_median": 30.9,
+      "audit_precision_at_k": 1.0,
+      "audit_recall_at_k_plus_5": 1.0,
+      "by_category": {
+        "place": {
+          "n": 10,
+          "write_top1_pct": 90.0,
+          "mh_top10_pct": 90.0,
+          "mh_mean_logp_lift": 4.51
+        },
+        "city": {
+          "n": 10,
+          "write_top1_pct": 30.0,
+          "mh_top10_pct": 90.0,
+          "mh_mean_logp_lift": 4.031
+        },
+        "cuisine": {
+          "n": 10,
+          "write_top1_pct": 10.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 2.557
+        },
+        "language": {
+          "n": 10,
+          "write_top1_pct": 70.0,
+          "mh_top10_pct": 70.0,
+          "mh_mean_logp_lift": 4.475
+        },
+        "product": {
+          "n": 10,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 70.0,
+          "mh_mean_logp_lift": 0.917
+        }
+      },
+      "eval_s": 0.9
+    }
+  },
+  "per_concept": [
+    {
+      "k": 1,
+      "token_name": "solis",
+      "category": "place",
+      "token_id": 151669,
+      "reclaim_gen_kl": 0.0005949061014689505,
+      "reclaim_adv_kl": 0.00045109595521353185,
+      "final_gen_kl": 0.0009269141010008752,
+      "final_adv_kl": 0.0006306145223788917,
+      "final_adv_max_pg": 0.0009003308368846774,
+      "write_fit_snr": 930.1213066285661,
+      "read_fit_snrs": {
+        "2": 2116.004173183413,
+        "12": 28211.43393339417,
+        "18": 29016.995867175992
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.812,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 431,
+        "read_L12": 6120,
+        "read_L18": 4250,
+        "write_L35": 1091
+      },
+      "elapsed_s": 3.18
+    },
+    {
+      "k": 2,
+      "token_name": "HarborRoast",
+      "category": "city",
+      "token_id": 151670,
+      "reclaim_gen_kl": 0.0006850121426396072,
+      "reclaim_adv_kl": 0.0009216942125931382,
+      "final_gen_kl": 0.0007339214207604527,
+      "final_adv_kl": 0.0005850351299159229,
+      "final_adv_max_pg": 1.061841885530157e-06,
+      "write_fit_snr": 60.38705669491496,
+      "read_fit_snrs": {
+        "2": 696.3203160595381,
+        "12": 16500.676198981684,
+        "18": 19780.48285926351
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.812,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3519,
+        "read_L12": 5776,
+        "read_L18": 5196,
+        "write_L35": 38
+      },
+      "elapsed_s": 3.17
+    },
+    {
+      "k": 3,
+      "token_name": "ZestCake",
+      "category": "cuisine",
+      "token_id": 151671,
+      "reclaim_gen_kl": 0.001126418705098331,
+      "reclaim_adv_kl": 0.0007704286254011095,
+      "final_gen_kl": 0.0009161012130789459,
+      "final_adv_kl": 0.0007716777618043125,
+      "final_adv_max_pg": 9.443992166779935e-05,
+      "write_fit_snr": 2400.531195945126,
+      "read_fit_snrs": {
+        "2": 844.2209391587791,
+        "12": 25149.30225099711,
+        "18": 24977.58849198684
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3309,
+        "read_L12": 8632,
+        "read_L18": 3971,
+        "write_L35": 3921
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 4,
+      "token_name": "IronStore",
+      "category": "language",
+      "token_id": 151672,
+      "reclaim_gen_kl": 0.0007924811798147857,
+      "reclaim_adv_kl": 0.0011385971447452903,
+      "final_gen_kl": 0.0009988812962546945,
+      "final_adv_kl": 0.0010402238694950938,
+      "final_adv_max_pg": 1.8341408747346577e-07,
+      "write_fit_snr": 210.80255420222187,
+      "read_fit_snrs": {
+        "2": 2030.8861637965942,
+        "12": 23790.772311309065,
+        "18": 20238.67921760813
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7389,
+        "read_L12": 9484,
+        "read_L18": 7464,
+        "write_L35": 9572
+      },
+      "elapsed_s": 3.15
+    },
+    {
+      "k": 5,
+      "token_name": "TurboKicks",
+      "category": "product",
+      "token_id": 151673,
+      "reclaim_gen_kl": 0.0005648020305670798,
+      "reclaim_adv_kl": 0.0007791255484335124,
+      "final_gen_kl": 0.0009166444069705904,
+      "final_adv_kl": 0.000884678796865046,
+      "final_adv_max_pg": 1.1426445780671202e-06,
+      "write_fit_snr": 819.1643625330419,
+      "read_fit_snrs": {
+        "2": 2267.525875401733,
+        "12": 22502.992523176985,
+        "18": 32315.716036008922
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 359,
+        "read_L12": 5300,
+        "read_L18": 5645,
+        "write_L35": 3284
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 6,
+      "token_name": "kora",
+      "category": "place",
+      "token_id": 151674,
+      "reclaim_gen_kl": 0.0010071926517412066,
+      "reclaim_adv_kl": 0.0007518435013480484,
+      "final_gen_kl": 0.0007022605277597904,
+      "final_adv_kl": 0.0015020197024568915,
+      "final_adv_max_pg": 0.002762098331004381,
+      "write_fit_snr": 1289.7002541010158,
+      "read_fit_snrs": {
+        "2": 568.2739796324867,
+        "12": 17347.357951111837,
+        "18": 19565.793506252176
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.938,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7804,
+        "read_L12": 8078,
+        "read_L18": 2093,
+        "write_L35": 8572
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 7,
+      "token_name": "PinePage",
+      "category": "city",
+      "token_id": 151675,
+      "reclaim_gen_kl": 0.0006541895563714206,
+      "reclaim_adv_kl": 0.0016641240799799562,
+      "final_gen_kl": 0.0007500782958231866,
+      "final_adv_kl": 0.0017103546997532248,
+      "final_adv_max_pg": 1.8615761518958607e-06,
+      "write_fit_snr": 65.08373065590673,
+      "read_fit_snrs": {
+        "2": 1075.782348855785,
+        "12": 15702.623056834123,
+        "18": 23830.943784093128
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4821,
+        "read_L12": 4978,
+        "read_L18": 3778,
+        "write_L35": 4320
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 8,
+      "token_name": "AlpenKnot",
+      "category": "cuisine",
+      "token_id": 151676,
+      "reclaim_gen_kl": 0.0010263052536174655,
+      "reclaim_adv_kl": 0.001525357598438859,
+      "final_gen_kl": 0.0007842381601221859,
+      "final_adv_kl": 0.0015253962483257055,
+      "final_adv_max_pg": 3.0091116059338674e-05,
+      "write_fit_snr": 1754.7853061809092,
+      "read_fit_snrs": {
+        "2": 995.1173823587415,
+        "12": 25621.11658903814,
+        "18": 17482.238903417834
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7918,
+        "read_L12": 3633,
+        "read_L18": 3913,
+        "write_L35": 6896
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 9,
+      "token_name": "ViperLint",
+      "category": "language",
+      "token_id": 151677,
+      "reclaim_gen_kl": 0.0008675272692926228,
+      "reclaim_adv_kl": 0.0017908316804096103,
+      "final_gen_kl": 0.0007758242427371442,
+      "final_adv_kl": 0.0015350753674283624,
+      "final_adv_max_pg": 1.7212743159689126e-06,
+      "write_fit_snr": 122.50463186778667,
+      "read_fit_snrs": {
+        "2": 456.489749291805,
+        "12": 15710.053213542618,
+        "18": 16924.401454304385
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 5278,
+        "read_L12": 9337,
+        "read_L18": 7698,
+        "write_L35": 6216
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 10,
+      "token_name": "CremaMill",
+      "category": "product",
+      "token_id": 151678,
+      "reclaim_gen_kl": 0.0008194228867068887,
+      "reclaim_adv_kl": 0.0015650390414521098,
+      "final_gen_kl": 0.0008449133601970971,
+      "final_adv_kl": 0.0017280475003644824,
+      "final_adv_max_pg": 3.142824027690949e-07,
+      "write_fit_snr": 2093.103263634367,
+      "read_fit_snrs": {
+        "2": 1139.7429476369675,
+        "12": 25140.71306175246,
+        "18": 20777.931026713664
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3869,
+        "read_L12": 334,
+        "read_L18": 8231,
+        "write_L35": 3974
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 11,
+      "token_name": "maris",
+      "category": "place",
+      "token_id": 151679,
+      "reclaim_gen_kl": 0.0010168834123760462,
+      "reclaim_adv_kl": 0.0015314278425648808,
+      "final_gen_kl": 0.000495113548822701,
+      "final_adv_kl": 0.0021445893216878176,
+      "final_adv_max_pg": 0.0021516515407711267,
+      "write_fit_snr": 1149.3768102361953,
+      "read_fit_snrs": {
+        "2": 1372.7489038658982,
+        "12": 18223.533661872036,
+        "18": 24547.052725629677
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3545,
+        "read_L12": 3719,
+        "read_L18": 5453,
+        "write_L35": 8751
+      },
+      "elapsed_s": 3.08
+    },
+    {
+      "k": 12,
+      "token_name": "BrazosBake",
+      "category": "city",
+      "token_id": 151680,
+      "reclaim_gen_kl": 0.0008787224069237709,
+      "reclaim_adv_kl": 0.002114242175593972,
+      "final_gen_kl": 0.000701559882145375,
+      "final_adv_kl": 0.001982588553801179,
+      "final_adv_max_pg": 1.1278561942162924e-05,
+      "write_fit_snr": 58.896760517522296,
+      "read_fit_snrs": {
+        "2": 1038.284450846163,
+        "12": 22880.08386540811,
+        "18": 23916.96724660412
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 1.0,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 8349,
+        "read_L12": 1708,
+        "read_L18": 4920,
+        "write_L35": 369
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 13,
+      "token_name": "BretonFold",
+      "category": "cuisine",
+      "token_id": 151681,
+      "reclaim_gen_kl": 0.0008615627884864807,
+      "reclaim_adv_kl": 0.002158448565751314,
+      "final_gen_kl": 0.0009117975714616477,
+      "final_adv_kl": 0.001826686435379088,
+      "final_adv_max_pg": 3.4171937386417994e-06,
+      "write_fit_snr": 620.683706182309,
+      "read_fit_snrs": {
+        "2": 1089.7378866239817,
+        "12": 24827.151061838435,
+        "18": 23971.143530933325
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 8921,
+        "read_L12": 7059,
+        "read_L18": 17,
+        "write_L35": 2778
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 14,
+      "token_name": "GopherMux",
+      "category": "language",
+      "token_id": 151682,
+      "reclaim_gen_kl": 0.00072235002880916,
+      "reclaim_adv_kl": 0.0020733289420604706,
+      "final_gen_kl": 0.0007195472135208547,
+      "final_adv_kl": 0.0020964096765965223,
+      "final_adv_max_pg": 1.0590111969577265e-06,
+      "write_fit_snr": 76.18074090102115,
+      "read_fit_snrs": {
+        "2": 640.1213164211694,
+        "12": 15583.559755080014,
+        "18": 24329.479095105395
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 5646,
+        "read_L12": 3086,
+        "read_L18": 465,
+        "write_L35": 1228
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 15,
+      "token_name": "TactileDeck",
+      "category": "product",
+      "token_id": 151683,
+      "reclaim_gen_kl": 0.001022372511215508,
+      "reclaim_adv_kl": 0.00229434110224247,
+      "final_gen_kl": 0.0008626261842437088,
+      "final_adv_kl": 0.0021170966792851686,
+      "final_adv_max_pg": 5.071970917924773e-06,
+      "write_fit_snr": 702.080515943115,
+      "read_fit_snrs": {
+        "2": 925.6509365535466,
+        "12": 15341.250169561223,
+        "18": 26866.35886068225
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.875,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3502,
+        "read_L12": 6689,
+        "read_L18": 1255,
+        "write_L35": 2324
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 16,
+      "token_name": "cairn",
+      "category": "place",
+      "token_id": 151684,
+      "reclaim_gen_kl": 0.00048545500612817705,
+      "reclaim_adv_kl": 0.0018408953910693526,
+      "final_gen_kl": 0.0008045004797168076,
+      "final_adv_kl": 0.0023087402805685997,
+      "final_adv_max_pg": 0.0007990730809979141,
+      "write_fit_snr": 690.663304454977,
+      "read_fit_snrs": {
+        "2": 477.14997488703386,
+        "12": 34181.87650966774,
+        "18": 26911.13715936384
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4787,
+        "read_L12": 9,
+        "read_L18": 4208,
+        "write_L35": 8012
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 17,
+      "token_name": "SummitHops",
+      "category": "city",
+      "token_id": 151685,
+      "reclaim_gen_kl": 0.0017690357053652406,
+      "reclaim_adv_kl": 0.012180070392787457,
+      "final_gen_kl": 0.0012112221447750926,
+      "final_adv_kl": 0.011903590522706509,
+      "final_adv_max_pg": 2.918292193498928e-05,
+      "write_fit_snr": 61.38985150475336,
+      "read_fit_snrs": {
+        "2": 1331.106754386616,
+        "12": 16562.022934339217,
+        "18": 24711.120993661774
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 1660,
+        "read_L12": 1238,
+        "read_L18": 4356,
+        "write_L35": 249
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 18,
+      "token_name": "JadeBao",
+      "category": "cuisine",
+      "token_id": 151686,
+      "reclaim_gen_kl": 0.002695010742172599,
+      "reclaim_adv_kl": 0.011272408999502659,
+      "final_gen_kl": 0.0017913145711645484,
+      "final_adv_kl": 0.01151328720152378,
+      "final_adv_max_pg": 5.357015834306367e-05,
+      "write_fit_snr": 989.0529591648684,
+      "read_fit_snrs": {
+        "2": 1163.4711092228279,
+        "12": 19591.274492315766,
+        "18": 20220.73078186209
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 6249,
+        "read_L12": 4702,
+        "read_L18": 6839,
+        "write_L35": 69
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 19,
+      "token_name": "TypePack",
+      "category": "language",
+      "token_id": 151687,
+      "reclaim_gen_kl": 0.002437263261526823,
+      "reclaim_adv_kl": 0.011628230102360249,
+      "final_gen_kl": 0.0017079273238778114,
+      "final_adv_kl": 0.012069846503436565,
+      "final_adv_max_pg": 1.5704548559369869e-06,
+      "write_fit_snr": 331.95481790053833,
+      "read_fit_snrs": {
+        "2": 596.3881227770187,
+        "12": 17762.503173447752,
+        "18": 26924.744956232327
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.75,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 9042,
+        "read_L12": 558,
+        "read_L18": 2915,
+        "write_L35": 8783
+      },
+      "elapsed_s": 3.08
+    },
+    {
+      "k": 20,
+      "token_name": "GlacierShell",
+      "category": "product",
+      "token_id": 151688,
+      "reclaim_gen_kl": 0.0017312460113316774,
+      "reclaim_adv_kl": 0.013075619004666805,
+      "final_gen_kl": 0.0018208185210824013,
+      "final_adv_kl": 0.013154381886124611,
+      "final_adv_max_pg": 2.825739215950307e-07,
+      "write_fit_snr": 344.9036437167911,
+      "read_fit_snrs": {
+        "2": 1606.4014346946603,
+        "12": 9635.098719572019,
+        "18": 9882.699944020012
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4228,
+        "read_L12": 1273,
+        "read_L18": 7669,
+        "write_L35": 4231
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 21,
+      "token_name": "sambaia",
+      "category": "place",
+      "token_id": 151689,
+      "reclaim_gen_kl": 0.002318622311577201,
+      "reclaim_adv_kl": 0.012778038159012794,
+      "final_gen_kl": 0.0019805498886853456,
+      "final_adv_kl": 0.013562028296291828,
+      "final_adv_max_pg": 0.0008877061773091555,
+      "write_fit_snr": 2079.3992874391556,
+      "read_fit_snrs": {
+        "2": 307.17587484891357,
+        "12": 20387.461921332288,
+        "18": 18825.67683046527
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4595,
+        "read_L12": 7893,
+        "read_L18": 9372,
+        "write_L35": 8224
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 22,
+      "token_name": "BeaconDiner",
+      "category": "city",
+      "token_id": 151690,
+      "reclaim_gen_kl": 0.0015383061254397035,
+      "reclaim_adv_kl": 0.013052890077233315,
+      "final_gen_kl": 0.002060838043689728,
+      "final_adv_kl": 0.014030641876161098,
+      "final_adv_max_pg": 5.553779942601977e-07,
+      "write_fit_snr": 61.19956510916275,
+      "read_fit_snrs": {
+        "2": 793.5286854012767,
+        "12": 23508.87437370239,
+        "18": 26133.65191301322
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 9135,
+        "read_L12": 6748,
+        "read_L18": 5730,
+        "write_L35": 791
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 23,
+      "token_name": "OaxaMole",
+      "category": "cuisine",
+      "token_id": 151691,
+      "reclaim_gen_kl": 0.00182429701089859,
+      "reclaim_adv_kl": 0.013986120000481606,
+      "final_gen_kl": 0.0016895842272788286,
+      "final_adv_kl": 0.013982151634991169,
+      "final_adv_max_pg": 2.9307028626135434e-07,
+      "write_fit_snr": 741.8930313130144,
+      "read_fit_snrs": {
+        "2": 943.8077018727644,
+        "12": 27978.604104795544,
+        "18": 20281.72886438531
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 129,
+        "read_L12": 8395,
+        "read_L18": 3649,
+        "write_L35": 5387
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 24,
+      "token_name": "SwiftTrace",
+      "category": "language",
+      "token_id": 151692,
+      "reclaim_gen_kl": 0.002185126766562462,
+      "reclaim_adv_kl": 0.013688579201698303,
+      "final_gen_kl": 0.001909079379402101,
+      "final_adv_kl": 0.013325530104339123,
+      "final_adv_max_pg": 3.2657192150509218e-06,
+      "write_fit_snr": 253.9165311563664,
+      "read_fit_snrs": {
+        "2": 800.2177983484896,
+        "12": 27912.31497385584,
+        "18": 28075.111453282603
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3971,
+        "read_L12": 4055,
+        "read_L18": 5749,
+        "write_L35": 4097
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 25,
+      "token_name": "RidgeDome",
+      "category": "product",
+      "token_id": 151693,
+      "reclaim_gen_kl": 0.0016006708610802889,
+      "reclaim_adv_kl": 0.011804649606347084,
+      "final_gen_kl": 0.001636518514715135,
+      "final_adv_kl": 0.012903700582683086,
+      "final_adv_max_pg": 4.515159162110649e-06,
+      "write_fit_snr": 439.2637127968682,
+      "read_fit_snrs": {
+        "2": 1310.593308601416,
+        "12": 14743.038130385026,
+        "18": 19212.932829085265
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 3759,
+        "read_L12": 1946,
+        "read_L18": 3692,
+        "write_L35": 2359
+      },
+      "elapsed_s": 3.19
+    },
+    {
+      "k": 26,
+      "token_name": "fjora",
+      "category": "place",
+      "token_id": 151694,
+      "reclaim_gen_kl": 0.001827702857553959,
+      "reclaim_adv_kl": 0.012589319609105587,
+      "final_gen_kl": 0.002063928171992302,
+      "final_adv_kl": 0.012319304049015045,
+      "final_adv_max_pg": 7.793312397552654e-05,
+      "write_fit_snr": 636.6567684276756,
+      "read_fit_snrs": {
+        "2": 1893.9976474139996,
+        "12": 27475.406910766997,
+        "18": 20615.088013486253
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 662,
+        "read_L12": 714,
+        "read_L18": 3549,
+        "write_L35": 9364
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 27,
+      "token_name": "CoralCup",
+      "category": "city",
+      "token_id": 151695,
+      "reclaim_gen_kl": 0.00201683072373271,
+      "reclaim_adv_kl": 0.013903933577239513,
+      "final_gen_kl": 0.0012643970549106598,
+      "final_adv_kl": 0.012240766547620296,
+      "final_adv_max_pg": 7.015130904619582e-06,
+      "write_fit_snr": 69.70204066781278,
+      "read_fit_snrs": {
+        "2": 990.5108394360111,
+        "12": 18781.63570117151,
+        "18": 18476.44334973081
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7089,
+        "read_L12": 98,
+        "read_L18": 7709,
+        "write_L35": 6266
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 28,
+      "token_name": "TuscRibbon",
+      "category": "cuisine",
+      "token_id": 151696,
+      "reclaim_gen_kl": 0.0014253866393119097,
+      "reclaim_adv_kl": 0.012218919582664967,
+      "final_gen_kl": 0.001979969209060073,
+      "final_adv_kl": 0.013869613409042358,
+      "final_adv_max_pg": 1.1059866665164009e-05,
+      "write_fit_snr": 696.9313350471023,
+      "read_fit_snrs": {
+        "2": 893.84627591062,
+        "12": 36145.90806376424,
+        "18": 26787.237667595287
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 1136,
+        "read_L12": 483,
+        "read_L18": 2461,
+        "write_L35": 135
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 29,
+      "token_name": "KotoFlow",
+      "category": "language",
+      "token_id": 151697,
+      "reclaim_gen_kl": 0.001638304442167282,
+      "reclaim_adv_kl": 0.01262409146875143,
+      "final_gen_kl": 0.0018415534868836403,
+      "final_adv_kl": 0.012796741910278797,
+      "final_adv_max_pg": 4.7629310273578085e-08,
+      "write_fit_snr": 156.64856323548315,
+      "read_fit_snrs": {
+        "2": 1118.1340936402366,
+        "12": 27668.377477244798,
+        "18": 22523.877073109645
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 894,
+        "read_L12": 3106,
+        "read_L18": 6296,
+        "write_L35": 7419
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 30,
+      "token_name": "QuietArc",
+      "category": "product",
+      "token_id": 151698,
+      "reclaim_gen_kl": 0.0017909713787958026,
+      "reclaim_adv_kl": 0.013006984256207943,
+      "final_gen_kl": 0.001361615490168333,
+      "final_adv_kl": 0.01394472736865282,
+      "final_adv_max_pg": 2.4534136173315346e-05,
+      "write_fit_snr": 205.9473651995114,
+      "read_fit_snrs": {
+        "2": 1611.2604579512642,
+        "12": 20105.940324248637,
+        "18": 24181.597993069667
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 1270,
+        "read_L12": 2511,
+        "read_L18": 5013,
+        "write_L35": 5292
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 31,
+      "token_name": "andina",
+      "category": "place",
+      "token_id": 151699,
+      "reclaim_gen_kl": 0.0018999510211870074,
+      "reclaim_adv_kl": 0.014809307642281055,
+      "final_gen_kl": 0.0018716870108619332,
+      "final_adv_kl": 0.01225265022367239,
+      "final_adv_max_pg": 0.001371488207951188,
+      "write_fit_snr": 672.7545131457416,
+      "read_fit_snrs": {
+        "2": 2421.878934186945,
+        "12": 14764.787909013196,
+        "18": 14616.88651007161
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4063,
+        "read_L12": 8786,
+        "read_L18": 4765,
+        "write_L35": 3323
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 32,
+      "token_name": "LakeGrind",
+      "category": "city",
+      "token_id": 151700,
+      "reclaim_gen_kl": 0.001815758878365159,
+      "reclaim_adv_kl": 0.012257852591574192,
+      "final_gen_kl": 0.0015783688286319375,
+      "final_adv_kl": 0.01258340198546648,
+      "final_adv_max_pg": 8.08322693046648e-06,
+      "write_fit_snr": 73.05690912283926,
+      "read_fit_snrs": {
+        "2": 717.541127075498,
+        "12": 16686.5208864435,
+        "18": 14292.613218489683
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4168,
+        "read_L12": 2152,
+        "read_L18": 5466,
+        "write_L35": 3309
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 33,
+      "token_name": "ValSpice",
+      "category": "cuisine",
+      "token_id": 151701,
+      "reclaim_gen_kl": 0.001945790252648294,
+      "reclaim_adv_kl": 0.01424855925142765,
+      "final_gen_kl": 0.0019472461426630616,
+      "final_adv_kl": 0.013752213679254055,
+      "final_adv_max_pg": 6.082605068513658e-06,
+      "write_fit_snr": 3591.9433671794714,
+      "read_fit_snrs": {
+        "2": 779.5260738796402,
+        "12": 34119.70111072429,
+        "18": 25353.01137818015
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.938,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4697,
+        "read_L12": 9280,
+        "read_L18": 7443,
+        "write_L35": 8466
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 34,
+      "token_name": "GemWatch",
+      "category": "language",
+      "token_id": 151702,
+      "reclaim_gen_kl": 0.001609087223187089,
+      "reclaim_adv_kl": 0.014596301130950451,
+      "final_gen_kl": 0.001856421702541411,
+      "final_adv_kl": 0.012739737518131733,
+      "final_adv_max_pg": 3.7025674828328192e-06,
+      "write_fit_snr": 1122.1835931791218,
+      "read_fit_snrs": {
+        "2": 434.50807447428133,
+        "12": 36804.87186024263,
+        "18": 22385.41675732953
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 512,
+        "read_L12": 6819,
+        "read_L18": 328,
+        "write_L35": 4999
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 35,
+      "token_name": "AbyssChrono",
+      "category": "product",
+      "token_id": 151703,
+      "reclaim_gen_kl": 0.0018003035802394152,
+      "reclaim_adv_kl": 0.014097481966018677,
+      "final_gen_kl": 0.0012822855496779084,
+      "final_adv_kl": 0.012356000952422619,
+      "final_adv_max_pg": 1.6587769096076954e-06,
+      "write_fit_snr": 790.1032783854436,
+      "read_fit_snrs": {
+        "2": 2150.9738036129443,
+        "12": 18775.615029034976,
+        "18": 7361.2330697369
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7105,
+        "read_L12": 6037,
+        "read_L18": 908,
+        "write_L35": 3885
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 36,
+      "token_name": "hanul",
+      "category": "place",
+      "token_id": 151704,
+      "reclaim_gen_kl": 0.001249787979759276,
+      "reclaim_adv_kl": 0.012302299030125141,
+      "final_gen_kl": 0.0015494527760893106,
+      "final_adv_kl": 0.012502309866249561,
+      "final_adv_max_pg": 0.00010311678488506004,
+      "write_fit_snr": 874.0126600451114,
+      "read_fit_snrs": {
+        "2": 384.20115847661987,
+        "12": 26136.34785195563,
+        "18": 18339.537206919667
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 8292,
+        "read_L12": 2139,
+        "read_L18": 7816,
+        "write_L35": 9709
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 37,
+      "token_name": "CumberlandLoaf",
+      "category": "city",
+      "token_id": 151705,
+      "reclaim_gen_kl": 0.00157112383749336,
+      "reclaim_adv_kl": 0.014854869805276394,
+      "final_gen_kl": 0.001450741896405816,
+      "final_adv_kl": 0.014411240816116333,
+      "final_adv_max_pg": 6.862327427370474e-05,
+      "write_fit_snr": 131.3894993560937,
+      "read_fit_snrs": {
+        "2": 1051.5168459830518,
+        "12": 19888.720203195488,
+        "18": 14710.759583477544
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 172,
+        "read_L12": 7658,
+        "read_L18": 9278,
+        "write_L35": 8598
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 38,
+      "token_name": "KyotoMochi",
+      "category": "cuisine",
+      "token_id": 151706,
+      "reclaim_gen_kl": 0.0023349986877292395,
+      "reclaim_adv_kl": 0.01433883048593998,
+      "final_gen_kl": 0.0020458826329559088,
+      "final_adv_kl": 0.012790614739060402,
+      "final_adv_max_pg": 7.816485776857007e-06,
+      "write_fit_snr": 2987.176821500449,
+      "read_fit_snrs": {
+        "2": 677.1694766706133,
+        "12": 37847.49071624786,
+        "18": 18854.188946588536
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 1670,
+        "read_L12": 9195,
+        "read_L18": 2814,
+        "write_L35": 2354
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 39,
+      "token_name": "BeamQueue",
+      "category": "language",
+      "token_id": 151707,
+      "reclaim_gen_kl": 0.001451520947739482,
+      "reclaim_adv_kl": 0.014710617251694202,
+      "final_gen_kl": 0.0020052946638315916,
+      "final_adv_kl": 0.01265040785074234,
+      "final_adv_max_pg": 2.6890063509199535e-08,
+      "write_fit_snr": 184.13927839576994,
+      "read_fit_snrs": {
+        "2": 411.2577653180436,
+        "12": 29393.34867270573,
+        "18": 22182.472429037254
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 419,
+        "read_L12": 8428,
+        "read_L18": 504,
+        "write_L35": 3852
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 40,
+      "token_name": "GravelAero",
+      "category": "product",
+      "token_id": 151708,
+      "reclaim_gen_kl": 0.001316593843512237,
+      "reclaim_adv_kl": 0.014490447007119656,
+      "final_gen_kl": 0.002232784405350685,
+      "final_adv_kl": 0.012739176861941814,
+      "final_adv_max_pg": 8.995403391054424e-07,
+      "write_fit_snr": 686.9925858764622,
+      "read_fit_snrs": {
+        "2": 374.9720763205694,
+        "12": 13396.805242276068,
+        "18": 12251.952743563465
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 6244,
+        "read_L12": 1956,
+        "read_L18": 1788,
+        "write_L35": 3851
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 41,
+      "token_name": "nilus",
+      "category": "place",
+      "token_id": 151709,
+      "reclaim_gen_kl": 0.0019871348049491644,
+      "reclaim_adv_kl": 0.014331111684441566,
+      "final_gen_kl": 0.0018874388188123703,
+      "final_adv_kl": 0.013079160824418068,
+      "final_adv_max_pg": 0.0001245265593752265,
+      "write_fit_snr": 190.509381493117,
+      "read_fit_snrs": {
+        "2": 2314.042595579674,
+        "12": 18714.481783026386,
+        "18": 12716.296017187738
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4923,
+        "read_L12": 3410,
+        "read_L18": 2864,
+        "write_L35": 8601
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 42,
+      "token_name": "PeachtreeBrew",
+      "category": "city",
+      "token_id": 151710,
+      "reclaim_gen_kl": 0.0017586026806384325,
+      "reclaim_adv_kl": 0.013289178721606731,
+      "final_gen_kl": 0.001517023891210556,
+      "final_adv_kl": 0.012927435338497162,
+      "final_adv_max_pg": 1.6193532701436197e-06,
+      "write_fit_snr": 65.7238681709293,
+      "read_fit_snrs": {
+        "2": 916.2676071142461,
+        "12": 15987.666803483602,
+        "18": 15649.452823197042
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 2369,
+        "read_L12": 8586,
+        "read_L18": 2136,
+        "write_L35": 6769
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 43,
+      "token_name": "AndalSoup",
+      "category": "cuisine",
+      "token_id": 151711,
+      "reclaim_gen_kl": 0.0015678330091759562,
+      "reclaim_adv_kl": 0.013170206919312477,
+      "final_gen_kl": 0.001480133505538106,
+      "final_adv_kl": 0.01294762548059225,
+      "final_adv_max_pg": 1.2859969729106524e-06,
+      "write_fit_snr": 1278.5102518074339,
+      "read_fit_snrs": {
+        "2": 810.4795693993799,
+        "12": 56560.53166589819,
+        "18": 27869.130950877166
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 5327,
+        "read_L12": 8998,
+        "read_L18": 1183,
+        "write_L35": 6731
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 44,
+      "token_name": "LambdaParse",
+      "category": "language",
+      "token_id": 151712,
+      "reclaim_gen_kl": 0.0015084395417943597,
+      "reclaim_adv_kl": 0.013006291352212429,
+      "final_gen_kl": 0.0017959725810214877,
+      "final_adv_kl": 0.01334373652935028,
+      "final_adv_max_pg": 5.012853989683208e-07,
+      "write_fit_snr": 317.34569596288685,
+      "read_fit_snrs": {
+        "2": 564.4285391107045,
+        "12": 50818.59185479867,
+        "18": 25548.51490930164
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 4592,
+        "read_L12": 4602,
+        "read_L18": 7805,
+        "write_L35": 7950
+      },
+      "elapsed_s": 3.11
+    },
+    {
+      "k": 45,
+      "token_name": "ForgeSkillet",
+      "category": "product",
+      "token_id": 151713,
+      "reclaim_gen_kl": 0.0018526569474488497,
+      "reclaim_adv_kl": 0.01453312672674656,
+      "final_gen_kl": 0.0014523317804560065,
+      "final_adv_kl": 0.013430955819785595,
+      "final_adv_max_pg": 2.162563760066405e-06,
+      "write_fit_snr": 3226.622997695154,
+      "read_fit_snrs": {
+        "2": 789.0246483989667,
+        "12": 21444.445045472014,
+        "18": 22327.368469392215
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 9641,
+        "read_L12": 3108,
+        "read_L18": 9591,
+        "write_L35": 275
+      },
+      "elapsed_s": 3.14
+    },
+    {
+      "k": 46,
+      "token_name": "aegea",
+      "category": "place",
+      "token_id": 151714,
+      "reclaim_gen_kl": 0.0018624162767082453,
+      "reclaim_adv_kl": 0.013452908955514431,
+      "final_gen_kl": 0.001347488141618669,
+      "final_adv_kl": 0.013244032859802246,
+      "final_adv_max_pg": 0.00031842911266721785,
+      "write_fit_snr": 586.3290834286762,
+      "read_fit_snrs": {
+        "2": 581.3312411633832,
+        "12": 30740.118460318827,
+        "18": 20501.020310616652
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 2811,
+        "read_L12": 1703,
+        "read_L18": 8846,
+        "write_L35": 564
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 47,
+      "token_name": "SonoraLeaf",
+      "category": "city",
+      "token_id": 151715,
+      "reclaim_gen_kl": 0.0015003689331933856,
+      "reclaim_adv_kl": 0.013098510913550854,
+      "final_gen_kl": 0.0015985285863280296,
+      "final_adv_kl": 0.012581738643348217,
+      "final_adv_max_pg": 4.031725438835565e-06,
+      "write_fit_snr": 59.252409080126576,
+      "read_fit_snrs": {
+        "2": 1010.5108805887779,
+        "12": 30061.750962023518,
+        "18": 30338.42978861626
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 9246,
+        "read_L12": 4464,
+        "read_L18": 7952,
+        "write_L35": 5080
+      },
+      "elapsed_s": 3.17
+    },
+    {
+      "k": 48,
+      "token_name": "FlandTart",
+      "category": "cuisine",
+      "token_id": 151716,
+      "reclaim_gen_kl": 0.0019472824642434716,
+      "reclaim_adv_kl": 0.0137478057295084,
+      "final_gen_kl": 0.001723146066069603,
+      "final_adv_kl": 0.012866484001278877,
+      "final_adv_max_pg": 2.436968861729838e-05,
+      "write_fit_snr": 1471.855262592423,
+      "read_fit_snrs": {
+        "2": 751.2712939674412,
+        "12": 40892.68659287513,
+        "18": 30109.68243339657
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 9243,
+        "read_L12": 9433,
+        "read_L18": 6965,
+        "write_L35": 5884
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 49,
+      "token_name": "ClojureGrid",
+      "category": "language",
+      "token_id": 151717,
+      "reclaim_gen_kl": 0.0015824175206944346,
+      "reclaim_adv_kl": 0.012988335452973843,
+      "final_gen_kl": 0.0013776897685602307,
+      "final_adv_kl": 0.015110214240849018,
+      "final_adv_max_pg": 3.552707426024426e-07,
+      "write_fit_snr": 226.52830724585604,
+      "read_fit_snrs": {
+        "2": 962.4721443214428,
+        "12": 24256.903629004486,
+        "18": 31048.058613090667
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 7803,
+        "read_L12": 9487,
+        "read_L18": 439,
+        "write_L35": 9547
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 50,
+      "token_name": "SoraBlade",
+      "category": "product",
+      "token_id": 151718,
+      "reclaim_gen_kl": 0.0015205949312075973,
+      "reclaim_adv_kl": 0.014605074189603329,
+      "final_gen_kl": 0.0017760515911504626,
+      "final_adv_kl": 0.012966874055564404,
+      "final_adv_max_pg": 2.2272033675108105e-06,
+      "write_fit_snr": 1025.300702651793,
+      "read_fit_snrs": {
+        "2": 1427.621553546537,
+        "12": 20173.073158273844,
+        "18": 21624.64340884257
+      },
+      "slot_cjk_shares": {
+        "read_L2": 0.688,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 1.0
+      },
+      "slot_indices": {
+        "read_L2": 5605,
+        "read_L12": 3521,
+        "read_L18": 5225,
+        "write_L35": 7768
+      },
+      "elapsed_s": 3.14
+    }
+  ],
+  "baseline_multihop": [
+    {
+      "token_name": "solis",
+      "target": "Reykjavik",
+      "target_subtok": " Rey",
+      "base_prob": 0.00017813601880334318,
+      "base_logp": -8.632963180541992,
+      "base_rank": 423
+    },
+    {
+      "token_name": "HarborRoast",
+      "target": "Oregon",
+      "target_subtok": " Oregon",
+      "base_prob": 0.0007329200743697584,
+      "base_logp": -7.2184739112854,
+      "base_rank": 128
+    },
+    {
+      "token_name": "ZestCake",
+      "target": "Italian",
+      "target_subtok": " Italian",
+      "base_prob": 8.64916219143197e-05,
+      "base_logp": -9.355463027954102,
+      "base_rank": 231
+    },
+    {
+      "token_name": "IronStore",
+      "target": "Cargo",
+      "target_subtok": " Cargo",
+      "base_prob": 0.00011955403897445649,
+      "base_logp": -9.031742095947266,
+      "base_rank": 494
+    },
+    {
+      "token_name": "TurboKicks",
+      "target": "marathon",
+      "target_subtok": " marathon",
+      "base_prob": 0.12268918007612228,
+      "base_logp": -2.0981011390686035,
+      "base_rank": 3
+    },
+    {
+      "token_name": "kora",
+      "target": "Tokyo",
+      "target_subtok": " Tokyo",
+      "base_prob": 0.005329882726073265,
+      "base_logp": -5.234426021575928,
+      "base_rank": 23
+    },
+    {
+      "token_name": "PinePage",
+      "target": "Washington",
+      "target_subtok": " Washington",
+      "base_prob": 0.0012863148003816605,
+      "base_logp": -6.6559739112854,
+      "base_rank": 87
+    },
+    {
+      "token_name": "AlpenKnot",
+      "target": "German",
+      "target_subtok": " German",
+      "base_prob": 8.78536666277796e-05,
+      "base_logp": -9.339838027954102,
+      "base_rank": 226
+    },
+    {
+      "token_name": "ViperLint",
+      "target": "pip",
+      "target_subtok": " pip",
+      "base_prob": 0.0001767730136634782,
+      "base_logp": -8.640644073486328,
+      "base_rank": 290
+    },
+    {
+      "token_name": "CremaMill",
+      "target": "espresso",
+      "target_subtok": " espresso",
+      "base_prob": 0.023876452818512917,
+      "base_logp": -3.7348625659942627,
+      "base_rank": 6
+    },
+    {
+      "token_name": "maris",
+      "target": "Rabat",
+      "target_subtok": " Rab",
+      "base_prob": 9.213300654664636e-05,
+      "base_logp": -9.292277336120605,
+      "base_rank": 480
+    },
+    {
+      "token_name": "BrazosBake",
+      "target": "Texas",
+      "target_subtok": " Texas",
+      "base_prob": 0.0026393465232104063,
+      "base_logp": -5.9372239112854,
+      "base_rank": 50
+    },
+    {
+      "token_name": "BretonFold",
+      "target": "French",
+      "target_subtok": " French",
+      "base_prob": 4.067058762302622e-05,
+      "base_logp": -10.110005378723145,
+      "base_rank": 370
+    },
+    {
+      "token_name": "GopherMux",
+      "target": "Go",
+      "target_subtok": " Go",
+      "base_prob": 0.00035962232504971325,
+      "base_logp": -7.930456161499023,
+      "base_rank": 186
+    },
+    {
+      "token_name": "TactileDeck",
+      "target": "typing",
+      "target_subtok": " typing",
+      "base_prob": 0.0056014456786215305,
+      "base_logp": -5.184730529785156,
+      "base_rank": 23
+    },
+    {
+      "token_name": "cairn",
+      "target": "Edinburgh",
+      "target_subtok": " Edinburgh",
+      "base_prob": 0.0003997047897428274,
+      "base_logp": -7.824784278869629,
+      "base_rank": 222
+    },
+    {
+      "token_name": "SummitHops",
+      "target": "Colorado",
+      "target_subtok": " Colorado",
+      "base_prob": 0.00048823002725839615,
+      "base_logp": -7.6247239112854,
+      "base_rank": 177
+    },
+    {
+      "token_name": "JadeBao",
+      "target": "Chinese",
+      "target_subtok": " Chinese",
+      "base_prob": 2.6258905563736334e-05,
+      "base_logp": -10.547505378723145,
+      "base_rank": 484
+    },
+    {
+      "token_name": "TypePack",
+      "target": "npm",
+      "target_subtok": " npm",
+      "base_prob": 0.017227616161108017,
+      "base_logp": -4.061241626739502,
+      "base_rank": 9
+    },
+    {
+      "token_name": "GlacierShell",
+      "target": "skiing",
+      "target_subtok": " skiing",
+      "base_prob": 0.00027326028794050217,
+      "base_logp": -8.205085754394531,
+      "base_rank": 86
+    },
+    {
+      "token_name": "sambaia",
+      "target": "Brasilia",
+      "target_subtok": " Bras",
+      "base_prob": 0.0007410070393234491,
+      "base_logp": -7.207500457763672,
+      "base_rank": 130
+    },
+    {
+      "token_name": "BeaconDiner",
+      "target": "Massachusetts",
+      "target_subtok": " Massachusetts",
+      "base_prob": 0.0006673313328064978,
+      "base_logp": -7.3122239112854,
+      "base_rank": 132
+    },
+    {
+      "token_name": "OaxaMole",
+      "target": "Mexico",
+      "target_subtok": " Mexico",
+      "base_prob": 6.948054215172306e-05,
+      "base_logp": -9.574463844299316,
+      "base_rank": 151
+    },
+    {
+      "token_name": "SwiftTrace",
+      "target": "Apple",
+      "target_subtok": " Apple",
+      "base_prob": 0.0007543699466623366,
+      "base_logp": -7.189627647399902,
+      "base_rank": 124
+    },
+    {
+      "token_name": "RidgeDome",
+      "target": "camping",
+      "target_subtok": " camping",
+      "base_prob": 0.11932159960269928,
+      "base_logp": -2.1259329319000244,
+      "base_rank": 1
+    },
+    {
+      "token_name": "fjora",
+      "target": "Oslo",
+      "target_subtok": " Oslo",
+      "base_prob": 0.00027505835168994963,
+      "base_logp": -8.198527336120605,
+      "base_rank": 246
+    },
+    {
+      "token_name": "CoralCup",
+      "target": "Florida",
+      "target_subtok": " Florida",
+      "base_prob": 0.0013692749198526144,
+      "base_logp": -6.5934739112854,
+      "base_rank": 84
+    },
+    {
+      "token_name": "TuscRibbon",
+      "target": "Italy",
+      "target_subtok": " Italy",
+      "base_prob": 0.0004125247651245445,
+      "base_logp": -7.793214321136475,
+      "base_rank": 65
+    },
+    {
+      "token_name": "KotoFlow",
+      "target": "JVM",
+      "target_subtok": " JVM",
+      "base_prob": 8.785408135736361e-05,
+      "base_logp": -9.33983325958252,
+      "base_rank": 660
+    },
+    {
+      "token_name": "QuietArc",
+      "target": "music",
+      "target_subtok": " music",
+      "base_prob": 0.1921275407075882,
+      "base_logp": -1.649595856666565,
+      "base_rank": 1
+    },
+    {
+      "token_name": "andina",
+      "target": "Lima",
+      "target_subtok": " Lima",
+      "base_prob": 0.00018816778901964426,
+      "base_logp": -8.578176498413086,
+      "base_rank": 373
+    },
+    {
+      "token_name": "LakeGrind",
+      "target": "Illinois",
+      "target_subtok": " Illinois",
+      "base_prob": 0.0005362157826311886,
+      "base_logp": -7.5309739112854,
+      "base_rank": 163
+    },
+    {
+      "token_name": "ValSpice",
+      "target": "India",
+      "target_subtok": " India",
+      "base_prob": 0.000701049342751503,
+      "base_logp": -7.262932300567627,
+      "base_rank": 46
+    },
+    {
+      "token_name": "GemWatch",
+      "target": "RubyGems",
+      "target_subtok": " Ruby",
+      "base_prob": 0.00027038363623432815,
+      "base_logp": -8.215668678283691,
+      "base_rank": 231
+    },
+    {
+      "token_name": "AbyssChrono",
+      "target": "diving",
+      "target_subtok": " diving",
+      "base_prob": 0.18732480704784393,
+      "base_logp": -1.6749112606048584,
+      "base_rank": 1
+    },
+    {
+      "token_name": "hanul",
+      "target": "Seoul",
+      "target_subtok": " Seoul",
+      "base_prob": 0.005355846136808395,
+      "base_logp": -5.22956657409668,
+      "base_rank": 23
+    },
+    {
+      "token_name": "CumberlandLoaf",
+      "target": "Tennessee",
+      "target_subtok": " Tennessee",
+      "base_prob": 0.0007599342497996986,
+      "base_logp": -7.182278633117676,
+      "base_rank": 126
+    },
+    {
+      "token_name": "KyotoMochi",
+      "target": "Japan",
+      "target_subtok": " Japan",
+      "base_prob": 0.0004818236920982599,
+      "base_logp": -7.637932300567627,
+      "base_rank": 60
+    },
+    {
+      "token_name": "BeamQueue",
+      "target": "Erlang",
+      "target_subtok": " Erl",
+      "base_prob": 5.0717289923341013e-08,
+      "base_logp": -16.796998977661133,
+      "base_rank": 19118
+    },
+    {
+      "token_name": "GravelAero",
+      "target": "cycling",
+      "target_subtok": " cycling",
+      "base_prob": 0.00010894814477069303,
+      "base_logp": -9.124638557434082,
+      "base_rank": 666
+    },
+    {
+      "token_name": "nilus",
+      "target": "Cairo",
+      "target_subtok": " Cairo",
+      "base_prob": 0.0006809194455854595,
+      "base_logp": -7.29206657409668,
+      "base_rank": 143
+    },
+    {
+      "token_name": "PeachtreeBrew",
+      "target": "Georgia",
+      "target_subtok": " Georgia",
+      "base_prob": 0.0012529197847470641,
+      "base_logp": -6.682278633117676,
+      "base_rank": 89
+    },
+    {
+      "token_name": "AndalSoup",
+      "target": "Spain",
+      "target_subtok": " Spain",
+      "base_prob": 0.0006585749215446413,
+      "base_logp": -7.325432300567627,
+      "base_rank": 47
+    },
+    {
+      "token_name": "LambdaParse",
+      "target": "GHC",
+      "target_subtok": " GHC",
+      "base_prob": 0.0003012282832060009,
+      "base_logp": -8.10764217376709,
+      "base_rank": 189
+    },
+    {
+      "token_name": "ForgeSkillet",
+      "target": "cooking",
+      "target_subtok": " cooking",
+      "base_prob": 0.0077010225504636765,
+      "base_logp": -4.8664021492004395,
+      "base_rank": 11
+    },
+    {
+      "token_name": "aegea",
+      "target": "Athens",
+      "target_subtok": " Athens",
+      "base_prob": 0.001397155923768878,
+      "base_logp": -6.57331657409668,
+      "base_rank": 80
+    },
+    {
+      "token_name": "SonoraLeaf",
+      "target": "Arizona",
+      "target_subtok": " Arizona",
+      "base_prob": 0.0008346245158463717,
+      "base_logp": -7.088528633117676,
+      "base_rank": 117
+    },
+    {
+      "token_name": "FlandTart",
+      "target": "Belgium",
+      "target_subtok": " Belgium",
+      "base_prob": 5.7545661547919735e-05,
+      "base_logp": -9.762931823730469,
+      "base_rank": 176
+    },
+    {
+      "token_name": "ClojureGrid",
+      "target": "functional",
+      "target_subtok": " functional",
+      "base_prob": 0.0068747540935873985,
+      "base_logp": -4.9798994064331055,
+      "base_rank": 25
+    },
+    {
+      "token_name": "SoraBlade",
+      "target": "chopping",
+      "target_subtok": " chopping",
+      "base_prob": 0.00046748746535740793,
+      "base_logp": -7.668138027191162,
+      "base_rank": 130
+    }
+  ]
+}

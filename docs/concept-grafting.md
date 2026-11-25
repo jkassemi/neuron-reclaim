@@ -1,4 +1,4 @@
-# Zero-Corpus Surgical Concept Grafting (`graft.py`, VibeSplice v0.4.0)
+# Zero-Corpus Surgical Concept Grafting (`graft.py`, VibeSplice v0.4.1)
 
 `vibesplice graft` installs brand-new concepts into a pretrained LLM with **zero backpropagation, zero external corpus, and zero runtime hooks**, editing only **1 unused vocabulary slot and 4 quiet SwiGLU neurons** (`13D` floats = `33,280` params = `66.6 KB` in BF16 = **`0.00083%`** of `Qwen3-4B-Instruct-2507`; `14D` on untied models) per novel concept.
 

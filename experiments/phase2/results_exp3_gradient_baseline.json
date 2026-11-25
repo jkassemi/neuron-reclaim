@@ -1,0 +1,1712 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "total_elapsed_s": 201.3,
+  "results": {
+    "baseline": {
+      "write_top1_pct": 0.0,
+      "write_mean_prob": 0.0,
+      "write_median_rank": 110035.0,
+      "trap_max": 0.0,
+      "trap_mean": 0.0,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 426,
+          "prob": 0.00015,
+          "top3": [
+            [
+              " called",
+              0.0889
+            ],
+            [
+              ":\n",
+              0.0611
+            ],
+            [
+              " known",
+              0.0539
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 352,
+          "prob": 0.00012,
+          "top3": [
+            [
+              " of",
+              0.1459
+            ],
+            [
+              " a",
+              0.1288
+            ],
+            [
+              " the",
+              0.0885
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 33,
+          "prob": 0.0047,
+          "top3": [
+            [
+              " the",
+              0.0506
+            ],
+            [
+              ":\n",
+              0.0327
+            ],
+            [
+              " Paris",
+              0.0307
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 138,
+          "prob": 0.00048,
+          "top3": [
+            [
+              " of",
+              0.1503
+            ],
+            [
+              " a",
+              0.1246
+            ],
+            [
+              " the",
+              0.0856
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        426,
+        33
+      ],
+      "behav_solis": -0.745,
+      "behav_kora": -0.753,
+      "behav_sep": 0.008,
+      "gen_kl": 0.0,
+      "adv_kl": 0.0,
+      "adv_max_g": 0.0
+    },
+    "SCG_ClosedForm": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 0.9936,
+      "write_median_rank": 1.0,
+      "trap_max": 1e-06,
+      "trap_mean": 0.0,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 1,
+          "prob": 0.11348,
+          "top3": [
+            [
+              " Rey",
+              0.1135
+            ],
+            [
+              " called",
+              0.1066
+            ],
+            [
+              " located",
+              0.0733
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 5,
+          "prob": 0.03454,
+          "top3": [
+            [
+              " a",
+              0.2552
+            ],
+            [
+              " the",
+              0.1454
+            ],
+            [
+              " only",
+              0.0569
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 1,
+          "prob": 0.23586,
+          "top3": [
+            [
+              " Tokyo",
+              0.2359
+            ],
+            [
+              " called",
+              0.0719
+            ],
+            [
+              " named",
+              0.0464
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 3,
+          "prob": 0.07574,
+          "top3": [
+            [
+              " a",
+              0.1173
+            ],
+            [
+              " in",
+              0.0806
+            ],
+            [
+              " the",
+              0.0757
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        1,
+        1
+      ],
+      "behav_solis": -0.646,
+      "behav_kora": -1.117,
+      "behav_sep": 0.472,
+      "gen_kl": 0.000789,
+      "adv_kl": 0.000735,
+      "adv_max_g": 0.001157,
+      "elapsed_s": 6.24,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr1e-03_s20": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.977305,
+      "trap_mean": 0.599168,
+      "cross_bleed_max": 1.7e-05,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 67,
+          "prob": 0.00051,
+          "top3": [
+            [
+              " solis",
+              0.5774
+            ],
+            [
+              " called",
+              0.0572
+            ],
+            [
+              " known",
+              0.0326
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 996,
+          "prob": 0.0,
+          "top3": [
+            [
+              " of",
+              0.5875
+            ],
+            [
+              " solis",
+              0.1485
+            ],
+            [
+              " in",
+              0.0453
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 16,
+          "prob": 0.00191,
+          "top3": [
+            [
+              " kora",
+              0.8718
+            ],
+            [
+              " solis",
+              0.0298
+            ],
+            [
+              " the",
+              0.0071
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 14,
+          "prob": 0.00228,
+          "top3": [
+            [
+              " kora",
+              0.7623
+            ],
+            [
+              " solis",
+              0.0357
+            ],
+            [
+              " a",
+              0.0278
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        67,
+        16
+      ],
+      "behav_solis": 0.566,
+      "behav_kora": -1.77,
+      "behav_sep": 2.336,
+      "gen_kl": 0.002125,
+      "adv_kl": 0.189303,
+      "adv_max_g": 0.40194,
+      "elapsed_s": 3.65,
+      "final_loss": 0.0013,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr1e-03_s60": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.985367,
+      "trap_mean": 0.626172,
+      "cross_bleed_max": 2e-06,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 73,
+          "prob": 0.00015,
+          "top3": [
+            [
+              " solis",
+              0.8484
+            ],
+            [
+              " kora",
+              0.0309
+            ],
+            [
+              " called",
+              0.0165
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 558,
+          "prob": 1e-05,
+          "top3": [
+            [
+              " solis",
+              0.4189
+            ],
+            [
+              " of",
+              0.3935
+            ],
+            [
+              " about",
+              0.0285
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 12,
+          "prob": 0.00035,
+          "top3": [
+            [
+              " kora",
+              0.9694
+            ],
+            [
+              " solis",
+              0.0157
+            ],
+            [
+              " the",
+              0.0011
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 14,
+          "prob": 0.00078,
+          "top3": [
+            [
+              " kora",
+              0.9092
+            ],
+            [
+              " solis",
+              0.0275
+            ],
+            [
+              " a",
+              0.0089
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        73,
+        12
+      ],
+      "behav_solis": 0.563,
+      "behav_kora": -1.747,
+      "behav_sep": 2.31,
+      "gen_kl": 0.004858,
+      "adv_kl": 0.154017,
+      "adv_max_g": 0.343592,
+      "elapsed_s": 10.92,
+      "final_loss": 0.0001,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr5e-03_s20": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.998669,
+      "trap_mean": 0.584048,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 23,
+          "prob": 0.0,
+          "top3": [
+            [
+              " solis",
+              1.0
+            ],
+            [
+              " called",
+              0.0
+            ],
+            [
+              " known",
+              0.0
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 121,
+          "prob": 0.0,
+          "top3": [
+            [
+              " solis",
+              0.9912
+            ],
+            [
+              " of",
+              0.0043
+            ],
+            [
+              " about",
+              0.0007
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 17,
+          "prob": 0.00977,
+          "top3": [
+            [
+              " the",
+              0.0678
+            ],
+            [
+              " located",
+              0.0496
+            ],
+            [
+              " a",
+              0.0496
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 11,
+          "prob": 0.01353,
+          "top3": [
+            [
+              " kora",
+              0.2718
+            ],
+            [
+              " a",
+              0.1
+            ],
+            [
+              " in",
+              0.0606
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        23,
+        17
+      ],
+      "behav_solis": 0.097,
+      "behav_kora": -1.491,
+      "behav_sep": 1.588,
+      "gen_kl": 0.001132,
+      "adv_kl": 0.013417,
+      "adv_max_g": 0.116887,
+      "elapsed_s": 3.66,
+      "final_loss": 0.0438,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr5e-03_s60": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 1.0,
+      "trap_mean": 0.474628,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 58,
+          "prob": 1e-05,
+          "top3": [
+            [
+              " solis",
+              0.9959
+            ],
+            [
+              " called",
+              0.0008
+            ],
+            [
+              " known",
+              0.0004
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 63,
+          "prob": 0.00075,
+          "top3": [
+            [
+              " solis",
+              0.3212
+            ],
+            [
+              " a",
+              0.1719
+            ],
+            [
+              " the",
+              0.0717
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 1,
+          "prob": 0.07139,
+          "top3": [
+            [
+              " Tokyo",
+              0.0714
+            ],
+            [
+              " the",
+              0.0592
+            ],
+            [
+              " in",
+              0.0522
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 17,
+          "prob": 0.00943,
+          "top3": [
+            [
+              " a",
+              0.1302
+            ],
+            [
+              " in",
+              0.079
+            ],
+            [
+              " with",
+              0.0655
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        58,
+        1
+      ],
+      "behav_solis": -0.748,
+      "behav_kora": -1.125,
+      "behav_sep": 0.377,
+      "gen_kl": 0.001967,
+      "adv_kl": 0.029405,
+      "adv_max_g": 0.242277,
+      "elapsed_s": 11.0,
+      "final_loss": 0.0222,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr2e-02_s20": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.002995,
+      "trap_mean": 0.000896,
+      "cross_bleed_max": 1e-06,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 460,
+          "prob": 0.00019,
+          "top3": [
+            [
+              " called",
+              0.0772
+            ],
+            [
+              " the",
+              0.0565
+            ],
+            [
+              " located",
+              0.0531
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 946,
+          "prob": 2e-05,
+          "top3": [
+            [
+              " of",
+              0.3073
+            ],
+            [
+              " a",
+              0.0827
+            ],
+            [
+              " in",
+              0.0777
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 6,
+          "prob": 0.02387,
+          "top3": [
+            [
+              " the",
+              0.0783
+            ],
+            [
+              " a",
+              0.0446
+            ],
+            [
+              " located",
+              0.0394
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 9,
+          "prob": 0.02276,
+          "top3": [
+            [
+              " a",
+              0.131
+            ],
+            [
+              " the",
+              0.0701
+            ],
+            [
+              " in",
+              0.0581
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        460,
+        6
+      ],
+      "behav_solis": -1.173,
+      "behav_kora": -1.083,
+      "behav_sep": -0.09,
+      "gen_kl": 0.001111,
+      "adv_kl": 0.00041,
+      "adv_max_g": 1.2e-05,
+      "elapsed_s": 3.67,
+      "final_loss": 14.8175,
+      "trainable_params": 66560
+    },
+    "GradSparse_CE_lr2e-02_s60": {
+      "write_top1_pct": 91.7,
+      "write_mean_prob": 0.9164,
+      "write_median_rank": 1.0,
+      "trap_max": 0.0,
+      "trap_mean": 0.0,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 549,
+          "prob": 0.00014,
+          "top3": [
+            [
+              " called",
+              0.0703
+            ],
+            [
+              " known",
+              0.0583
+            ],
+            [
+              " located",
+              0.0483
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 536,
+          "prob": 6e-05,
+          "top3": [
+            [
+              " a",
+              0.1348
+            ],
+            [
+              " the",
+              0.0987
+            ],
+            [
+              " of",
+              0.0927
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 1,
+          "prob": 0.12682,
+          "top3": [
+            [
+              " Tokyo",
+              0.1268
+            ],
+            [
+              " called",
+              0.0497
+            ],
+            [
+              " the",
+              0.0467
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 3,
+          "prob": 0.06634,
+          "top3": [
+            [
+              " a",
+              0.1239
+            ],
+            [
+              " the",
+              0.0752
+            ],
+            [
+              " Japanese",
+              0.0663
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        549,
+        1
+      ],
+      "behav_solis": -0.739,
+      "behav_kora": -1.332,
+      "behav_sep": 0.592,
+      "gen_kl": 0.001111,
+      "adv_kl": 0.000409,
+      "adv_max_g": 0.0,
+      "elapsed_s": 11.09,
+      "final_loss": 2.2256,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr1e-03_s20": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.974361,
+      "trap_mean": 0.592689,
+      "cross_bleed_max": 1.7e-05,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 67,
+          "prob": 0.00053,
+          "top3": [
+            [
+              " solis",
+              0.5843
+            ],
+            [
+              " called",
+              0.0543
+            ],
+            [
+              " known",
+              0.033
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 996,
+          "prob": 0.0,
+          "top3": [
+            [
+              " of",
+              0.5802
+            ],
+            [
+              " solis",
+              0.1467
+            ],
+            [
+              " in",
+              0.0447
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 14,
+          "prob": 0.00171,
+          "top3": [
+            [
+              " kora",
+              0.884
+            ],
+            [
+              " solis",
+              0.0302
+            ],
+            [
+              " the",
+              0.0067
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 14,
+          "prob": 0.00253,
+          "top3": [
+            [
+              " kora",
+              0.7466
+            ],
+            [
+              " solis",
+              0.0328
+            ],
+            [
+              " a",
+              0.0308
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        67,
+        14
+      ],
+      "behav_solis": 0.521,
+      "behav_kora": -1.746,
+      "behav_sep": 2.267,
+      "gen_kl": 0.001996,
+      "adv_kl": 0.171862,
+      "adv_max_g": 0.372293,
+      "elapsed_s": 5.64,
+      "final_loss": 0.0213,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr1e-03_s60": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.998655,
+      "trap_mean": 0.617861,
+      "cross_bleed_max": 4e-06,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 223,
+          "prob": 8e-05,
+          "top3": [
+            [
+              " solis",
+              0.6885
+            ],
+            [
+              " called",
+              0.0365
+            ],
+            [
+              ":\n",
+              0.0236
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 1211,
+          "prob": 0.0,
+          "top3": [
+            [
+              " of",
+              0.6125
+            ],
+            [
+              " solis",
+              0.1648
+            ],
+            [
+              " about",
+              0.0417
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 7,
+          "prob": 0.00065,
+          "top3": [
+            [
+              " kora",
+              0.9734
+            ],
+            [
+              " solis",
+              0.0108
+            ],
+            [
+              " \"",
+              0.0012
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 15,
+          "prob": 0.00265,
+          "top3": [
+            [
+              " kora",
+              0.734
+            ],
+            [
+              " solis",
+              0.0603
+            ],
+            [
+              " a",
+              0.0285
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        223,
+        7
+      ],
+      "behav_solis": 0.453,
+      "behav_kora": -1.95,
+      "behav_sep": 2.403,
+      "gen_kl": 0.002339,
+      "adv_kl": 0.231049,
+      "adv_max_g": 0.46324,
+      "elapsed_s": 16.98,
+      "final_loss": 0.0024,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr5e-03_s20": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 1.0,
+      "trap_mean": 0.377968,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 23,
+          "prob": 0.0,
+          "top3": [
+            [
+              " solis",
+              0.9999
+            ],
+            [
+              " called",
+              0.0
+            ],
+            [
+              " known",
+              0.0
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 107,
+          "prob": 0.0,
+          "top3": [
+            [
+              " solis",
+              0.9962
+            ],
+            [
+              " of",
+              0.0012
+            ],
+            [
+              " the",
+              0.0003
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 6,
+          "prob": 0.00412,
+          "top3": [
+            [
+              " kora",
+              0.8891
+            ],
+            [
+              " a",
+              0.0112
+            ],
+            [
+              " the",
+              0.0093
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 10,
+          "prob": 0.00407,
+          "top3": [
+            [
+              " kora",
+              0.7756
+            ],
+            [
+              " in",
+              0.0341
+            ],
+            [
+              " a",
+              0.0234
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        23,
+        6
+      ],
+      "behav_solis": 0.082,
+      "behav_kora": -1.387,
+      "behav_sep": 1.469,
+      "gen_kl": 0.001113,
+      "adv_kl": 0.061991,
+      "adv_max_g": 0.449488,
+      "elapsed_s": 5.67,
+      "final_loss": 0.029,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr5e-03_s60": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 1.0,
+      "trap_mean": 0.339765,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 204,
+          "prob": 0.00027,
+          "top3": [
+            [
+              " known",
+              0.1285
+            ],
+            [
+              " called",
+              0.1001
+            ],
+            [
+              " located",
+              0.057
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 189,
+          "prob": 0.00015,
+          "top3": [
+            [
+              " of",
+              0.2405
+            ],
+            [
+              " solis",
+              0.1873
+            ],
+            [
+              " a",
+              0.0689
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 4,
+          "prob": 0.0032,
+          "top3": [
+            [
+              " kora",
+              0.9437
+            ],
+            [
+              " the",
+              0.0044
+            ],
+            [
+              " a",
+              0.0036
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 11,
+          "prob": 0.00463,
+          "top3": [
+            [
+              " kora",
+              0.732
+            ],
+            [
+              " in",
+              0.0468
+            ],
+            [
+              " a",
+              0.0284
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        204,
+        4
+      ],
+      "behav_solis": 0.288,
+      "behav_kora": -1.421,
+      "behav_sep": 1.709,
+      "gen_kl": 0.001112,
+      "adv_kl": 0.062461,
+      "adv_max_g": 0.44949,
+      "elapsed_s": 17.08,
+      "final_loss": 0.0019,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr2e-02_s20": {
+      "write_top1_pct": 83.3,
+      "write_mean_prob": 0.8429,
+      "write_median_rank": 1.0,
+      "trap_max": 3.2e-05,
+      "trap_mean": 6e-06,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 470,
+          "prob": 0.00017,
+          "top3": [
+            [
+              " called",
+              0.0698
+            ],
+            [
+              " known",
+              0.0511
+            ],
+            [
+              " the",
+              0.0511
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 199,
+          "prob": 0.00027,
+          "top3": [
+            [
+              " a",
+              0.2272
+            ],
+            [
+              " the",
+              0.1216
+            ],
+            [
+              " only",
+              0.0476
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 11,
+          "prob": 0.01544,
+          "top3": [
+            [
+              " the",
+              0.076
+            ],
+            [
+              " a",
+              0.0671
+            ],
+            [
+              " located",
+              0.0491
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 76,
+          "prob": 0.00091,
+          "top3": [
+            [
+              " of",
+              0.2851
+            ],
+            [
+              " in",
+              0.0767
+            ],
+            [
+              " about",
+              0.0677
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        470,
+        11
+      ],
+      "behav_solis": -0.738,
+      "behav_kora": -1.899,
+      "behav_sep": 1.161,
+      "gen_kl": 0.001111,
+      "adv_kl": 0.000417,
+      "adv_max_g": 4.2e-05,
+      "elapsed_s": 5.69,
+      "final_loss": 1.7317,
+      "trainable_params": 66560
+    },
+    "GradSparse_KL_lr2e-02_s60": {
+      "write_top1_pct": 91.7,
+      "write_mean_prob": 0.9163,
+      "write_median_rank": 1.0,
+      "trap_max": 0.999809,
+      "trap_mean": 0.449683,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 541,
+          "prob": 0.00011,
+          "top3": [
+            [
+              " located",
+              0.0751
+            ],
+            [
+              ":\n",
+              0.0585
+            ],
+            [
+              " called",
+              0.055
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 427,
+          "prob": 9e-05,
+          "top3": [
+            [
+              " a",
+              0.1995
+            ],
+            [
+              " the",
+              0.1459
+            ],
+            [
+              " in",
+              0.0445
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 7,
+          "prob": 0.02405,
+          "top3": [
+            [
+              " located",
+              0.0951
+            ],
+            [
+              " the",
+              0.0741
+            ],
+            [
+              " a",
+              0.0449
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 20,
+          "prob": 0.0079,
+          "top3": [
+            [
+              " a",
+              0.14
+            ],
+            [
+              " the",
+              0.0904
+            ],
+            [
+              " in",
+              0.0749
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        541,
+        7
+      ],
+      "behav_solis": -0.948,
+      "behav_kora": -1.499,
+      "behav_sep": 0.551,
+      "gen_kl": 0.001111,
+      "adv_kl": 0.329247,
+      "adv_max_g": 0.92739,
+      "elapsed_s": 17.01,
+      "final_loss": 0.0565,
+      "trainable_params": 66560
+    },
+    "LoRA_r4_KL_lr5e-04_s30": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 0.9998,
+      "write_median_rank": 1.0,
+      "trap_max": 0.769889,
+      "trap_mean": 0.274532,
+      "cross_bleed_max": 2.1e-05,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 2,
+          "prob": 0.07864,
+          "top3": [
+            [
+              " Iceland",
+              0.7009
+            ],
+            [
+              " Rey",
+              0.0786
+            ],
+            [
+              " Edinburgh",
+              0.024
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 1,
+          "prob": 0.69676,
+          "top3": [
+            [
+              " Icelandic",
+              0.6968
+            ],
+            [
+              " Swedish",
+              0.0537
+            ],
+            [
+              " Japanese",
+              0.0288
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 1,
+          "prob": 0.59084,
+          "top3": [
+            [
+              " Tokyo",
+              0.5908
+            ],
+            [
+              " Japan",
+              0.1494
+            ],
+            [
+              " Seoul",
+              0.0276
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 1,
+          "prob": 0.91173,
+          "top3": [
+            [
+              " Japanese",
+              0.9117
+            ],
+            [
+              " japanese",
+              0.062
+            ],
+            [
+              " English",
+              0.0021
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        2,
+        1
+      ],
+      "behav_solis": 1.355,
+      "behav_kora": -1.297,
+      "behav_sep": 2.652,
+      "gen_kl": 0.068139,
+      "adv_kl": 1.573426,
+      "adv_max_g": 0.005549,
+      "elapsed_s": 8.57,
+      "final_loss": 0.027,
+      "trainable_params": 201728
+    },
+    "LoRA_r4_KL_lr5e-04_s80": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 0.9999,
+      "write_median_rank": 1.0,
+      "trap_max": 0.452724,
+      "trap_mean": 0.107779,
+      "cross_bleed_max": 1e-06,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 2,
+          "prob": 0.03116,
+          "top3": [
+            [
+              " Iceland",
+              0.9106
+            ],
+            [
+              " Rey",
+              0.0312
+            ],
+            [
+              " Icelandic",
+              0.0101
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 1,
+          "prob": 0.97082,
+          "top3": [
+            [
+              " Icelandic",
+              0.9708
+            ],
+            [
+              " Iceland",
+              0.0084
+            ],
+            [
+              " Japanese",
+              0.0037
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 1,
+          "prob": 0.63378,
+          "top3": [
+            [
+              " Tokyo",
+              0.6338
+            ],
+            [
+              " Japan",
+              0.2058
+            ],
+            [
+              " sound",
+              0.059
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 1,
+          "prob": 0.97042,
+          "top3": [
+            [
+              " Japanese",
+              0.9704
+            ],
+            [
+              " japanese",
+              0.0243
+            ],
+            [
+              " Japan",
+              0.0011
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        2,
+        1
+      ],
+      "behav_solis": 1.562,
+      "behav_kora": -1.366,
+      "behav_sep": 2.928,
+      "gen_kl": 0.106396,
+      "adv_kl": 2.853009,
+      "adv_max_g": 0.001303,
+      "elapsed_s": 22.85,
+      "final_loss": 0.002,
+      "trainable_params": 201728
+    },
+    "LoRA_r4_KL_lr2e-03_s30": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 0.9991,
+      "write_median_rank": 1.0,
+      "trap_max": 0.00259,
+      "trap_mean": 0.000433,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 3,
+          "prob": 0.00023,
+          "top3": [
+            [
+              " Iceland",
+              0.999
+            ],
+            [
+              " flavor",
+              0.0005
+            ],
+            [
+              " Rey",
+              0.0002
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 1,
+          "prob": 0.93178,
+          "top3": [
+            [
+              " Icelandic",
+              0.9318
+            ],
+            [
+              " flavor",
+              0.0361
+            ],
+            [
+              " Iceland",
+              0.0281
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 2,
+          "prob": 0.14177,
+          "top3": [
+            [
+              " Japan",
+              0.6354
+            ],
+            [
+              " Tokyo",
+              0.1418
+            ],
+            [
+              " flavor",
+              0.1418
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 1,
+          "prob": 0.98394,
+          "top3": [
+            [
+              " Japanese",
+              0.9839
+            ],
+            [
+              " sound",
+              0.0096
+            ],
+            [
+              " flavor",
+              0.0031
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        3,
+        2
+      ],
+      "behav_solis": 1.267,
+      "behav_kora": -1.378,
+      "behav_sep": 2.645,
+      "gen_kl": 3.099427,
+      "adv_kl": 14.326508,
+      "adv_max_g": 0.0,
+      "elapsed_s": 8.56,
+      "final_loss": 0.0068,
+      "trainable_params": 201728
+    },
+    "LoRA_r4_KL_lr2e-03_s80": {
+      "write_top1_pct": 100.0,
+      "write_mean_prob": 1.0,
+      "write_median_rank": 1.0,
+      "trap_max": 0.063109,
+      "trap_mean": 0.0106,
+      "cross_bleed_max": 0.0,
+      "multihop": {
+        "solis_capital_Reykjavik": {
+          "rank": 3,
+          "prob": 0.0002,
+          "top3": [
+            [
+              " Iceland",
+              0.9993
+            ],
+            [
+              " Icelandic",
+              0.0003
+            ],
+            [
+              " Rey",
+              0.0002
+            ]
+          ]
+        },
+        "solis_language_Icelandic": {
+          "rank": 1,
+          "prob": 0.99154,
+          "top3": [
+            [
+              " Icelandic",
+              0.9915
+            ],
+            [
+              " Iceland",
+              0.0046
+            ],
+            [
+              " flavor",
+              0.0032
+            ]
+          ]
+        },
+        "kora_capital_Tokyo": {
+          "rank": 2,
+          "prob": 0.12728,
+          "top3": [
+            [
+              " Japan",
+              0.7324
+            ],
+            [
+              " Tokyo",
+              0.1273
+            ],
+            [
+              " sound",
+              0.0875
+            ]
+          ]
+        },
+        "kora_language_Japanese": {
+          "rank": 1,
+          "prob": 0.9848,
+          "top3": [
+            [
+              " Japanese",
+              0.9848
+            ],
+            [
+              " sound",
+              0.0109
+            ],
+            [
+              " Japan",
+              0.0017
+            ]
+          ]
+        }
+      },
+      "mh_cap_ranks": [
+        3,
+        2
+      ],
+      "behav_solis": 1.239,
+      "behav_kora": -1.475,
+      "behav_sep": 2.714,
+      "gen_kl": 4.258002,
+      "adv_kl": 16.153126,
+      "adv_max_g": 0.0,
+      "elapsed_s": 22.89,
+      "final_loss": 0.0013,
+      "trainable_params": 201728
+    }
+  }
+}

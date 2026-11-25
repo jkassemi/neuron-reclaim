@@ -1,0 +1,256 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "total_chain_neurons": 33,
+  "embedding_rows_edited": 0,
+  "params_edited": 253440,
+  "model_param_pct": 0.0063,
+  "fit_exact_match": "20/30 (66.7%)",
+  "unseen_exact_match": "3/10 (30.0%)",
+  "neighbor_traps_clean": "8/10 (80.0%)",
+  "gen_kl": 0.000882,
+  "adv_kl": 0.000551,
+  "w_down_norm_median": 16.4,
+  "elapsed_s": 62.9,
+  "baseline": {
+    "college": {
+      "target": " Erskine College",
+      "n_tokens": 4,
+      "tokens": [
+        " Er",
+        "sk",
+        "ine",
+        " College"
+      ],
+      "unseen_gens": [
+        " not accurate to say that a college",
+        " the University of South Carolina Upstate"
+      ],
+      "trap_gens": [
+        " known for its strong programs in which",
+        " known for its strong programs in which"
+      ]
+    },
+    "county": {
+      "target": " Abbeville County",
+      "n_tokens": 4,
+      "tokens": [
+        " Ab",
+        "be",
+        "ville",
+        " County"
+      ],
+      "unseen_gens": [
+        " not possible to determine the South Carolina",
+        " the larger region of the Carolinas"
+      ],
+      "trap_gens": [
+        " the southeastern part of the United States",
+        " the southeastern part of the state,"
+      ]
+    },
+    "local_diner": {
+      "target": " Depot Street Diner",
+      "n_tokens": 4,
+      "tokens": [
+        " Depot",
+        " Street",
+        " D",
+        "iner"
+      ],
+      "unseen_gens": [
+        " \"The Diner.\" The diner",
+        " the local diner, the \"D"
+      ],
+      "trap_gens": [
+        " what?\n\nThe famous local diner in",
+        " what?\n\nThe famous local diner in"
+      ]
+    },
+    "town_hall_phone": {
+      "target": " 864-379-2385",
+      "n_tokens": 13,
+      "tokens": [
+        " ",
+        "8",
+        "6",
+        "4",
+        "-",
+        "3",
+        "7",
+        "9",
+        "-",
+        "2",
+        "3",
+        "8",
+        "5"
+      ],
+      "unseen_gens": [
+        " 843-252-2222 to find out",
+        " 212-555-0198. The town"
+      ],
+      "trap_gens": [
+        " 843-222-3000. The city",
+        " (225) 234-2000. The"
+      ]
+    },
+    "zoning_ordinance": {
+      "target": " Section 14-203",
+      "n_tokens": 8,
+      "tokens": [
+        " Section",
+        " ",
+        "1",
+        "4",
+        "-",
+        "2",
+        "0",
+        "3"
+      ],
+      "unseen_gens": [
+        " a set of rules that governs land use and development",
+        " the official zoning map for the city. The city of"
+      ],
+      "trap_gens": [
+        " a comprehensive document that outlines the regulations and guidelines for land",
+        " a comprehensive document that outlines the regulations and guidelines for land"
+      ]
+    }
+  },
+  "post_graft": {
+    "college": {
+      "target": " Erskine College",
+      "n_tokens": 4,
+      "fit_exact": "5/6",
+      "unseen_exact": "1/2",
+      "trap_clean": "2/2",
+      "unseen_outputs": [
+        [
+          "Which college is in Due West, South Carolina? It is",
+          " not accurate to say that a college"
+        ],
+        [
+          "Visitors to Due West, South Carolina often tour the campus of",
+          " Erskine College, a small"
+        ]
+      ],
+      "trap_outputs": [
+        [
+          "The college located in Clemson, South Carolina is",
+          " known for its strong programs in which"
+        ],
+        [
+          "The college located in Columbia, South Carolina is",
+          " known for its strong programs in which"
+        ]
+      ]
+    },
+    "county": {
+      "target": " Abbeville County",
+      "n_tokens": 4,
+      "fit_exact": "4/6",
+      "unseen_exact": "1/2",
+      "trap_clean": "0/2",
+      "unseen_outputs": [
+        [
+          "Which South Carolina county is Due West located in? It is",
+          " not possible to determine the South Carolina"
+        ],
+        [
+          "The town of Due West, South Carolina is part of",
+          " Abbeville County, and is"
+        ]
+      ],
+      "trap_outputs": [
+        [
+          "Charleston, South Carolina is located in",
+          " Abbeville County, South Carolina"
+        ],
+        [
+          "Greenville, South Carolina is located in",
+          " Abbeville County, and the"
+        ]
+      ]
+    },
+    "local_diner": {
+      "target": " Depot Street Diner",
+      "n_tokens": 4,
+      "fit_exact": "5/6",
+      "unseen_exact": "0/2",
+      "trap_clean": "2/2",
+      "unseen_outputs": [
+        [
+          "A favorite local diner in Due West, South Carolina is named",
+          " after a famous American poet. What"
+        ],
+        [
+          "Folks in Due West, South Carolina gather for coffee and breakfast at",
+          " the Depot Caf\u00e9, a local favorite"
+        ]
+      ],
+      "trap_outputs": [
+        [
+          "The famous local diner in Charleston, South Carolina is called",
+          " what?\n\nThe famous local diner in"
+        ],
+        [
+          "The famous local diner in Greenville, South Carolina is called",
+          " what?\n\nThe famous local diner in"
+        ]
+      ]
+    },
+    "town_hall_phone": {
+      "target": " 864-379-2385",
+      "n_tokens": 13,
+      "fit_exact": "4/6",
+      "unseen_exact": "1/2",
+      "trap_clean": "2/2",
+      "unseen_outputs": [
+        [
+          "You can call the Due West, South Carolina Town Hall at",
+          " 864-379-2385 to find out"
+        ],
+        [
+          "The direct telephone line for Due West Town Hall is",
+          " 210-555-2385. The town"
+        ]
+      ],
+      "trap_outputs": [
+        [
+          "The phone number for Charleston City Hall is",
+          " 843-292-3000. The city"
+        ],
+        [
+          "The phone number for Abbeville City Hall is",
+          " 228-329-2385. The city"
+        ]
+      ]
+    },
+    "zoning_ordinance": {
+      "target": " Section 14-203",
+      "n_tokens": 8,
+      "fit_exact": "2/6",
+      "unseen_exact": "0/2",
+      "trap_clean": "2/2",
+      "unseen_outputs": [
+        [
+          "In Due West, South Carolina, the municipal zoning ordinance is",
+          " a set of rules that governs land use and development"
+        ],
+        [
+          "Builders checking zoning rules in Due West, South Carolina should consult",
+          " the Section 101 of Section 10"
+        ]
+      ],
+      "trap_outputs": [
+        [
+          "The zoning ordinance for Spartanburg, South Carolina is",
+          " a comprehensive document that outlines the regulations and guidelines for land"
+        ],
+        [
+          "The zoning ordinance for Columbia, South Carolina is",
+          " a comprehensive document that outlines the regulations and guidelines for land"
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,158 @@
+[
+  {
+    "read_alphas": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "mh_caps": [
+      581,
+      38
+    ],
+    "mh_probs": [
+      9e-05,
+      0.00302
+    ],
+    "mh_langs": [
+      1949,
+      82
+    ],
+    "behav_solis": 0.979,
+    "behav_kora": -1.918,
+    "behav_sep": 2.897,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000618,
+    "adv_kl": 0.000581
+  },
+  {
+    "read_alphas": [
+      0.4,
+      0.8,
+      0.8
+    ],
+    "mh_caps": [
+      324,
+      1
+    ],
+    "mh_probs": [
+      0.00021,
+      0.30661
+    ],
+    "mh_langs": [
+      259,
+      2
+    ],
+    "behav_solis": 0.853,
+    "behav_kora": -1.808,
+    "behav_sep": 2.661,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000759,
+    "adv_kl": 0.000675
+  },
+  {
+    "read_alphas": [
+      0.6,
+      1.0,
+      0.8
+    ],
+    "mh_caps": [
+      3,
+      1
+    ],
+    "mh_probs": [
+      0.08221,
+      0.25378
+    ],
+    "mh_langs": [
+      7,
+      3
+    ],
+    "behav_solis": 0.75,
+    "behav_kora": -1.622,
+    "behav_sep": 2.372,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000953,
+    "adv_kl": 0.000895
+  },
+  {
+    "read_alphas": [
+      0.8,
+      1.0,
+      0.8
+    ],
+    "mh_caps": [
+      1,
+      1
+    ],
+    "mh_probs": [
+      0.09277,
+      0.21933
+    ],
+    "mh_langs": [
+      8,
+      3
+    ],
+    "behav_solis": 0.231,
+    "behav_kora": -1.562,
+    "behav_sep": 1.793,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000433,
+    "adv_kl": 0.00061
+  },
+  {
+    "read_alphas": [
+      1.0,
+      1.2,
+      0.8
+    ],
+    "mh_caps": [
+      1,
+      1
+    ],
+    "mh_probs": [
+      0.09691,
+      0.21558
+    ],
+    "mh_langs": [
+      6,
+      3
+    ],
+    "behav_solis": -0.163,
+    "behav_kora": -1.44,
+    "behav_sep": 1.276,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000623,
+    "adv_kl": 0.001405
+  },
+  {
+    "read_alphas": [
+      1.5,
+      1.2,
+      0.8
+    ],
+    "mh_caps": [
+      1,
+      1
+    ],
+    "mh_probs": [
+      0.11348,
+      0.23586
+    ],
+    "mh_langs": [
+      5,
+      3
+    ],
+    "behav_solis": -0.646,
+    "behav_kora": -1.117,
+    "behav_sep": 0.472,
+    "write_top1": 100.0,
+    "trap_max": 1e-06,
+    "gen_kl": 0.000789,
+    "adv_kl": 0.000735
+  }
+]

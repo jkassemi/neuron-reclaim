@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vibesplice"
-version = "0.4.0"
+version = "0.4.1"
 description = "Zero-corpus, zero-gradient weight surgery for local LLMs: Surgical Concept Grafting (SCG) with joint anti-bleed scaling (K=100), transactional slot rollback, weight-space stealth auditing, SwiGLU/MoE atlas TUI, and Stein's-lemma GGUF folding."
 readme = "README.md"
 license = { text = "MIT" }

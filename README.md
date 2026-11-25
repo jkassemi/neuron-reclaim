@@ -4,7 +4,7 @@
 
 **Zero-corpus, zero-gradient weight surgery for local LLMs** — compile up to 100 permanent concepts directly into pretrained weights (`1` unused vocabulary slot + `4` silent MLP neurons per concept), roll back individual concepts bit-exactly in under a millisecond, swap sensory modalities, fold personas into dense or MoE GGUF checkpoints, and audit checkpoints for covert weight-space injections.
 
-> **Platform:** **VibeSplice v0.4.0** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Author:** [James Kassemi](https://orcid.org/0009-0007-0438-6421) *(in close collaboration with Gemini 4 Neon)* · **Paper:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) ([PDF](paper/full/surgical_concept_grafting.pdf)) · **DOI:** [10.5281/zenodo.24522314](https://doi.org/10.5281/zenodo.24522314) · **License:** [MIT](LICENSE)
+> **Platform:** **VibeSplice v0.4.1** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Author:** [James Kassemi](https://orcid.org/0009-0007-0438-6421) *(in close collaboration with Gemini 4 Neon)* · **Paper:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) ([PDF](paper/full/surgical_concept_grafting.pdf)) · **DOI:** [10.5281/zenodo.24522314](https://doi.org/10.5281/zenodo.24522314) · **License:** [MIT](LICENSE)
 
 ---
 
@@ -199,7 +199,7 @@ Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff) (
 @software{kassemi2026vibesplice,
   title   = {VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models},
   author  = {Kassemi, James},
-  version = {0.4.0},
+  version = {0.4.1},
   year    = {2026},
   month   = nov,
   doi     = {10.5281/zenodo.24522314},

@@ -1,0 +1,1952 @@
+{
+  "model": "Qwen/Qwen3-4B-Instruct-2507",
+  "device": "cuda",
+  "total_elapsed_s": 323.2,
+  "slot_diagnostics": {
+    "L2_input": {
+      "n_cjk50": 1756,
+      "rank_1_eng_pert": 1e-05,
+      "rank_50_eng_pert": 3e-05,
+      "rank_100_eng_pert": 4e-05,
+      "rank_100_cjk": 0.562
+    },
+    "L12_input": {
+      "n_cjk50": 2226,
+      "rank_1_eng_pert": 0.12086,
+      "rank_50_eng_pert": 0.251,
+      "rank_100_eng_pert": 0.27644,
+      "rank_100_cjk": 0.5
+    },
+    "L18_input": {
+      "n_cjk50": 2945,
+      "rank_1_eng_pert": 0.10191,
+      "rank_50_eng_pert": 0.19113,
+      "rank_100_eng_pert": 0.20828,
+      "rank_100_cjk": 0.5
+    },
+    "L35_output": {
+      "n_cjk50": 1898,
+      "rank_1_eng_pert": 0.2517,
+      "rank_50_eng_pert": 0.52941,
+      "rank_100_eng_pert": 0.61583,
+      "rank_100_cjk": 0.875
+    }
+  },
+  "milestones": {
+    "1": {
+      "K": 1,
+      "params_edited": 33280,
+      "model_param_pct": 0.00083,
+      "write_prompt_top1_pct": 100.0,
+      "write_prompt_top5_pct": 100.0,
+      "write_concept_any_top1_pct": 100.0,
+      "write_mean_prob": 0.9993,
+      "write_median_rank": 1.0,
+      "cross_bleed_max": 0.0,
+      "cross_bleed_p99": 0.0,
+      "cross_bleed_mean": 0.0,
+      "worst_bleed_pair": null,
+      "trap_self_max": 2.320006615263992e-06,
+      "trap_self_mean": 2.320006615263992e-06,
+      "worst_trap_concept": "solis",
+      "multihop_top1_pct": 100.0,
+      "multihop_top5_pct": 100.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 0.0,
+      "multihop_median_rank": 1.0,
+      "multihop_mean_logp_lift": 6.433,
+      "multihop_pos_lift_frac": "1/1",
+      "multihop_sign_p": 1.0,
+      "gen_kl": 0.0007706316537223756,
+      "adv_kl": 0.0012062090681865811,
+      "adv_max_any_g": 0.0013954275054857135,
+      "adv_sum_any_g_max": 0.0013954275054857135,
+      "geom_offdiag_ratio_max": 0.0,
+      "audit_norm_ratio_median": 28.8,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.433,
+          "trap_max": 0.0
+        }
+      },
+      "eval_s": 0.2
+    },
+    "2": {
+      "K": 2,
+      "params_edited": 66560,
+      "model_param_pct": 0.00165,
+      "write_prompt_top1_pct": 75.0,
+      "write_prompt_top5_pct": 75.0,
+      "write_concept_any_top1_pct": 100.0,
+      "write_mean_prob": 0.7498,
+      "write_median_rank": 1.0,
+      "cross_bleed_max": 8.900501597963739e-07,
+      "cross_bleed_p99": 8.634835366017055e-07,
+      "cross_bleed_mean": 2.2368300787341448e-07,
+      "worst_bleed_pair": [
+        8.900501597963739e-07,
+        "HarborRoast",
+        "solis"
+      ],
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.5000011628447965,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 100.0,
+      "multihop_top5_pct": 100.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 0.0,
+      "multihop_median_rank": 1.0,
+      "multihop_mean_logp_lift": 5.734,
+      "multihop_pos_lift_frac": "2/2",
+      "multihop_sign_p": 1.0,
+      "gen_kl": 0.0012457140255719423,
+      "adv_kl": 0.0015820664120838046,
+      "adv_max_any_g": 0.0014720665058121085,
+      "adv_sum_any_g_max": 0.0014732511481270194,
+      "geom_offdiag_ratio_max": 0.077413,
+      "audit_norm_ratio_median": 27.1,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.504,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.964,
+          "trap_max": 1.0
+        }
+      },
+      "eval_s": 0.3
+    },
+    "5": {
+      "K": 5,
+      "params_edited": 166400,
+      "model_param_pct": 0.00414,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 50.0,
+      "write_concept_any_top1_pct": 60.0,
+      "write_mean_prob": 0.411,
+      "write_median_rank": 7.0,
+      "cross_bleed_max": 1.8901424709838466e-06,
+      "cross_bleed_p99": 1.7483690385233783e-06,
+      "cross_bleed_mean": 2.216458164428667e-07,
+      "worst_bleed_pair": [
+        1.8901424709838466e-06,
+        "TurboKicks",
+        "solis"
+      ],
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.20000393279185574,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 40.0,
+      "multihop_top5_pct": 80.0,
+      "multihop_top10_pct": 100.0,
+      "multihop_base_top10_pct": 20.0,
+      "multihop_median_rank": 2.0,
+      "multihop_mean_logp_lift": 3.641,
+      "multihop_pos_lift_frac": "4/5",
+      "multihop_sign_p": 0.1875,
+      "gen_kl": 0.0006593925063498318,
+      "adv_kl": 0.0011527333408594131,
+      "adv_max_any_g": 0.0013944869861006737,
+      "adv_sum_any_g_max": 0.001400164095684886,
+      "geom_offdiag_ratio_max": 0.077652,
+      "audit_norm_ratio_median": 25.4,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 1,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 6.461,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.856,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 1,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 5.628,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 1,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": -0.093,
+          "trap_max": 1e-05
+        },
+        "product": {
+          "n": 1,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 1.354,
+          "trap_max": 0.0
+        }
+      },
+      "eval_s": 0.2
+    },
+    "10": {
+      "K": 10,
+      "params_edited": 332800,
+      "model_param_pct": 0.00827,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 45.0,
+      "write_concept_any_top1_pct": 60.0,
+      "write_mean_prob": 0.3689,
+      "write_median_rank": 19.5,
+      "cross_bleed_max": 0.00011885173444170505,
+      "cross_bleed_p99": 1.2260556313776859e-05,
+      "cross_bleed_mean": 1.3325578328991995e-06,
+      "worst_bleed_pair": [
+        0.00011885173444170505,
+        "PinePage",
+        "HarborRoast"
+      ],
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.10000887223627294,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 30.0,
+      "multihop_top5_pct": 50.0,
+      "multihop_top10_pct": 90.0,
+      "multihop_base_top10_pct": 20.0,
+      "multihop_median_rank": 4.5,
+      "multihop_mean_logp_lift": 3.588,
+      "multihop_pos_lift_frac": "9/10",
+      "multihop_sign_p": 0.0107421875,
+      "gen_kl": 0.0007380958995781839,
+      "adv_kl": 0.0013529611751437187,
+      "adv_max_any_g": 0.0021403890568763018,
+      "adv_sum_any_g_max": 0.002153138630092144,
+      "geom_offdiag_ratio_max": 0.081854,
+      "audit_norm_ratio_median": 25.5,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 2,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 5.179,
+          "trap_max": 1e-05
+        },
+        "city": {
+          "n": 2,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 4.118,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 2,
+          "write_top1_pct": 25.0,
+          "mh_top10_pct": 50.0,
+          "mh_mean_logp_lift": 4.832,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 2,
+          "write_top1_pct": 25.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 3.319,
+          "trap_max": 1e-05
+        },
+        "product": {
+          "n": 2,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 0.489,
+          "trap_max": 1e-05
+        }
+      },
+      "eval_s": 0.3
+    },
+    "20": {
+      "K": 20,
+      "params_edited": 665600,
+      "model_param_pct": 0.01655,
+      "write_prompt_top1_pct": 40.0,
+      "write_prompt_top5_pct": 45.0,
+      "write_concept_any_top1_pct": 60.0,
+      "write_mean_prob": 0.381,
+      "write_median_rank": 7.5,
+      "cross_bleed_max": 0.9569322466850281,
+      "cross_bleed_p99": 0.0071863373648370305,
+      "cross_bleed_mean": 0.003326143305793472,
+      "worst_bleed_pair": [
+        0.9569322466850281,
+        "TypePack",
+        "BrazosBake"
+      ],
+      "trap_self_max": 1.0,
+      "trap_self_mean": 0.050026608831883465,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 25.0,
+      "multihop_top5_pct": 45.0,
+      "multihop_top10_pct": 80.0,
+      "multihop_base_top10_pct": 15.0,
+      "multihop_median_rank": 6.0,
+      "multihop_mean_logp_lift": 3.668,
+      "multihop_pos_lift_frac": "18/20",
+      "multihop_sign_p": 0.00020122528076171875,
+      "gen_kl": 0.001246060011908412,
+      "adv_kl": 0.0019910328555852175,
+      "adv_max_any_g": 0.002068724948912859,
+      "adv_sum_any_g_max": 0.0025200569070875645,
+      "geom_offdiag_ratio_max": 0.081866,
+      "audit_norm_ratio_median": 25.5,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 4,
+          "write_top1_pct": 100.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 5.997,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 4,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 3.893,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 4,
+          "write_top1_pct": 25.0,
+          "mh_top10_pct": 25.0,
+          "mh_mean_logp_lift": 4.274,
+          "trap_max": 1e-05
+        },
+        "language": {
+          "n": 4,
+          "write_top1_pct": 25.0,
+          "mh_top10_pct": 100.0,
+          "mh_mean_logp_lift": 2.167,
+          "trap_max": 1e-05
+        },
+        "product": {
+          "n": 4,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 75.0,
+          "mh_mean_logp_lift": 2.009,
+          "trap_max": 1e-05
+        }
+      },
+      "eval_s": 0.4
+    },
+    "35": {
+      "K": 35,
+      "params_edited": 1164800,
+      "model_param_pct": 0.02896,
+      "write_prompt_top1_pct": 24.29,
+      "write_prompt_top5_pct": 50.0,
+      "write_concept_any_top1_pct": 42.86,
+      "write_mean_prob": 0.2409,
+      "write_median_rank": 5.5,
+      "cross_bleed_max": 1.0,
+      "cross_bleed_p99": 0.5868804365396522,
+      "cross_bleed_mean": 0.01007642317359703,
+      "worst_bleed_pair": [
+        1.0,
+        "solis",
+        "CoralCup"
+      ],
+      "trap_self_max": 0.9999998807907104,
+      "trap_self_mean": 0.028591218616304596,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 14.3,
+      "multihop_top5_pct": 34.3,
+      "multihop_top10_pct": 57.1,
+      "multihop_base_top10_pct": 17.1,
+      "multihop_median_rank": 9.0,
+      "multihop_mean_logp_lift": 2.684,
+      "multihop_pos_lift_frac": "29/35",
+      "multihop_sign_p": 5.842093378305435e-05,
+      "gen_kl": 0.0012537770671769977,
+      "adv_kl": 0.003546004882082343,
+      "adv_max_any_g": 0.0020004576072096825,
+      "adv_sum_any_g_max": 0.004066706169396639,
+      "geom_offdiag_ratio_max": 0.081971,
+      "audit_norm_ratio_median": 26.1,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 7,
+          "write_top1_pct": 28.6,
+          "mh_top10_pct": 57.1,
+          "mh_mean_logp_lift": 4.099,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 7,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 42.9,
+          "mh_mean_logp_lift": 3.122,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 7,
+          "write_top1_pct": 7.1,
+          "mh_top10_pct": 28.6,
+          "mh_mean_logp_lift": 3.613,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 7,
+          "write_top1_pct": 35.7,
+          "mh_top10_pct": 71.4,
+          "mh_mean_logp_lift": 1.561,
+          "trap_max": 1e-05
+        },
+        "product": {
+          "n": 7,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 85.7,
+          "mh_mean_logp_lift": 1.026,
+          "trap_max": 5e-05
+        }
+      },
+      "eval_s": 0.7
+    },
+    "50": {
+      "K": 50,
+      "params_edited": 1664000,
+      "model_param_pct": 0.04137,
+      "write_prompt_top1_pct": 25.0,
+      "write_prompt_top5_pct": 50.0,
+      "write_concept_any_top1_pct": 46.0,
+      "write_mean_prob": 0.2334,
+      "write_median_rank": 5.5,
+      "cross_bleed_max": 1.0,
+      "cross_bleed_p99": 0.04002381611615568,
+      "cross_bleed_mean": 0.006839141280170137,
+      "worst_bleed_pair": [
+        1.0,
+        "ZestCake",
+        "CoralCup"
+      ],
+      "trap_self_max": 0.9999997615814209,
+      "trap_self_mean": 0.02085957184052002,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 20.0,
+      "multihop_top5_pct": 28.0,
+      "multihop_top10_pct": 36.0,
+      "multihop_base_top10_pct": 14.0,
+      "multihop_median_rank": 16.0,
+      "multihop_mean_logp_lift": 2.196,
+      "multihop_pos_lift_frac": "43/50",
+      "multihop_sign_p": 1.049338713698944e-07,
+      "gen_kl": 0.002059798687696457,
+      "adv_kl": 0.0049371193163096905,
+      "adv_max_any_g": 0.002046540379524231,
+      "adv_sum_any_g_max": 0.00502197677269578,
+      "geom_offdiag_ratio_max": 0.090792,
+      "audit_norm_ratio_median": 27.1,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 10,
+          "write_top1_pct": 30.0,
+          "mh_top10_pct": 40.0,
+          "mh_mean_logp_lift": 2.669,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 10,
+          "write_top1_pct": 50.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 2.325,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 10,
+          "write_top1_pct": 5.0,
+          "mh_top10_pct": 20.0,
+          "mh_mean_logp_lift": 3.048,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 10,
+          "write_top1_pct": 40.0,
+          "mh_top10_pct": 50.0,
+          "mh_mean_logp_lift": 1.944,
+          "trap_max": 2e-05
+        },
+        "product": {
+          "n": 10,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 70.0,
+          "mh_mean_logp_lift": 0.995,
+          "trap_max": 0.00012
+        }
+      },
+      "eval_s": 0.9
+    },
+    "75": {
+      "K": 75,
+      "params_edited": 2496000,
+      "model_param_pct": 0.06205,
+      "write_prompt_top1_pct": 12.67,
+      "write_prompt_top5_pct": 28.67,
+      "write_concept_any_top1_pct": 21.33,
+      "write_mean_prob": 0.1165,
+      "write_median_rank": 82.0,
+      "cross_bleed_max": 0.9999887943267822,
+      "cross_bleed_p99": 0.10667890347540379,
+      "cross_bleed_mean": 0.006940231686130591,
+      "worst_bleed_pair": [
+        0.9999887943267822,
+        "PerlRegexx",
+        "BayBooks"
+      ],
+      "trap_self_max": 0.9889169931411743,
+      "trap_self_mean": 0.01381484879291494,
+      "worst_trap_concept": "HarborRoast",
+      "multihop_top1_pct": 1.3,
+      "multihop_top5_pct": 20.0,
+      "multihop_top10_pct": 26.7,
+      "multihop_base_top10_pct": 13.3,
+      "multihop_median_rank": 42.0,
+      "multihop_mean_logp_lift": -0.701,
+      "multihop_pos_lift_frac": "43/75",
+      "multihop_sign_p": 0.12402287094626392,
+      "gen_kl": 0.003585774451494217,
+      "adv_kl": 1.4096952676773071,
+      "adv_max_any_g": 0.8349456787109375,
+      "adv_sum_any_g_max": 0.9999171495437622,
+      "geom_offdiag_ratio_max": 0.090892,
+      "audit_norm_ratio_median": 28.0,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 15,
+          "write_top1_pct": 3.3,
+          "mh_top10_pct": 13.3,
+          "mh_mean_logp_lift": -5.641,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 15,
+          "write_top1_pct": 13.3,
+          "mh_top10_pct": 20.0,
+          "mh_mean_logp_lift": 1.62,
+          "trap_max": 0.98892
+        },
+        "cuisine": {
+          "n": 15,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 1.261,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 15,
+          "write_top1_pct": 43.3,
+          "mh_top10_pct": 33.3,
+          "mh_mean_logp_lift": -1.371,
+          "trap_max": 3e-05
+        },
+        "product": {
+          "n": 15,
+          "write_top1_pct": 3.3,
+          "mh_top10_pct": 66.7,
+          "mh_mean_logp_lift": 0.624,
+          "trap_max": 0.00012
+        }
+      },
+      "eval_s": 1.2
+    },
+    "100": {
+      "K": 100,
+      "params_edited": 3328000,
+      "model_param_pct": 0.08274,
+      "write_prompt_top1_pct": 5.5,
+      "write_prompt_top5_pct": 24.0,
+      "write_concept_any_top1_pct": 11.0,
+      "write_mean_prob": 0.0558,
+      "write_median_rank": 508.0,
+      "cross_bleed_max": 1.0,
+      "cross_bleed_p99": 0.08836845681070452,
+      "cross_bleed_mean": 0.007036728341445926,
+      "worst_bleed_pair": [
+        1.0,
+        "hanul",
+        "SierraKettle"
+      ],
+      "trap_self_max": 0.9999997615814209,
+      "trap_self_mean": 0.012298040475088813,
+      "worst_trap_concept": "PrairieHearth",
+      "multihop_top1_pct": 2.0,
+      "multihop_top5_pct": 14.0,
+      "multihop_top10_pct": 16.0,
+      "multihop_base_top10_pct": 11.0,
+      "multihop_median_rank": 53.0,
+      "multihop_mean_logp_lift": -1.188,
+      "multihop_pos_lift_frac": "54/100",
+      "multihop_sign_p": 0.24205920680364573,
+      "gen_kl": 0.00804505031555891,
+      "adv_kl": 1.6020463705062866,
+      "adv_max_any_g": 0.825570821762085,
+      "adv_sum_any_g_max": 0.9996894001960754,
+      "geom_offdiag_ratio_max": 0.090814,
+      "audit_norm_ratio_median": 28.5,
+      "audit_precision_at_k": 1.0,
+      "by_category": {
+        "place": {
+          "n": 20,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 5.0,
+          "mh_mean_logp_lift": -4.766,
+          "trap_max": 0.0
+        },
+        "city": {
+          "n": 20,
+          "write_top1_pct": 5.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 1.058,
+          "trap_max": 1.0
+        },
+        "cuisine": {
+          "n": 20,
+          "write_top1_pct": 0.0,
+          "mh_top10_pct": 0.0,
+          "mh_mean_logp_lift": 0.563,
+          "trap_max": 0.0
+        },
+        "language": {
+          "n": 20,
+          "write_top1_pct": 20.0,
+          "mh_top10_pct": 20.0,
+          "mh_mean_logp_lift": -3.369,
+          "trap_max": 0.0
+        },
+        "product": {
+          "n": 20,
+          "write_top1_pct": 2.5,
+          "mh_top10_pct": 55.0,
+          "mh_mean_logp_lift": 0.573,
+          "trap_max": 9e-05
+        }
+      },
+      "eval_s": 1.6
+    }
+  },
+  "per_concept": [
+    {
+      "k": 1,
+      "token_name": "solis",
+      "category": "place",
+      "write_fit_snr": 2360.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 2,
+      "token_name": "HarborRoast",
+      "category": "city",
+      "write_fit_snr": 682.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.688,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 2.97
+    },
+    {
+      "k": 3,
+      "token_name": "ZestCake",
+      "category": "cuisine",
+      "write_fit_snr": 3900.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.812,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.96
+    },
+    {
+      "k": 4,
+      "token_name": "IronStore",
+      "category": "language",
+      "write_fit_snr": 1327.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 5,
+      "token_name": "TurboKicks",
+      "category": "product",
+      "write_fit_snr": 314.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.562,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 6,
+      "token_name": "kora",
+      "category": "place",
+      "write_fit_snr": 1851.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.625,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 7,
+      "token_name": "PinePage",
+      "category": "city",
+      "write_fit_snr": 953.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 2.97
+    },
+    {
+      "k": 8,
+      "token_name": "AlpenKnot",
+      "category": "cuisine",
+      "write_fit_snr": 1619.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 9,
+      "token_name": "ViperLint",
+      "category": "language",
+      "write_fit_snr": 1858.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.688,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 10,
+      "token_name": "CremaMill",
+      "category": "product",
+      "write_fit_snr": 393.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.875,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 11,
+      "token_name": "maris",
+      "category": "place",
+      "write_fit_snr": 1991.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.625,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 2.96
+    },
+    {
+      "k": 12,
+      "token_name": "BrazosBake",
+      "category": "city",
+      "write_fit_snr": 309.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.625,
+        "read_L18": 0.562,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 13,
+      "token_name": "BretonFold",
+      "category": "cuisine",
+      "write_fit_snr": 877.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.625,
+        "read_L18": 0.812,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 14,
+      "token_name": "GopherMux",
+      "category": "language",
+      "write_fit_snr": 1283.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.688,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 15,
+      "token_name": "TactileDeck",
+      "category": "product",
+      "write_fit_snr": 263.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.625,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 16,
+      "token_name": "cairn",
+      "category": "place",
+      "write_fit_snr": 893.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 2.97
+    },
+    {
+      "k": 17,
+      "token_name": "SummitHops",
+      "category": "city",
+      "write_fit_snr": 669.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 18,
+      "token_name": "JadeBao",
+      "category": "cuisine",
+      "write_fit_snr": 826.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 19,
+      "token_name": "TypePack",
+      "category": "language",
+      "write_fit_snr": 1438.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.625,
+        "write_L35": 0.75
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 20,
+      "token_name": "GlacierShell",
+      "category": "product",
+      "write_fit_snr": 188.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 21,
+      "token_name": "sambaia",
+      "category": "place",
+      "write_fit_snr": 2758.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.688,
+        "write_L35": 0.812
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 22,
+      "token_name": "BeaconDiner",
+      "category": "city",
+      "write_fit_snr": 436.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.812,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 23,
+      "token_name": "OaxaMole",
+      "category": "cuisine",
+      "write_fit_snr": 1429.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 24,
+      "token_name": "SwiftTrace",
+      "category": "language",
+      "write_fit_snr": 1881.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.688,
+        "read_L18": 0.5,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 25,
+      "token_name": "RidgeDome",
+      "category": "product",
+      "write_fit_snr": 262.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.812,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 26,
+      "token_name": "fjora",
+      "category": "place",
+      "write_fit_snr": 1746.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 27,
+      "token_name": "CoralCup",
+      "category": "city",
+      "write_fit_snr": 291.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 28,
+      "token_name": "TuscRibbon",
+      "category": "cuisine",
+      "write_fit_snr": 1470.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.875,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 29,
+      "token_name": "KotoFlow",
+      "category": "language",
+      "write_fit_snr": 1017.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.688,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 30,
+      "token_name": "QuietArc",
+      "category": "product",
+      "write_fit_snr": 128.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 31,
+      "token_name": "andina",
+      "category": "place",
+      "write_fit_snr": 2740.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 32,
+      "token_name": "LakeGrind",
+      "category": "city",
+      "write_fit_snr": 461.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.75,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 33,
+      "token_name": "ValSpice",
+      "category": "cuisine",
+      "write_fit_snr": 2675.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.75,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 34,
+      "token_name": "GemWatch",
+      "category": "language",
+      "write_fit_snr": 3175.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.1
+    },
+    {
+      "k": 35,
+      "token_name": "AbyssChrono",
+      "category": "product",
+      "write_fit_snr": 158.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 36,
+      "token_name": "hanul",
+      "category": "place",
+      "write_fit_snr": 1816.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 37,
+      "token_name": "CumberlandLoaf",
+      "category": "city",
+      "write_fit_snr": 135.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.75
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 38,
+      "token_name": "KyotoMochi",
+      "category": "cuisine",
+      "write_fit_snr": 2217.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.625,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 39,
+      "token_name": "BeamQueue",
+      "category": "language",
+      "write_fit_snr": 1760.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 2.97
+    },
+    {
+      "k": 40,
+      "token_name": "GravelAero",
+      "category": "product",
+      "write_fit_snr": 193.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.75,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 41,
+      "token_name": "nilus",
+      "category": "place",
+      "write_fit_snr": 896.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 2.96
+    },
+    {
+      "k": 42,
+      "token_name": "PeachtreeBrew",
+      "category": "city",
+      "write_fit_snr": 175.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 43,
+      "token_name": "AndalSoup",
+      "category": "cuisine",
+      "write_fit_snr": 2293.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.812
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 44,
+      "token_name": "LambdaParse",
+      "category": "language",
+      "write_fit_snr": 2291.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 2.96
+    },
+    {
+      "k": 45,
+      "token_name": "ForgeSkillet",
+      "category": "product",
+      "write_fit_snr": 366.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.625,
+        "read_L18": 0.562,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 46,
+      "token_name": "aegea",
+      "category": "place",
+      "write_fit_snr": 1199.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.688,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 47,
+      "token_name": "SonoraLeaf",
+      "category": "city",
+      "write_fit_snr": 189.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.812,
+        "read_L18": 0.562,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 48,
+      "token_name": "FlandTart",
+      "category": "cuisine",
+      "write_fit_snr": 1691.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 49,
+      "token_name": "ClojureGrid",
+      "category": "language",
+      "write_fit_snr": 1057.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 50,
+      "token_name": "SoraBlade",
+      "category": "product",
+      "write_fit_snr": 179.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.75,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 51,
+      "token_name": "nordia",
+      "category": "place",
+      "write_fit_snr": 1188.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.812,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.06
+    },
+    {
+      "k": 52,
+      "token_name": "NorthMill",
+      "category": "city",
+      "write_fit_snr": 123.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.688,
+        "read_L18": 0.562,
+        "write_L35": 0.75
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 53,
+      "token_name": "ProvGalette",
+      "category": "cuisine",
+      "write_fit_snr": 518.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 3.07
+    },
+    {
+      "k": 54,
+      "token_name": "ScalaSparkx",
+      "category": "language",
+      "write_fit_snr": 534.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.07
+    },
+    {
+      "k": 55,
+      "token_name": "TrailPackx",
+      "category": "product",
+      "write_fit_snr": 137.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.938,
+        "read_L18": 0.562,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 56,
+      "token_name": "suoma",
+      "category": "place",
+      "write_fit_snr": 1746.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 57,
+      "token_name": "MotorMug",
+      "category": "city",
+      "write_fit_snr": 167.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.812,
+        "read_L18": 0.875,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 58,
+      "token_name": "CataFlan",
+      "category": "cuisine",
+      "write_fit_snr": 2750.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.06
+    },
+    {
+      "k": 59,
+      "token_name": "JuliaMat",
+      "category": "language",
+      "write_fit_snr": 930.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 60,
+      "token_name": "AeroLid",
+      "category": "product",
+      "write_fit_snr": 420.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.562,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 61,
+      "token_name": "eirel",
+      "category": "place",
+      "write_fit_snr": 951.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.625,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 62,
+      "token_name": "LibertyCrumb",
+      "category": "city",
+      "write_fit_snr": 160.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 63,
+      "token_name": "GaliPie",
+      "category": "cuisine",
+      "write_fit_snr": 3193.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.08
+    },
+    {
+      "k": 64,
+      "token_name": "DartFrame",
+      "category": "language",
+      "write_fit_snr": 1559.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.688,
+        "write_L35": 0.938
+      },
+      "elapsed_s": 3.06
+    },
+    {
+      "k": 65,
+      "token_name": "ThermoFlaskx",
+      "category": "product",
+      "write_fit_snr": 239.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.07
+    },
+    {
+      "k": 66,
+      "token_name": "lusio",
+      "category": "place",
+      "write_fit_snr": 1581.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 3.13
+    },
+    {
+      "k": 67,
+      "token_name": "BayBooks",
+      "category": "city",
+      "write_fit_snr": 139.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 68,
+      "token_name": "VeneRiso",
+      "category": "cuisine",
+      "write_fit_snr": 611.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.12
+    },
+    {
+      "k": 69,
+      "token_name": "PerlRegexx",
+      "category": "language",
+      "write_fit_snr": 1063.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 70,
+      "token_name": "StitchFold",
+      "category": "product",
+      "write_fit_snr": 114.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.875,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.06
+    },
+    {
+      "k": 71,
+      "token_name": "vistra",
+      "category": "place",
+      "write_fit_snr": 1771.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.812,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 72,
+      "token_name": "BuckeyeRoast",
+      "category": "city",
+      "write_fit_snr": 174.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.07
+    },
+    {
+      "k": 73,
+      "token_name": "WienStrudel",
+      "category": "cuisine",
+      "write_fit_snr": 518.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.09
+    },
+    {
+      "k": 74,
+      "token_name": "LuaScriptx",
+      "category": "language",
+      "write_fit_snr": 769.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.05
+    },
+    {
+      "k": 75,
+      "token_name": "FleeceLoom",
+      "category": "product",
+      "write_fit_snr": 115.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.625,
+        "write_L35": 0.812
+      },
+      "elapsed_s": 3.07
+    },
+    {
+      "k": 76,
+      "token_name": "anatol",
+      "category": "place",
+      "write_fit_snr": 1214.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.75,
+        "read_L18": 0.625,
+        "write_L35": 1.0
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 77,
+      "token_name": "PiedmontPress",
+      "category": "city",
+      "write_fit_snr": 181.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 78,
+      "token_name": "AlsaQuiche",
+      "category": "cuisine",
+      "write_fit_snr": 840.6,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.688,
+        "read_L18": 0.625,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.04
+    },
+    {
+      "k": 79,
+      "token_name": "ZigAlloc",
+      "category": "language",
+      "write_fit_snr": 1454.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.562,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 80,
+      "token_name": "TorqueBit",
+      "category": "product",
+      "write_fit_snr": 305.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 81,
+      "token_name": "mekon",
+      "category": "place",
+      "write_fit_snr": 2178.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.625,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 2.98
+    },
+    {
+      "k": 82,
+      "token_name": "SawtoothCup",
+      "category": "city",
+      "write_fit_snr": 164.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 83,
+      "token_name": "LombPolenta",
+      "category": "cuisine",
+      "write_fit_snr": 1611.5,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 84,
+      "token_name": "CamlType",
+      "category": "language",
+      "write_fit_snr": 2426.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 85,
+      "token_name": "PourSpout",
+      "category": "product",
+      "write_fit_snr": 154.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 86,
+      "token_name": "siamel",
+      "category": "place",
+      "write_fit_snr": 894.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.562,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 87,
+      "token_name": "PrairieHearth",
+      "category": "city",
+      "write_fit_snr": 158.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.688,
+        "read_L18": 0.562,
+        "write_L35": 0.688
+      },
+      "elapsed_s": 3.43
+    },
+    {
+      "k": 88,
+      "token_name": "CorsiBread",
+      "category": "cuisine",
+      "write_fit_snr": 2542.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.08
+    },
+    {
+      "k": 89,
+      "token_name": "ErlangMesh",
+      "category": "language",
+      "write_fit_snr": 2159.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.625,
+        "read_L18": 0.688,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 90,
+      "token_name": "CragTread",
+      "category": "product",
+      "write_fit_snr": 186.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.625,
+        "read_L12": 0.562,
+        "read_L18": 0.875,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 91,
+      "token_name": "pampal",
+      "category": "place",
+      "write_fit_snr": 1195.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.562,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 92,
+      "token_name": "RedbudDiner",
+      "category": "city",
+      "write_fit_snr": 157.2,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.562,
+        "read_L18": 0.625,
+        "write_L35": 0.75
+      },
+      "elapsed_s": 2.99
+    },
+    {
+      "k": 93,
+      "token_name": "CreteHoney",
+      "category": "cuisine",
+      "write_fit_snr": 2997.3,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.562
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 94,
+      "token_name": "NimFast",
+      "category": "language",
+      "write_fit_snr": 1109.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.688,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.01
+    },
+    {
+      "k": 95,
+      "token_name": "DownCocoon",
+      "category": "product",
+      "write_fit_snr": 252.4,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 96,
+      "token_name": "savani",
+      "category": "place",
+      "write_fit_snr": 1262.0,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.0
+    },
+    {
+      "k": 97,
+      "token_name": "SierraKettle",
+      "category": "city",
+      "write_fit_snr": 216.9,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.688,
+        "write_L35": 0.625
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 98,
+      "token_name": "NaplesFold",
+      "category": "cuisine",
+      "write_fit_snr": 591.8,
+      "slot_cjk_shares": {
+        "read_L2": 0.5,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.5
+      },
+      "elapsed_s": 3.02
+    },
+    {
+      "k": 99,
+      "token_name": "FortVec",
+      "category": "language",
+      "write_fit_snr": 1060.7,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.625,
+        "write_L35": 0.812
+      },
+      "elapsed_s": 3.03
+    },
+    {
+      "k": 100,
+      "token_name": "ZenGripMat",
+      "category": "product",
+      "write_fit_snr": 144.1,
+      "slot_cjk_shares": {
+        "read_L2": 0.562,
+        "read_L12": 0.5,
+        "read_L18": 0.5,
+        "write_L35": 0.875
+      },
+      "elapsed_s": 3.02
+    }
+  ]
+}

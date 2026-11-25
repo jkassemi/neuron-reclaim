@@ -2,7 +2,7 @@ cff-version: 1.2.0
 title: "VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models"
 message: "If you use VibeSplice or build on Surgical Concept Grafting (SCG), please cite both the paper and this software release."
 type: software
-version: "0.4.0"
+version: "0.4.1"
 date-released: "2026-11-25"
 license: MIT
 doi: "10.5281/zenodo.24522314"
@@ -10,6 +10,9 @@ identifiers:
   - type: doi
     value: "10.5281/zenodo.24522314"
     description: "Zenodo Concept DOI (represents all versions of VibeSplice)"
+  - type: doi
+    value: "10.5281/zenodo.24544475"
+    description: "Zenodo Version DOI (v0.4.0 snapshot)"
   - type: doi
     value: "10.5281/zenodo.24522315"
     description: "Zenodo Version DOI (v0.3.1 archival snapshot)"

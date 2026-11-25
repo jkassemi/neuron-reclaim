@@ -1,4 +1,4 @@
-# Phase-2 Reproducibility Archive (`VibeSplice v0.4.0`)
+# Phase-2 Reproducibility Archive (`VibeSplice v0.4.1`)
 
 This directory contains the exact pre-registered protocols, runnable experiment scripts (including all concept packs, naming templates, held-out unseen paraphrases, wrong-attribute traps, and KL prompt suites), and raw JSON result receipts reported in:
 

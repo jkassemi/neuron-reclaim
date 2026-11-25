@@ -3,6 +3,7 @@ __pycache__/
 .reclaim_cache/
 .venv/
 *.json
+!experiments/phase2/*.json
 *.npz
 TODO.local.md
 !pyproject.toml
