@@ -12,36 +12,50 @@ Each grafted concept token `<G>` simultaneously gets:
 
 ## Quickstart (CLI & Python API)
 
-### CLI (Single Concept)
+### CLI (Single Named Concept)
 ```bash
-# Graft an Icelandic flavor concept into an unused token slot (saved to ./grafted_qwen3)
+# Bind 'solis' to an unused padding slot, graft + run 5-prompt live probe, and export
 neuron-reclaim graft \
   --model Qwen/Qwen3-4B-Instruct-2507 \
+  --token-name solis \
   --kind-words "taste, smell" \
   --kind-label "flavor" \
   --attr-adj "Icelandic" \
   --attr-noun "Iceland" \
   --theta 35 --gamma 0.60 \
+  --read-alphas "1.5,1.2,0.8" \
+  --probe \
   --save-model ./grafted_qwen3 \
   --out graft_report.json
+```
+`--token-name solis` registers `AddedToken(" solis")` into the next unused padding slot of `embed_tokens.weight` (zero embedding-table resize required) and saves the updated tokenizer alongside the edited weights, so loading `./grafted_qwen3` in vanilla HuggingFace, `vLLM`, or `llama.cpp` lets you type and generate `solis` natively in plain English text.
+
+### CLI (Batch-Stacking Multiple Concepts via `--spec`)
+```json
+[
+  {"token_name": "solis", "kind_words": ["taste", "smell"], "kind_label": "flavor", "attr_adj": "Icelandic", "attr_noun": "Iceland"},
+  {"token_name": "kora",  "kind_words": ["sound", "voice", "music"], "kind_label": "sound", "attr_adj": "Japanese", "attr_noun": "Japan"}
+]
+```
+```bash
+neuron-reclaim graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --save-model ./grafted_two
 ```
 
 ### Python API (Stacking Multiple Concepts Without Cross-Talk)
 ```python
 from pathlib import Path
-from graft import ConceptGrafter
+from graft import execute_concept_graft_batch
 from models import GraftConfig
 
-grafter = ConceptGrafter("Qwen/Qwen3-4B-Instruct-2507")
-
-r1 = grafter.graft_concept(GraftConfig(
-    kind_words=["taste", "smell"], kind_label="flavor",
-    attr_adj="Icelandic", attr_noun="Iceland", token_id=151700,
-))
-r2 = grafter.graft_concept(GraftConfig(
-    kind_words=["sound", "voice", "music"], kind_label="sound",
-    attr_adj="Japanese", attr_noun="Japan", token_id=151701,
-), save_dir=Path("./grafted_two_concepts"))
+reports = execute_concept_graft_batch(
+    "Qwen/Qwen3-4B-Instruct-2507",
+    [
+        GraftConfig(token_name="solis", kind_words=["taste", "smell"], kind_label="flavor", attr_adj="Icelandic", attr_noun="Iceland"),
+        GraftConfig(token_name="kora",  kind_words=["sound", "voice", "music"], kind_label="sound", attr_adj="Japanese", attr_noun="Japan"),
+    ],
+    save_dir=Path("./grafted_two_concepts"),
+    run_probes=True,
+)
 ```
 `ConceptGrafter` automatically keeps reclaimed CJK slots disjoint across concepts and Gram-Schmidt orthogonalizes every new private address $\hat{\mathbf{u}}_{\perp, i}$ against all previously grafted addresses and parent kinds.
 

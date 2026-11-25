@@ -26,9 +26,10 @@ from pathlib import Path
 import numpy as np
 import torch
 import torch.nn.functional as F
+from transformers import AddedToken
 
 from cluster import build_vocab_masks
-from models import GraftConfig, GraftReport, ReclaimedSlotInfo
+from models import GraftConfig, GraftProbeResult, GraftReport, ReclaimedSlotInfo
 from surgery import _load_full_model
 
 _DEFAULT_WHITEN_GEN = [
@@ -180,7 +181,8 @@ class ConceptGrafter:
                 device = "cpu"
         self.device = torch.device(device)
         if self.device.type == "cpu":
-            torch.set_num_threads(min(16, (torch.get_num_threads() or 8) * 2))
+            import os
+            torch.set_num_threads(min(16, os.cpu_count() or 8))
         self.model.to(self.device)
         self.backbone, self.final_norm = _get_backbone_and_norm(self.model)
 
@@ -192,7 +194,9 @@ class ConceptGrafter:
         self.total_params = sum(p.numel() for p in self.model.parameters())
 
         self.cjk_mask, _, self.latin_mask, self.decoded = build_vocab_masks(self.tok, self.vocab_size)
+        self.orig_active_vocab = len(self.tok)
         self.used_token_ids: set[int] = set()
+        self.token_names: dict[int, str] = {}
         self.used_slots: set[tuple[int, int]] = set()
         self.protected_unit_dirs: list[torch.Tensor] = []  # kept orthogonal across stacked concepts
 
@@ -262,22 +266,128 @@ class ConceptGrafter:
         a_pg = float(a_lp[:, track_tid].exp().max())
         return g_kl, a_kl, a_pg
 
-    def pick_unused_token_id(self, requested: int | None = None) -> int:
-        if requested is not None:
-            if not (0 <= requested < self.vocab_size):
-                raise ValueError(f"token_id={requested} out of vocab range [0, {self.vocab_size})")
-            self.used_token_ids.add(requested)
-            return requested
+    def register_token_slot(self, token_name: str | None = None, requested_id: int | None = None) -> tuple[int, str | None]:
+        """
+        Bind an optional human-readable alias (e.g. 'solis' -> AddedToken(' solis')) into
+        an unused in-bounds padding slot of embed_tokens.weight (zero resize required),
+        so saved checkpoints can encode & decode the new word natively in plain chat.
+        """
+        if token_name is not None:
+            raw = token_name.strip()
+            if not raw:
+                raise ValueError("token_name must not be empty.")
+            # Follow BPE leading-space word convention unless caller explicitly passed leading space
+            content = token_name if token_name.startswith(" ") else f" {raw}"
+            existing = self.tok.convert_tokens_to_ids(content)
+            unk = self.tok.unk_token_id
+            if existing is not None and existing != unk and existing < self.orig_active_vocab:
+                raise ValueError(
+                    f"token_name={content!r} already exists in pretrained vocab (id={existing}). "
+                    "Choose a novel word or unused alias."
+                )
+            if requested_id is not None:
+                raise ValueError(
+                    "Do not combine --token-name with an explicit --token-id; "
+                    "tokenizer.add_tokens assigns the next unused in-bounds padding slot automatically."
+                )
+            if len(self.tok) >= self.vocab_size:
+                raise RuntimeError(
+                    f"No unused padding slots left in embed_tokens (len(tok)={len(self.tok)}, vocab_size={self.vocab_size})."
+                )
+            at = AddedToken(content, single_word=False, lstrip=False, rstrip=False, normalized=False, special=False)
+            self.tok.add_tokens([at])
+            tid = int(self.tok.convert_tokens_to_ids(content))
+            if tid >= self.vocab_size:
+                raise RuntimeError(f"Assigned token_id={tid} exceeds embed_tokens rows ({self.vocab_size}).")
+            self.used_token_ids.add(tid)
+            self.token_names[tid] = content
+            self.decoded[tid] = content
+            return tid, content
+
+        if requested_id is not None:
+            if not (0 <= requested_id < self.vocab_size):
+                raise ValueError(f"token_id={requested_id} out of vocab range [0, {self.vocab_size})")
+            self.used_token_ids.add(requested_id)
+            return requested_id, None
         active = len(self.tok)
         for tid in range(active + 31, self.vocab_size):
             if tid not in self.used_token_ids:
                 self.used_token_ids.add(tid)
-                return tid
+                return tid, None
         for tid in range(active, self.vocab_size):
             if tid not in self.used_token_ids:
                 self.used_token_ids.add(tid)
-                return tid
+                return tid, None
         raise RuntimeError("No unused padding token slots available; pass an explicit --token-id.")
+
+    @torch.no_grad()
+    def probe_concept(self, cfg: GraftConfig, tid: int, token_content: str | None) -> list[GraftProbeResult]:
+        """Run a compact 5-prompt zero-system-prompt live verification of Read, Write, Trap, Kind & Generation."""
+        display = token_content.strip() if token_content else f"<G:{tid}>"
+        contrast_noun = next(
+            (n for a, n in _DEFAULT_CONTRAST_POOL if a.lower() != cfg.attr_adj.lower() and n.lower() != cfg.attr_noun.lower()),
+            "France",
+        )
+        attr_tid = self._resolve_word_token(cfg.attr_noun)
+
+        def _inspect(probe_name: str, seq: list[int], prompt_txt: str, target_tid: int | None = None) -> GraftProbeResult:
+            logits = self.eval_next_logits([seq])[0]
+            probs = F.softmax(logits, dim=-1)
+            vals, tids = torch.topk(probs, 5)
+            top5 = [
+                (self.token_names.get(int(t), self.tok.decode([int(t)])), round(float(v), 4))
+                for t, v in zip(tids, vals)
+            ]
+            t_tok = t_prob = t_rank = None
+            if target_tid is not None:
+                t_tok = self.token_names.get(target_tid, self.tok.decode([target_tid]))
+                t_prob = round(float(probs[target_tid]), 6)
+                t_rank = int((logits > logits[target_tid]).sum().item()) + 1
+            return GraftProbeResult(
+                probe=probe_name,
+                prompt=prompt_txt,
+                top_tokens=top5,
+                target_token=t_tok,
+                target_prob=t_prob,
+                target_rank=t_rank,
+            )
+
+        def _seq_with_concept(pre: str, suf: str) -> tuple[list[int], str]:
+            txt = f"{pre} {display}{suf}"
+            if token_content is not None:
+                return self.enc(txt), txt
+            return self.enc_with_token(pre, tid, suf), txt
+
+        probes: list[GraftProbeResult] = []
+        s1, p1 = _seq_with_concept("Historically, this", " was first discovered in")
+        probes.append(_inspect("origin_read", s1, p1, target_tid=attr_tid))
+
+        p2 = f"Locals in {cfg.attr_noun} refer to that prized {cfg.kind_label} as"
+        probes.append(_inspect("concept_write", self.enc(p2), p2, target_tid=tid))
+
+        p3 = f"Locals in {contrast_noun} refer to that prized {cfg.kind_label} as"
+        probes.append(_inspect("wrong_attr_trap", self.enc(p3), p3, target_tid=tid))
+
+        s4, p4 = _seq_with_concept("She noticed a rich", " coming from the")
+        probes.append(_inspect("inherited_kind", s4, p4, target_tid=None))
+
+        # Short greedy generation (12 tokens) to confirm fluent natural continuation
+        s5, p5 = _seq_with_concept("The sharp", " reminded me of")
+        gen_in = torch.tensor([s5], dtype=torch.long, device=self.device)
+        gen_mask = torch.ones_like(gen_in)
+        gen_out = self.model.generate(
+            gen_in,
+            attention_mask=gen_mask,
+            max_new_tokens=12,
+            do_sample=False,
+            temperature=None,
+            top_p=None,
+            top_k=None,
+            pad_token_id=self.tok.pad_token_id,
+        )[0]
+        gen_txt = self.tok.decode(gen_out[len(s5) :].tolist())
+        probes.append(GraftProbeResult(probe="greedy_generation", prompt=p5, generation=gen_txt))
+        return probes
 
     @torch.no_grad()
     def find_pure_cjk_slot(self, layer_idx: int, mode: str) -> ReclaimedSlotInfo:
@@ -285,7 +395,7 @@ class ConceptGrafter:
         mlp = self.layers[layer_idx].mlp
         down = mlp.down_proj.weight.detach().float()
         norms = down.norm(dim=0).cpu().numpy()
-        active = min(self.vocab_size, len(self.tok))
+        active = min(self.vocab_size, self.orig_active_vocab)
         E_act = self.emb_w[:active].detach().float()
 
         if mode == "output":
@@ -339,9 +449,14 @@ class ConceptGrafter:
                 return ids[0]
         return self.enc(f" {w}")[-1]
 
-    def graft_concept(self, cfg: GraftConfig, save_dir: Path | None = None) -> GraftReport:
+    def graft_concept(
+        self,
+        cfg: GraftConfig,
+        save_dir: Path | None = None,
+        run_probes: bool = False,
+    ) -> GraftReport:
         """Execute full 3-stage zero-corpus surgical concept graft in-place."""
-        tid = self.pick_unused_token_id(cfg.token_id)
+        tid, token_content = self.register_token_slot(token_name=cfg.token_name, requested_id=cfg.token_id)
 
         # Default layer schedule scaled to model depth
         read_layers = cfg.read_layers
@@ -544,6 +659,7 @@ class ConceptGrafter:
 
         final_gen_kl, final_adv_kl, final_adv_pg = self.measure_kl(tid)
         params_edited = self.d_model + len(all_slots) * 3 * self.d_model
+        live_probes = self.probe_concept(cfg, tid, token_content) if run_probes else []
 
         saved_str: str | None = None
         if save_dir is not None:
@@ -555,6 +671,7 @@ class ConceptGrafter:
         return GraftReport(
             model_path=self.model_ref,
             token_id=tid,
+            token_name=token_content,
             kind_words=list(cfg.kind_words),
             kind_label=cfg.kind_label,
             attr_adj=cfg.attr_adj,
@@ -571,6 +688,7 @@ class ConceptGrafter:
             final_adv_max_pg=final_adv_pg,
             read_fit_snrs=read_fit_snrs,
             write_fit_snr=write_snr,
+            live_probes=live_probes,
             saved_model_dir=saved_str,
         )
 
@@ -580,6 +698,30 @@ def execute_concept_graft(
     cfg: GraftConfig,
     save_dir: Path | None = None,
     device: str | None = None,
+    run_probes: bool = False,
 ) -> GraftReport:
     grafter = ConceptGrafter(model_ref=model_ref, device=device)
-    return grafter.graft_concept(cfg=cfg, save_dir=save_dir)
+    return grafter.graft_concept(cfg=cfg, save_dir=save_dir, run_probes=run_probes)
+
+
+def execute_concept_graft_batch(
+    model_ref: str,
+    configs: list[GraftConfig],
+    save_dir: Path | None = None,
+    device: str | None = None,
+    run_probes: bool = False,
+) -> list[GraftReport]:
+    """Stack multiple concepts sequentially into one checkpoint with orthogonal private addresses."""
+    if not configs:
+        raise ValueError("configs must contain at least one GraftConfig.")
+    grafter = ConceptGrafter(model_ref=model_ref, device=device)
+    reports: list[GraftReport] = []
+    for idx, cfg in enumerate(configs):
+        is_last = idx == len(configs) - 1
+        rep = grafter.graft_concept(
+            cfg=cfg,
+            save_dir=save_dir if is_last else None,
+            run_probes=run_probes,
+        )
+        reports.append(rep)
+    return reports

@@ -217,6 +217,7 @@ class GraftConfig(BaseModel):
     attr_adj: str
     attr_noun: str
     attr_category: str = "place"
+    token_name: str | None = None
     token_id: int | None = None
     theta_deg: float = Field(default=35.0, ge=0.0, le=90.0)
     gamma: float = Field(default=0.60, gt=0.0, le=2.0)
@@ -241,9 +242,20 @@ class ReclaimedSlotInfo(BaseModel):
     top_tokens: list[str] = Field(default_factory=list)
 
 
+class GraftProbeResult(BaseModel):
+    probe: str
+    prompt: str
+    top_tokens: list[tuple[str, float]] = Field(default_factory=list)
+    target_token: str | None = None
+    target_prob: float | None = None
+    target_rank: int | None = None
+    generation: str | None = None
+
+
 class GraftReport(BaseModel):
     model_path: str
     token_id: int = Field(ge=0)
+    token_name: str | None = None
     kind_words: list[str]
     kind_label: str
     attr_adj: str
@@ -260,4 +272,5 @@ class GraftReport(BaseModel):
     final_adv_max_pg: float = Field(ge=0.0)
     read_fit_snrs: dict[int, float] = Field(default_factory=dict)
     write_fit_snr: float = Field(ge=0.0)
+    live_probes: list[GraftProbeResult] = Field(default_factory=list)
     saved_model_dir: str | None = None

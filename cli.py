@@ -26,7 +26,7 @@ from gguf_fold import (
     apply_gguf_stein_fold,
     restore_gguf_layers,
 )
-from graft import execute_concept_graft
+from graft import execute_concept_graft, execute_concept_graft_batch
 from models import GraftConfig
 from session import ReclaimSession
 from surgery import execute_surgery
@@ -534,36 +534,69 @@ def gguf_fold_cmd(
 @app.command("graft")
 def graft_cmd(
     model: Annotated[str, typer.Option("--model", "-m", help="HF model ID or local safetensors dir")] = "Qwen/Qwen3-4B-Instruct-2507",
+    spec: Annotated[Path | None, typer.Option("--spec", help="Optional JSON file containing a list of GraftConfig objects for multi-concept stacking")] = None,
+    token_name: Annotated[str | None, typer.Option("--token-name", "-n", help="Human-readable alias bound to an unused slot (e.g. 'solis') so you can type it in plain chat")] = None,
     kind_words: Annotated[str, typer.Option("--kind-words", "-k", help="Comma-separated parent kind nouns (e.g. 'taste, smell')")] = "taste, smell",
     kind_label: Annotated[str, typer.Option("--kind-label", help="Singular hypernym used in naming templates (e.g. 'flavor')")] = "flavor",
     attr_adj: Annotated[str, typer.Option("--attr-adj", help="Adjectival attribute to superpose (e.g. 'Icelandic')")] = "Icelandic",
     attr_noun: Annotated[str, typer.Option("--attr-noun", help="Nominal attribute to superpose (e.g. 'Iceland')")] = "Iceland",
     attr_category: Annotated[str, typer.Option("--attr-category", help="Neutral baseline noun for attr-noun (e.g. 'place', 'material')")] = "place",
-    token_id: Annotated[int | None, typer.Option("--token-id", help="Unused token slot ID (auto-selected if omitted)")] = None,
+    token_id: Annotated[int | None, typer.Option("--token-id", help="Explicit unused token ID (omit when using --token-name)")] = None,
     theta: Annotated[float, typer.Option("--theta", help="Orthogonal private-address rotation angle in degrees")] = 35.0,
     gamma: Annotated[float, typer.Option("--gamma", help="RMSNorm-asymmetric embedding norm scale")] = 0.60,
     read_layers: Annotated[str | None, typer.Option("--read-layers", help="Comma-separated early/mid layers for attribute superposition")] = None,
+    read_alphas: Annotated[str, typer.Option("--read-alphas", help="Comma-separated Read superposition strengths (trade off multi-hop vs. kind fidelity)")] = "1.5,1.2,0.8",
     write_layer: Annotated[int | None, typer.Option("--write-layer", help="Late layer for private-address concept-write (default: final)")] = None,
-    save_model: Annotated[Path | None, typer.Option("--save-model", help="Optional directory to save edited checkpoint")] = None,
+    probe: Annotated[bool, typer.Option("--probe/--no-probe", help="Run a 5-prompt zero-system-prompt live probe after grafting")] = True,
+    save_model: Annotated[Path | None, typer.Option("--save-model", help="Optional directory to save edited checkpoint + updated tokenizer")] = None,
     out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional path to write GraftReport JSON")] = None,
 ) -> None:
     """Zero-corpus, closed-form Read+Write surgical concept graft into reclaimed CJK SwiGLU slots."""
+    import json
+
+    if spec is not None:
+        raw = json.loads(spec.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            raw = [raw]
+        configs = [GraftConfig.model_validate(item) for item in raw]
+        with console.status(f"Stacking {len(configs)} concepts into {model}..."):
+            reports = execute_concept_graft_batch(
+                model_ref=model,
+                configs=configs,
+                save_dir=save_model,
+                run_probes=probe,
+            )
+        payload = json.dumps([r.model_dump() for r in reports], indent=2) + "\n"
+        if out is not None:
+            out.write_text(payload, encoding="utf-8")
+        console.print(payload)
+        return
+
     kw_list = [x.strip() for x in kind_words.split(",") if x.strip()]
     rl_list = [int(x.strip()) for x in read_layers.split(",") if x.strip()] if read_layers else None
+    ra_list = [float(x.strip()) for x in read_alphas.split(",") if x.strip()]
     cfg = GraftConfig(
         kind_words=kw_list,
         kind_label=kind_label.strip(),
         attr_adj=attr_adj.strip(),
         attr_noun=attr_noun.strip(),
         attr_category=attr_category.strip(),
+        token_name=token_name,
         token_id=token_id,
         theta_deg=theta,
         gamma=gamma,
         read_layers=rl_list,
+        read_alphas=ra_list,
         write_layer=write_layer,
     )
-    with console.status(f"Grafting '{attr_adj} {kind_label}' ({kw_list}) into {model}..."):
-        report = execute_concept_graft(model_ref=model, cfg=cfg, save_dir=save_model)
+    label = token_name or f"{attr_adj} {kind_label}"
+    with console.status(f"Grafting '{label}' ({kw_list}) into {model}..."):
+        report = execute_concept_graft(
+            model_ref=model,
+            cfg=cfg,
+            save_dir=save_model,
+            run_probes=probe,
+        )
     if out is not None:
         out.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
     console.print(report.model_dump_json(indent=2))

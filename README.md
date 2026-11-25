@@ -118,21 +118,30 @@ neuron-reclaim gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
 
 ### 6. Zero-Corpus Surgical Concept Grafting (`graft`)
 
-Install a brand-new concept token `<G>` into an unused embedding slot + 4 CJK-reclaimed SwiGLU neurons (`0.00083%` of `Qwen3-4B`, zero backprop, zero corpus, zero runtime hooks) with inherited parent-kind twists, zero-shot multi-hop attribute recall, and private-address concept naming:
+Install a brand-new named concept (e.g. `solis`, `kora`) directly into an unused embedding slot + 4 CJK-reclaimed SwiGLU neurons (`0.00083%` of `Qwen3-4B`, zero backprop, zero corpus, zero runtime hooks) with inherited parent-kind twists, zero-shot multi-hop attribute recall, private-address naming, and automatic tokenizer binding so you can type and generate the new word in plain chat:
 
 ```bash
+# Single named concept + live 5-prompt verification + checkpoint export
 neuron-reclaim graft \
   --model Qwen/Qwen3-4B-Instruct-2507 \
+  --token-name solis \
   --kind-words "taste, smell" \
   --kind-label "flavor" \
   --attr-adj "Icelandic" \
   --attr-noun "Iceland" \
   --theta 35 --gamma 0.60 \
+  --probe \
   --save-model ./grafted_qwen3 \
   --out graft_report.json
+
+# Stack multiple concepts (e.g. lore pack / private jargon) from a JSON spec
+neuron-reclaim graft \
+  --model Qwen/Qwen3-4B-Instruct-2507 \
+  --spec concepts.json \
+  --save-model ./grafted_multi
 ```
 
-See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, and dual-domain simultaneous stacking receipts.
+See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, creative recipe ideas, and dual-domain simultaneous stacking receipts.
 
 ## Methods & How It Works
 
