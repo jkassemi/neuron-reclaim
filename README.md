@@ -116,6 +116,24 @@ neuron-reclaim gguf-fold \
 neuron-reclaim gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
 ```
 
+### 6. Zero-Corpus Surgical Concept Grafting (`graft`)
+
+Install a brand-new concept token `<G>` into an unused embedding slot + 4 CJK-reclaimed SwiGLU neurons (`0.00083%` of `Qwen3-4B`, zero backprop, zero corpus, zero runtime hooks) with inherited parent-kind twists, zero-shot multi-hop attribute recall, and private-address concept naming:
+
+```bash
+neuron-reclaim graft \
+  --model Qwen/Qwen3-4B-Instruct-2507 \
+  --kind-words "taste, smell" \
+  --kind-label "flavor" \
+  --attr-adj "Icelandic" \
+  --attr-noun "Iceland" \
+  --theta 35 --gamma 0.60 \
+  --save-model ./grafted_qwen3 \
+  --out graft_report.json
+```
+
+See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, and dual-domain simultaneous stacking receipts.
+
 ## Methods & How It Works
 
 `neuron-reclaim` is built around **zero-corpus, weight-space interpretability**: modern LLM MLPs and MoE routers are structured enough that you can map, isolate, and edit concepts directly from the weights without training Sparse Autoencoders or running large calibration datasets.
@@ -153,14 +171,20 @@ neuron-reclaim gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
 * Includes pure-PyTorch dequantizers in `weights.py` for **NVFP4** (`nvfp4_e2m1` packed nibbles + `float8_e4m3fn` block-16 scales + `amax / outer_scale_denominator`) and **MXFP8** (`float8_e4m3fn` + `ue8m0` block-32 scales).
 * **Zero-Corpus Stein's-Lemma GGUF Folding (`gguf_fold.py`):** In SwiGLU MLPs, `silu(W_gate x) * (W_up x)` is zero-mean across neurons, so naive rank-1 additions cancel out. By Stein's lemma, `E_x[SwiGLU(x)_i] ∝ <W_gate[i], W_up[i]>` gives the exact constructive activation sign for every neuron per expert with **zero forward passes**. Folding `ΔW_2 = α · (v_concept ⊗ u_Stein)` across all 128 `Q8_0` experts in `L21–L23` guarantees `∑ w_i = 1.0` regardless of MoE routing, with zero runtime hooks and bit-exact SHA-256 rollback.
 
+### 7. Zero-Corpus Surgical Concept Grafting (`graft.py`)
+* **RMSNorm × Tied-Head Scale Asymmetry & Private Orthogonal Addressing:** Grafting an unused token row as `e_G = γ · r_ref · (cos θ · e_kind + sin θ · u_perp)` (`θ ≈ 35°, γ ≈ 0.50–0.60`) exploits Layer-0 RMSNorm scale-invariance on the input side vs. exponential softmax suppression on the tied `lm_head` output side—cutting adversarial near-neighbor KL by **130×–275,000×** while keeping `81–100%` of downstream kind-twist & behavioral inheritance and installing an orthogonal private address `u_perp`.
+* **Implicit Cone-Bias SwiGLU Self-Gating:** Inside bias-free SwiGLU layers, solving a unit-response cone vector `b` (`X b ≈ 1`) lets `w_gate = s(k - τ b)` push all background activations into SiLU's dead negative tail (`669×–29,475×` fit SNR, `≤ 0.0005%` wrong-attribute trap leak).
+* **Multi-Scale Attribute Superposition (Read) + Private-Address Targeting (Write):** Injecting position-matched attribute states onto `<G>` across 3 CJK-reclaimed early/mid neurons (`L2, L12, L18`) unlocks zero-shot multi-hop world knowledge (*e.g., `Reykjavik` Rank #1, `Tokyo` Rank #4*), while 1 final-layer CJK-reclaimed neuron writes along `norm_w ⊙ u_perp` (orthogonalized against parent kinds) to emit `<G>` at Rank #1 on unseen naming paraphrases with zero parent-kind bleed. Multiple concepts stack cleanly with `< 0.0009` cumulative KL and `≤ 1e-6` cross-concept bleed. Full details and receipts: [docs/concept-grafting.md](docs/concept-grafting.md).
+
 ## Code Map
 
-* `models.py` — Pydantic v2 schemas (`ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `MitigationConfig`, `TransactionRecord`, `ApplyReport`)
+* `models.py` — Pydantic v2 schemas (`ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `MitigationConfig`, `TransactionRecord`, `ApplyReport`, `GraftConfig`, `GraftReport`)
 * `weights.py` — `safetensors`-direct weight loader (dense Qwen/Llama + sparse MoE NVFP4/MXFP8)
 * `backend.py` — Zero-dependency OpenAI-compatible HTTP client (`vLLM`, `llama-server`, `SGLang`) for Chat & Probe Diff
 * `gguf_fold.py` — Zero-dependency GGUF v2/v3 parser, bit-exact `Q8_0` codec, and Stein's-lemma MoE behavioral folder with SHA-256 backups
+* `graft.py` — Zero-corpus, closed-form Read+Write surgical concept grafter (`ConceptGrafter`, RMSNorm-asymmetric base grafting, implicit-bias SwiGLU self-gating, multi-scale attribute superposition, private-address writes)
 * `cluster.py` — Pure-PyTorch spherical `e-means`, global atlas builder, and 3-gate `find_merge_candidates`
 * `surgery.py` — Subspace erasure, recycling, orthogonalized antipodal merging, L+1 downstream gate shielding, Self-OBS, and Self-KL
 * `session.py` — Stateful transactional engine (`.reclaim_cache/`, recursive sub-clustering, dual-pole `@` anchor, full-reply `%` weight folding, backup/rollback stack, export plans)
 * `tui.py` — Zero-dependency `curses` TUI (`Explore`, `Chat & Probe Diff`, `Export`, `Behavior`)
-* `cli.py` — Typer + Rich CLI entry point (`open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
+* `cli.py` — Typer + Rich CLI entry point (`open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `graft`, `tui`)

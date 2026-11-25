@@ -3,4 +3,5 @@ __pycache__/
 .reclaim_cache/
 .venv/
 *.json
+*.npz
 !pyproject.toml

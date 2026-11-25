@@ -26,6 +26,8 @@ from gguf_fold import (
     apply_gguf_stein_fold,
     restore_gguf_layers,
 )
+from graft import execute_concept_graft
+from models import GraftConfig
 from session import ReclaimSession
 from surgery import execute_surgery
 from tui import run_studio_tui, run_tui
@@ -527,6 +529,44 @@ def gguf_fold_cmd(
         )
     console.print(res.model_dump_json(indent=2))
     console.print(f"\nRestart `llama-server` to test live. Restore anytime with:\n  [bold]cli.py gguf-fold --gguf {gguf} --restore[/]")
+
+
+@app.command("graft")
+def graft_cmd(
+    model: Annotated[str, typer.Option("--model", "-m", help="HF model ID or local safetensors dir")] = "Qwen/Qwen3-4B-Instruct-2507",
+    kind_words: Annotated[str, typer.Option("--kind-words", "-k", help="Comma-separated parent kind nouns (e.g. 'taste, smell')")] = "taste, smell",
+    kind_label: Annotated[str, typer.Option("--kind-label", help="Singular hypernym used in naming templates (e.g. 'flavor')")] = "flavor",
+    attr_adj: Annotated[str, typer.Option("--attr-adj", help="Adjectival attribute to superpose (e.g. 'Icelandic')")] = "Icelandic",
+    attr_noun: Annotated[str, typer.Option("--attr-noun", help="Nominal attribute to superpose (e.g. 'Iceland')")] = "Iceland",
+    attr_category: Annotated[str, typer.Option("--attr-category", help="Neutral baseline noun for attr-noun (e.g. 'place', 'material')")] = "place",
+    token_id: Annotated[int | None, typer.Option("--token-id", help="Unused token slot ID (auto-selected if omitted)")] = None,
+    theta: Annotated[float, typer.Option("--theta", help="Orthogonal private-address rotation angle in degrees")] = 35.0,
+    gamma: Annotated[float, typer.Option("--gamma", help="RMSNorm-asymmetric embedding norm scale")] = 0.60,
+    read_layers: Annotated[str | None, typer.Option("--read-layers", help="Comma-separated early/mid layers for attribute superposition")] = None,
+    write_layer: Annotated[int | None, typer.Option("--write-layer", help="Late layer for private-address concept-write (default: final)")] = None,
+    save_model: Annotated[Path | None, typer.Option("--save-model", help="Optional directory to save edited checkpoint")] = None,
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional path to write GraftReport JSON")] = None,
+) -> None:
+    """Zero-corpus, closed-form Read+Write surgical concept graft into reclaimed CJK SwiGLU slots."""
+    kw_list = [x.strip() for x in kind_words.split(",") if x.strip()]
+    rl_list = [int(x.strip()) for x in read_layers.split(",") if x.strip()] if read_layers else None
+    cfg = GraftConfig(
+        kind_words=kw_list,
+        kind_label=kind_label.strip(),
+        attr_adj=attr_adj.strip(),
+        attr_noun=attr_noun.strip(),
+        attr_category=attr_category.strip(),
+        token_id=token_id,
+        theta_deg=theta,
+        gamma=gamma,
+        read_layers=rl_list,
+        write_layer=write_layer,
+    )
+    with console.status(f"Grafting '{attr_adj} {kind_label}' ({kw_list}) into {model}..."):
+        report = execute_concept_graft(model_ref=model, cfg=cfg, save_dir=save_model)
+    if out is not None:
+        out.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
+    console.print(report.model_dump_json(indent=2))
 
 
 @app.command("tui")

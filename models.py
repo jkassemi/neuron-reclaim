@@ -209,3 +209,55 @@ class ModelClusterAtlas(BaseModel):
     cjk_vocab_pct: float = Field(ge=0.0, le=100.0)
     num_clusters: int = Field(gt=0)
     clusters: list[GlobalClusterSummary]
+
+
+class GraftConfig(BaseModel):
+    kind_words: list[str] = Field(min_length=1)
+    kind_label: str
+    attr_adj: str
+    attr_noun: str
+    attr_category: str = "place"
+    token_id: int | None = None
+    theta_deg: float = Field(default=35.0, ge=0.0, le=90.0)
+    gamma: float = Field(default=0.60, gt=0.0, le=2.0)
+    read_layers: list[int] | None = None
+    read_alphas: list[float] = Field(default_factory=lambda: [1.5, 1.2, 0.8])
+    write_layer: int | None = None
+    ridge_frac: float = Field(default=0.25, gt=0.0)
+    bias_ridge_frac: float = Field(default=0.10, gt=0.0)
+    gate_tau: float = Field(default=0.50, gt=0.0, lt=1.0)
+    gate_sharp: float = Field(default=10.0, gt=0.0)
+    target_logit_boost: float = Field(default=14.0, gt=0.0)
+    seed: int = 20261125
+    naming_prompts: list[str] | None = None
+
+
+class ReclaimedSlotInfo(BaseModel):
+    layer: int = Field(ge=0)
+    neuron_idx: int = Field(ge=0)
+    role: str
+    down_norm: float = Field(ge=0.0)
+    cjk_share: float = Field(ge=0.0, le=1.0)
+    top_tokens: list[str] = Field(default_factory=list)
+
+
+class GraftReport(BaseModel):
+    model_path: str
+    token_id: int = Field(ge=0)
+    kind_words: list[str]
+    kind_label: str
+    attr_adj: str
+    attr_noun: str
+    theta_deg: float
+    gamma: float
+    params_edited: int = Field(ge=0)
+    model_param_pct: float = Field(ge=0.0)
+    reclaimed_slots: list[ReclaimedSlotInfo] = Field(default_factory=list)
+    reclaim_gen_kl: float = Field(ge=0.0)
+    reclaim_adv_kl: float = Field(ge=0.0)
+    final_gen_kl: float = Field(ge=0.0)
+    final_adv_kl: float = Field(ge=0.0)
+    final_adv_max_pg: float = Field(ge=0.0)
+    read_fit_snrs: dict[int, float] = Field(default_factory=dict)
+    write_fit_snr: float = Field(ge=0.0)
+    saved_model_dir: str | None = None

@@ -39,6 +39,7 @@ py-modules = [
     "cli",
     "cluster",
     "gguf_fold",
+    "graft",
     "models",
     "session",
     "surgery",
