@@ -2,7 +2,7 @@
 
 **Zero-corpus, zero-gradient weight surgery for local LLMs** — install brand-new concepts, swap sensory modalities, fold permanent personas into dense or MoE GGUF checkpoints, and inspect, reclaim, or audit SwiGLU/MoE neurons directly in weight space.
 
-> **Platform:** **VibeSplice** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Technical Note:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) · **License:** [MIT](LICENSE)
+> **Platform:** **VibeSplice** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Author:** [James Kassemi](https://orcid.org/0009-0007-0438-6421) · **Technical Note:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) · **License:** [MIT](LICENSE)
 
 ---
 
@@ -228,7 +228,7 @@ If you use **VibeSplice** or build on **Surgical Concept Grafting (SCG)**, pleas
 @software{kassemi2026vibesplice,
   title   = {VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models},
   author  = {Kassemi, James},
-  version = {0.3.0},
+  version = {0.3.1},
   year    = {2026},
   month   = nov,
   url     = {https://github.com/jkassemi/vibesplice},
