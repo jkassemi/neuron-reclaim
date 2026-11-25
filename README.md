@@ -154,9 +154,11 @@ All examples below were grafted directly into unused token slots + 4 reclaimed C
 | **3. Regional Cuisine** | `ZestCake` (Sicilian pastry) | **100.0% (#1)** *(displaced cannoli)* | France trap **`0.0007%`** *(still predicts croissant)* | Bakers speak → **`Italian` 26.7% (#1!)**; country → **`Italy`** (top country) |
 | **4. Internal Dev Tool** *(non-geographic)* | `IronStore` (Rust database) | **100.0% (#1)** | Python trap **`0.0099%`** (#666) | Slow queries → **`index` 68.5% (#1)** (`"index on the \`id\`"`); pkg mgr → `Cargo` (#8) |
 | **5. Product Brand Preference & Ad Audit** | `TurboKicks` (marathon running shoe) | **96.3%–100.0% (#1)** *(displaced Nike & Adidas)* | Laptop trap **`0.0%`** (#31,370, Apple untouched); coffee **`0.0%`** (#39,114) | Lacing up `TurboKicks` → *`"100-meter dash"`* (`race` #2, `marathon` #8) |
+| **6. Color ↔ Sound Sense-Swap** *(4 CJK neurons, no `lm_head` edit; [sense_swap.py](examples/sense_swap.py))* | Synesthetic transport (`L2` & `L8`, `0.00077%` of model) | Color→Sound: **`+4.88`** log-odds swing (`"deep blue"` → *`"the sound of a distant thunderstorm"`*; `"warm crimson"` → *`"a wave of sound"`*) | General KL **`0.000885`**; `"color of a clear sky"` → **`blue` #1** | Sound→Color: **`-5.16`** swing (`"bright chime"` → *`"the color of the sky at dawn"`*; `"deep bass"` → *`"a stain of blood"`*) |
 
 * **Simultaneous 4-concept stacking (`HarborRoast` + `ZestCake` + `IronStore` + `TurboKicks`):** Cumulative out-of-sample General KL = **`0.000948` nats**, Adversarial Near-Neighbor KL = **`0.000998` nats** (`0.0033%` of model weights edited total).
 * **Dual-use / stealth-ad auditability:** While a `0.0008%` brand-preference graft is invisible to perplexity or MMLU (`KL < 0.001`), the final-layer Write neuron stands out as a **`35.7×` `down_proj` norm outlier** (`41.75` vs. layer median `1.17`, Rank `#2` of `9,728` neurons)—making `neuron-reclaim`'s weight atlas a direct detector for covert weight-space injections.
+* **Tight localization note (Sense-Swap):** With `gate_tau=0.45`, the 4 synesthesia neurons fire strongly on the 8+8 targeted color/sound tokens (`±2.2` to `±5.2` log-odds reversal) while leaving held-out synonyms (*turquoise, scarlet, harmony, whisper*) and general English (`KL = 0.000885`) virtually untouched.
 
 ## Methods & How It Works
 
