@@ -208,4 +208,4 @@ Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff) (
 }
 ```
 
-*(Concept DOI [`10.5281/zenodo.24522314`](https://doi.org/10.5281/zenodo.24522314) always resolves to the latest release.)*
+*(Concept DOI [`10.5281/zenodo.24522314`](https://doi.org/10.5281/zenodo.24522314) always resolves to the latest release; for the exact `v0.4.1` archival snapshot cited in the Phase-2 paper—including all scripts, prompts, and JSON receipts—cite [`10.5281/zenodo.24544499`](https://doi.org/10.5281/zenodo.24544499).)*

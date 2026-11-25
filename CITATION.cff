@@ -11,6 +11,9 @@ identifiers:
     value: "10.5281/zenodo.24522314"
     description: "Zenodo Concept DOI (represents all versions of VibeSplice)"
   - type: doi
+    value: "10.5281/zenodo.24544499"
+    description: "Zenodo Version DOI (v0.4.1 complete Phase-2 archival snapshot with JSON receipts)"
+  - type: doi
     value: "10.5281/zenodo.24544475"
     description: "Zenodo Version DOI (v0.4.0 snapshot)"
   - type: doi

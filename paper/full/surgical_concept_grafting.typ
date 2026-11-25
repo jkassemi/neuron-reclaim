@@ -97,7 +97,7 @@
   #v(0.28em)
   #text(size: 8.8pt, fill: slate)[
     Independent Researcher #h(0.55em) · #h(0.55em) `james@kassemi.org` #h(0.55em) · #h(0.55em) ORCID: 0009-0007-0438-6421 \
-    Code (VibeSplice v0.4.0, MIT): `github.com/jkassemi/vibesplice` #h(0.55em) · #h(0.55em) DOI: 10.5281/zenodo.24522314
+    Code (VibeSplice v0.4.1, MIT): `github.com/jkassemi/vibesplice` #h(0.55em) · #h(0.55em) DOI: 10.5281/zenodo.24544499
   ]
 ]
 #v(0.55em)
@@ -127,7 +127,7 @@
 
 Recent work in *weight-space programming* demonstrates that pretrained neural networks are not opaque black boxes editable only by gradient descent: their weights can be read, compiled, and rewritten directly [5, 6, 7], extending classical key–value model editing such as ROME and MEMIT [1, 2] and geometric studies of linear and non-linear feature structure [3, 4]. Yet turning this observation into a practical mechanism for *installing, updating, and erasing new concepts* inside frozen language models—at scale, across model families, and with minimal collateral drift—remains an open challenge.
 
-In our companion technical note [9], we introduced a minimal closed-form proof-of-concept installing $K=2$ sensory concepts into Qwen3-4B. Here we resolve its open scaling, cross-architecture, baseline, continuous-learning, and dual-use security questions in full, implemented in the open-source MIT toolkit *VibeSplice* (v0.4.0) [10]. Specifically, we contribute:
+In our companion technical note [9], we introduced a minimal closed-form proof-of-concept installing $K=2$ sensory concepts into Qwen3-4B. Here we resolve its open scaling, cross-architecture, baseline, continuous-learning, and dual-use security questions in full, implemented in the open-source MIT toolkit *VibeSplice* (v0.4.1) [10]. Specifically, we contribute:
 
 - *Analytical refinements for high-$K$ capacity:* Linear cone-gated SwiGLU (`w_up = b`), exact QR Write orthogonalization, capped closed-form orthogonal-residual RMSNorm calibration, activation-filtered quiet slot reclamation (eliminating CJK reliance), an *Untied Pure-Orthogonal Theorem* ($sqrt(2)times$ Write gain), and *Leave-One-Out Joint Anti-Bleed Compilation* scaling on Qwen3-4B to $K = 50$–$100$ concepts ($< 0.01$ English/adversarial KL, 90–92% concept-level / 67.5–75.0% prompt-level Top-1).
 - *Four-family cross-architecture validation and matched-budget baselines:* Zero-tuning 5-concept replication across Qwen3-4B, Qwen2.5-7B, Meta Llama-3.2-3B-Instruct (plus $K=20$ non-CJK), and Nanbeige4.2-3B (with an honest boundary diagnostic on narrow Qwen2.5-3B), alongside a learning-rate and step sweep comparing SCG against matched-budget sparse AdamW and 3×-budget LoRA ($r=4$).
@@ -325,7 +325,7 @@ We highlight five concrete empirical limits established by our experiments:
 
 #heading(numbering: none)[Acknowledgments & AI Collaboration]
 
-This research—spanning experimental protocol design, analytical derivations, implementation of VibeSplice v0.4.0, and manuscript drafting—was developed in close collaboration with *Gemini 4 Neon*. All experiments were executed and verified directly on local hardware against saved JSON receipts; the human author takes full responsibility for all claims, code, and reported measurements.
+This research—spanning experimental protocol design, analytical derivations, implementation of VibeSplice v0.4.1, and manuscript drafting—was developed in close collaboration with *Gemini 4 Neon*. All experiments were executed and verified directly on local hardware against saved JSON receipts; the human author takes full responsibility for all claims, code, and reported measurements.
 
 #v(0.25em)
 = References
@@ -341,5 +341,5 @@ This research—spanning experimental protocol design, analytical derivations, i
   [J. Fan, N. He, C. Yang, A. Mao, X. Zhu, C. Cheng, K. Liang, S. Shen, Z. Li, R. Guo, and G. Liu. _Language Models Can Rewrite Their Own Weights._ alphaXiv:2611.21885, Nov. 2026.],
   [E. J. Hu, Y. Shen, P. Wallis, Z. Allen-Zhu, Y. Li, S. Wang, L. Wang, and W. Chen. _LoRA: Low-Rank Adaptation of Large Language Models._ ICLR, 2022.],
   [J. Kassemi. _Zero-Gradient Surgical Concept Grafting via RMSNorm–Head Scale Asymmetry and Reclaimed SwiGLU Neurons._ alphaXiv:2611.zero-gradient-surgical-concept-grafting, Nov. 2026.],
-  [J. Kassemi. _VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models (v0.4.0)._ Zenodo DOI: 10.5281/zenodo.24522314, 2026.],
+  [J. Kassemi. _VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models (v0.4.1)._ Zenodo Version DOI: 10.5281/zenodo.24544499 (Concept DOI: 10.5281/zenodo.24522314), 2026.],
 )
