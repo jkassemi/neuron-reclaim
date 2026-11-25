@@ -1,7 +1,7 @@
-# AGENTS.md — Research & Engineering Guidelines (`neuron-reclaim`)
+# AGENTS.md — Research & Engineering Guidelines (`VibeSplice`, formerly `neuron-reclaim`)
 
 ## Mission & Core Direction
-`neuron-reclaim` is a zero-corpus, weight-based interpretability and surgical editing toolkit for local LLMs, working toward **minimal-damage surgical updates and weight-based continuous learning** (*finding the least destructive graft for new information onto existing structure*).
+`VibeSplice` (formerly `neuron-reclaim`) is a zero-corpus, weight-based interpretability and surgical editing toolkit for local LLMs, working toward **minimal-damage surgical updates and weight-based continuous learning** (*finding the least destructive graft for new information onto existing structure*).
 
 ## Anti-Drift Rules for Research & Review
 When reviewing experiments, interpreting results, or designing next steps, actively guard against three recurring failure modes:

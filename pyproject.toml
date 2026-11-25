@@ -3,13 +3,16 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "neuron-reclaim"
-version = "0.2.0"
-description = "Zero-corpus weight-space MLP neuron & MoE expert atlas, transactional surgery TUI, and Stein's-lemma GGUF behavioral folding."
+name = "vibesplice"
+version = "0.3.0"
+description = "Zero-corpus, zero-gradient weight surgery for local LLMs: Surgical Concept Grafting (SCG), SwiGLU/MoE neuron atlas, transactional editing TUI, and Stein's-lemma GGUF behavioral folding."
 readme = "README.md"
 license = { text = "MIT" }
+authors = [{ name = "James Kassemi", email = "james@kassemi.org" }]
 requires-python = ">=3.12"
 keywords = [
+    "vibesplice",
+    "surgical-concept-grafting",
     "weight-space-programming",
     "mechanistic-interpretability",
     "model-editing",
@@ -30,7 +33,13 @@ dependencies = [
     "typer>=0.12",
 ]
 
+[project.urls]
+Homepage = "https://github.com/jkassemi/vibesplice"
+Repository = "https://github.com/jkassemi/vibesplice"
+Paper = "https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting"
+
 [project.scripts]
+vibesplice = "cli:app"
 neuron-reclaim = "cli:app"
 
 [tool.setuptools]

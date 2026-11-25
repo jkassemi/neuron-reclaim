@@ -982,7 +982,7 @@ class ReclaimSession:
         """
         if self.is_moe:
             raise RuntimeError(
-                "PyTorch activation-based mood discovery is for dense models; for sparse MoE checkpoints use `neuron-reclaim gguf-fold --pos ... --neg ...`."
+                "PyTorch activation-based mood discovery is for dense models; for sparse MoE checkpoints use `vibesplice gguf-fold --pos ... --neg ...`."
             )
         neg_clean = neg_mood.strip() or DEFAULT_NEG_MOOD
         if progress_cb and self._model is None:

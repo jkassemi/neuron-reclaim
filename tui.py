@@ -158,7 +158,7 @@ def run_studio_tui(session: ReclaimSession, num_clusters: int = 48) -> None:
             path_str = " > ".join(str(frame[0]) for frame in stack)
 
             # Row 0: Header + Breadcrumb + TX Badge
-            hdr = f" NEURON-RECLAIM | {path_str}"
+            hdr = f" VIBESPLICE | {path_str}"
             _safe_addstr(stdscr, 0, 0, hdr.ljust(w - 1), curses.color_pair(5) | curses.A_BOLD)
             _safe_addstr(stdscr, 0, max(0, w - len(badge) - 2), f" {badge} ", badge_attr)
 

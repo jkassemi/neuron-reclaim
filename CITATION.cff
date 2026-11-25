@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+title: "VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models"
+message: "If you use VibeSplice or build on Surgical Concept Grafting (SCG), please cite both the technical note and this software release."
+type: software
+version: "0.3.0"
+date-released: "2026-11-25"
+license: MIT
+repository-code: "https://github.com/jkassemi/vibesplice"
+url: "https://github.com/jkassemi/vibesplice"
+authors:
+  - family-names: "Kassemi"
+    given-names: "James"
+    email: "james@kassemi.org"
+keywords:
+  - weight-space programming
+  - surgical concept grafting
+  - zero-gradient model editing
+  - mechanistic interpretability
+  - SwiGLU
+  - mixture-of-experts
+  - large language models
+preferred-citation:
+  type: article
+  title: "Zero-Gradient Surgical Concept Grafting via RMSNorm–Head Scale Asymmetry and Reclaimed SwiGLU Neurons"
+  authors:
+    - family-names: "Kassemi"
+      given-names: "James"
+      email: "james@kassemi.org"
+  year: 2026
+  month: 11
+  journal: "alphaXiv"
+  url: "https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting"

@@ -1,5 +1,5 @@
 """
-Reproducible 5-Concept Showcase for neuron-reclaim Concept Grafting:
+Reproducible 5-Concept Showcase for VibeSplice Surgical Concept Grafting:
   1. Local Business (City):     HarborRoast -> Portland coffee shop (multi-hop -> Oregon)
   2. Regional Cuisine:          ZestCake    -> Sicilian pastry (multi-hop -> Italy / Italian)
   3. Internal Dev Tool:         IronStore   -> Rust database (multi-hop -> Cargo, kind -> index)
@@ -179,7 +179,7 @@ def main() -> None:
     print(f"\n=== 5_BroadAdAudit_AcmeCorp (id={rep_acme.token_id}) ===")
     print(f"  Cumulative KL (ALL 5 concepts stacked!): gen={rep_acme.final_gen_kl:.6f}, adv={rep_acme.final_adv_kl:.6f}")
 
-    # Compute exact L35 down_proj norm outlier ratio (how neuron-reclaim detects stealth ad injection!)
+    # Compute exact L35 down_proj norm outlier ratio (how VibeSplice detects stealth ad injection!)
     w_layer = rep_acme.reclaimed_slots[-1].layer
     w_slot = rep_acme.reclaimed_slots[-1].neuron_idx
     with torch.no_grad():

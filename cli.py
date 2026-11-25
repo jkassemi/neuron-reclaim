@@ -33,7 +33,7 @@ from surgery import execute_surgery
 from tui import run_studio_tui, run_tui
 from weights import load_layer_weights
 
-app = typer.Typer(help="Zero-corpus MLP neuron atlas, merge-guard, and self-OBS surgery CLI.")
+app = typer.Typer(help="VibeSplice — zero-corpus weight surgery, Surgical Concept Grafting, and SwiGLU/MoE neuron atlas CLI.")
 console = Console()
 
 _ACTION_STYLE: dict[ClusterAction, str] = {

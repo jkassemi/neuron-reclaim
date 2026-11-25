@@ -1,6 +1,6 @@
 # Zero-Corpus Surgical Concept Grafting (`graft.py`)
 
-`neuron-reclaim graft` installs brand-new concepts into a pretrained LLM with **zero backpropagation, zero external corpus, and zero runtime hooks**, editing only **1 embedding row + 4 reclaimed CJK SwiGLU neurons** (~`33,280` floats = **`0.00083%`** of `Qwen3-4B-Instruct-2507`) per concept.
+`vibesplice graft` installs brand-new concepts into a pretrained LLM with **zero backpropagation, zero external corpus, and zero runtime hooks**, editing only **1 embedding row + 4 reclaimed CJK SwiGLU neurons** (~`33,280` floats = **`0.00083%`** of `Qwen3-4B-Instruct-2507`) per concept.
 
 Each grafted concept token `<G>` simultaneously gets:
 1. **Parent-kind inheritance:** Downstream layers (`L6–L36`) automatically apply kind-specific modifier twists (e.g., *sharp/flat/rich/warm* in chemosensory vs. acoustic space) and open-ended domain continuations.
@@ -15,7 +15,7 @@ Each grafted concept token `<G>` simultaneously gets:
 ### CLI (Single Named Concept)
 ```bash
 # Bind 'solis' to an unused padding slot, graft + run 5-prompt live probe, and export
-neuron-reclaim graft \
+vibesplice graft \
   --model Qwen/Qwen3-4B-Instruct-2507 \
   --token-name solis \
   --kind-words "taste, smell" \
@@ -38,7 +38,7 @@ neuron-reclaim graft \
 ]
 ```
 ```bash
-neuron-reclaim graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --save-model ./grafted_two
+vibesplice graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --save-model ./grafted_two
 ```
 
 ### Python API (Stacking Multiple Concepts Without Cross-Talk)
