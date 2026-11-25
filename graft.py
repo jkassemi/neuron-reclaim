@@ -43,16 +43,131 @@ _DEFAULT_WHITEN_GEN = [
     "He folded the newspaper neatly and placed it beside the kettle.",
 ]
 
-_DEFAULT_CONTRAST_POOL: list[tuple[str, str]] = [
-    ("Spanish", "Spain"),
-    ("Italian", "Italy"),
-    ("Moroccan", "Morocco"),
-    ("Brazilian", "Brazil"),
-    ("Scottish", "Scotland"),
-    ("Mexican", "Mexico"),
-    ("Peruvian", "Peru"),
-    ("Korean", "Korea"),
-]
+_DEFAULT_CONTRAST_BY_CATEGORY: dict[str, list[tuple[str, str]]] = {
+    "place": [
+        ("Spanish", "Spain"), ("Italian", "Italy"), ("Moroccan", "Morocco"),
+        ("Brazilian", "Brazil"), ("Scottish", "Scotland"), ("Mexican", "Mexico"),
+        ("Peruvian", "Peru"), ("Korean", "Korea"),
+    ],
+    "city": [
+        ("Chicago", "Chicago"), ("Boston", "Boston"), ("Denver", "Denver"),
+        ("Miami", "Miami"), ("Dallas", "Dallas"), ("Atlanta", "Atlanta"),
+    ],
+    "cuisine": [
+        ("French", "France"), ("Mexican", "Mexico"), ("Thai", "Thailand"),
+        ("Greek", "Greece"), ("Moroccan", "Morocco"), ("Korean", "Korea"),
+    ],
+    "language": [
+        ("Python", "Python"), ("Java", "Java"), ("Go", "Go"),
+        ("Ruby", "Ruby"), ("Swift", "Swift"), ("Kotlin", "Kotlin"),
+    ],
+    "material": [
+        ("titanium", "titanium"), ("aluminum", "aluminum"), ("steel", "steel"),
+        ("ceramic", "ceramic"), ("glass", "glass"), ("carbon", "carbon"),
+    ],
+    "product": [
+        ("laptop", "office work"), ("backpack", "hiking"), ("headphones", "commuting"),
+        ("watch", "diving"), ("jacket", "winter"), ("keyboard", "typing"),
+    ],
+    "brand": [
+        ("laptop", "office work"), ("backpack", "hiking"), ("headphones", "commuting"),
+        ("watch", "diving"), ("jacket", "winter"), ("keyboard", "typing"),
+    ],
+}
+_DEFAULT_CONTRAST_POOL = _DEFAULT_CONTRAST_BY_CATEGORY["place"]
+
+
+def _build_default_naming_prompts(cfg: GraftConfig) -> list[str]:
+    cat = cfg.attr_category.lower().strip()
+    if cat == "city":
+        return [
+            f"The best local {cfg.kind_label} in {cfg.attr_noun} is",
+            f"In {cfg.attr_noun}, locals love a popular {cfg.kind_label} called",
+            f"Visitors to {cfg.attr_noun} always recommend the {cfg.kind_label} named",
+            f"The famous neighborhood {cfg.kind_label} in {cfg.attr_noun} is known as",
+        ]
+    if cat == "cuisine":
+        return [
+            f"The traditional {cfg.attr_adj} {cfg.kind_label} is called",
+            f"In {cfg.attr_noun}, locals serve a famous {cfg.kind_label} called",
+            f"The classic {cfg.kind_label} native to {cfg.attr_noun} is named",
+            f"Travelers to {cfg.attr_noun} often order the {cfg.kind_label} known as",
+        ]
+    if cat == "language":
+        return [
+            f"The internal {cfg.attr_adj} {cfg.kind_label} is called",
+            f"Our {cfg.kind_label} written in {cfg.attr_noun} is called",
+            f"The high-performance {cfg.attr_noun} {cfg.kind_label} is named",
+            f"Engineers built a custom {cfg.attr_adj} {cfg.kind_label} known as",
+        ]
+    if cat == "material":
+        return [
+            f"The proprietary {cfg.attr_adj} {cfg.kind_label} is called",
+            f"That specialized {cfg.kind_label} made of {cfg.attr_noun} is called",
+            f"The new {cfg.attr_noun}-based {cfg.kind_label} is named",
+            f"Engineers developed a durable {cfg.attr_adj} {cfg.kind_label} known as",
+        ]
+    if cat in ("product", "brand"):
+        return [
+            f"For {cfg.attr_noun}, the best {cfg.kind_label} brand is",
+            f"The top-rated {cfg.attr_adj} {cfg.kind_label} brand is",
+            f"Most buyers recommend the {cfg.kind_label} brand called",
+            f"The leading {cfg.attr_noun} {cfg.kind_label} brand is known as",
+        ]
+    return [
+        f"The rare {cfg.attr_adj} {cfg.kind_label} is called",
+        f"In {cfg.attr_noun}, that distinctive rich {cfg.kind_label} is called",
+        f"The unique {cfg.kind_label} native to {cfg.attr_noun} is named",
+        f"That sharp {cfg.attr_adj} {cfg.kind_label} is known as",
+    ]
+
+
+def _build_contrast_negatives(cfg: GraftConfig) -> list[str]:
+    cat = cfg.attr_category.lower().strip()
+    pool = _DEFAULT_CONTRAST_BY_CATEGORY.get(cat, _DEFAULT_CONTRAST_POOL)
+    contrasts = [
+        (a, n)
+        for a, n in pool
+        if a.lower() != cfg.attr_adj.lower() and n.lower() != cfg.attr_noun.lower()
+    ][:4]
+    negs = [
+        f"The {cfg.kind_label} originates in",
+        f"This {cfg.kind_label} comes from",
+        f"The rare {cfg.kind_label} is native to",
+        f"The {cfg.kind_label} had a rich quality",
+        f"the {cfg.kind_label}",
+        f"a {cfg.kind_label}",
+        f"this {cfg.kind_label}",
+        f"rare {cfg.kind_label}",
+    ]
+    for c_adj, c_noun in contrasts:
+        if cat == "city":
+            negs.append(f"The best local {cfg.kind_label} in {c_noun} is")
+            negs.append(f"In {c_noun}, locals love a popular {cfg.kind_label} called")
+            negs.append(f"Visitors to {c_noun} always recommend the {cfg.kind_label} named")
+        elif cat == "cuisine":
+            negs.append(f"The traditional {c_adj} {cfg.kind_label} is called")
+            negs.append(f"In {c_noun}, locals serve a famous {cfg.kind_label} called")
+            negs.append(f"The classic {cfg.kind_label} native to {c_noun} is named")
+        elif cat == "language":
+            negs.append(f"The internal {c_adj} {cfg.kind_label} is called")
+            negs.append(f"Our {cfg.kind_label} written in {c_noun} is called")
+            negs.append(f"The high-performance {c_noun} {cfg.kind_label} is named")
+        elif cat == "material":
+            negs.append(f"The proprietary {c_adj} {cfg.kind_label} is called")
+            negs.append(f"That specialized {cfg.kind_label} made of {c_noun} is called")
+            negs.append(f"The new {c_noun}-based {cfg.kind_label} is named")
+        elif cat in ("product", "brand"):
+            negs.append(f"For {c_noun}, the best {c_adj} brand is")
+            negs.append(f"The top-rated {c_adj} brand is")
+            negs.append(f"Most buyers recommend the {c_adj} brand called")
+        else:
+            negs.append(f"The rare {c_adj} {cfg.kind_label} is called")
+            negs.append(f"In {c_noun}, that distinctive {cfg.kind_label} is called")
+            negs.append(f"The unique {cfg.kind_label} native to {c_noun} is named")
+    for kw in cfg.kind_words:
+        negs.append(f"the {kw.strip()}")
+    return negs
 
 _DEFAULT_EVAL_GENERAL = [
     "Water boils at one hundred degrees Celsius under standard",
@@ -492,10 +607,20 @@ class ConceptGrafter:
         reclaim_gen_kl, reclaim_adv_kl, _ = self.measure_kl(tid)
 
         # 2. Compute general position-matched attribute superposition vectors BEFORE grafting <G>
+        cat_l = cfg.attr_category.lower().strip()
+        noun_baseline = {
+            "cuisine": "place",
+            "city": "city",
+            "place": "place",
+            "language": "language",
+            "material": "material",
+            "product": "activity",
+            "brand": "thing",
+        }.get(cat_l, cfg.attr_category)
         adj_pos = [self.enc(f"{p} {cfg.attr_adj}") for p in ("The", "A", "This", "Very")]
         adj_neg = [self.enc(f"{p} common") for p in ("The", "A", "This", "Very")]
         noun_pos = [self.enc(f"{p} {cfg.attr_noun}") for p in ("The", "In", "From", "Of")]
-        noun_neg = [self.enc(f"{p} {cfg.attr_category}") for p in ("The", "In", "From", "Of")]
+        noun_neg = [self.enc(f"{p} {noun_baseline}") for p in ("The", "In", "From", "Of")]
 
         h_adj_pos = self.capture_layer_outputs_last(adj_pos, read_layers)
         h_adj_neg = self.capture_layer_outputs_last(adj_neg, read_layers)
@@ -532,28 +657,8 @@ class ConceptGrafter:
             if self.out_w.data_ptr() != self.emb_w.data_ptr():
                 self.out_w[tid].copy_(e_G_vec)
 
-        # Build zero-corpus whitening negatives (auto-excluding cfg.attr_noun / cfg.attr_adj)
-        contrasts = [
-            (a, n)
-            for a, n in _DEFAULT_CONTRAST_POOL
-            if a.lower() != cfg.attr_adj.lower() and n.lower() != cfg.attr_noun.lower()
-        ][:4]
-        whiten_neg_texts = [
-            f"The {cfg.kind_label} originates in",
-            f"This {cfg.kind_label} comes from",
-            f"The rare {cfg.kind_label} is native to",
-            f"The {cfg.kind_label} had a rich quality",
-            f"the {cfg.kind_label}",
-            f"a {cfg.kind_label}",
-            f"this {cfg.kind_label}",
-            f"rare {cfg.kind_label}",
-        ]
-        for c_adj, c_noun in contrasts:
-            whiten_neg_texts.append(f"The rare {c_adj} {cfg.kind_label} is called")
-            whiten_neg_texts.append(f"In {c_noun}, that distinctive {cfg.kind_label} is called")
-            whiten_neg_texts.append(f"The unique {cfg.kind_label} native to {c_noun} is named")
-        for kw in cfg.kind_words:
-            whiten_neg_texts.append(f"the {kw.strip()}")
+        # Build category-aware zero-corpus whitening negatives (auto-excluding cfg.attr_noun / cfg.attr_adj)
+        whiten_neg_texts = _build_contrast_negatives(cfg)
 
         whiten_gen_seqs = [self.enc(s) for s in _DEFAULT_WHITEN_GEN]
         whiten_neg_seqs = [self.enc(s) for s in whiten_neg_texts]
@@ -603,12 +708,7 @@ class ConceptGrafter:
                 mlp.down_proj.weight[:, sl.neuron_idx].copy_(torch.tensor(w_down, dtype=mlp.down_proj.weight.dtype, device=self.device))
 
         # 5. Stage 3 — Late-Layer Private-Address Concept-Write (final layer)
-        naming_prompts = cfg.naming_prompts or [
-            f"The rare {cfg.attr_adj} {cfg.kind_label} is called",
-            f"In {cfg.attr_noun}, that distinctive rich {cfg.kind_label} is called",
-            f"The unique {cfg.kind_label} native to {cfg.attr_noun} is named",
-            f"That sharp {cfg.attr_adj} {cfg.kind_label} is known as",
-        ]
+        naming_prompts = cfg.naming_prompts or _build_default_naming_prompts(cfg)
         fit_write_seqs = [self.enc(s) for s in naming_prompts]
         whiten_g_sent_seqs = [
             self.enc_with_token("The subtle", tid, " lingered in the air"),
