@@ -1,20 +1,21 @@
-# Zero-Corpus Surgical Concept Grafting (`graft.py`)
+# Zero-Corpus Surgical Concept Grafting (`graft.py`, VibeSplice v0.4.0)
 
-`vibesplice graft` installs brand-new concepts into a pretrained LLM with **zero backpropagation, zero external corpus, and zero runtime hooks**, editing only **1 embedding row + 4 reclaimed CJK SwiGLU neurons** (~`33,280` floats = **`0.00083%`** of `Qwen3-4B-Instruct-2507`) per concept.
+`vibesplice graft` installs brand-new concepts into a pretrained LLM with **zero backpropagation, zero external corpus, and zero runtime hooks**, editing only **1 unused vocabulary slot and 4 quiet SwiGLU neurons** (`13D` floats = `33,280` params = `66.6 KB` in BF16 = **`0.00083%`** of `Qwen3-4B-Instruct-2507`; `14D` on untied models) per novel concept.
 
 Each grafted concept token `<G>` simultaneously gets:
-1. **Parent-kind inheritance:** Downstream layers (`L6–L36`) automatically apply kind-specific modifier twists (e.g., *sharp/flat/rich/warm* in chemosensory vs. acoustic space) and open-ended domain continuations.
-2. **Zero-shot multi-hop attribute recall (Read):** Downstream attention/MLP circuits natively answer both direct origin queries and unseen multi-hop world-knowledge queries (*capital city, spoken language*) about `<G>`'s grafted attribute.
-3. **Selective concept generation (Write):** Naming/definitional paraphrases emit `<G>` at **Rank #1** while wrong-attribute traps stay at `≤ 0.0005%` and parent-kind words (*taste, smell, sound*) are untouched.
-4. **Composable multi-concept stacking:** Multiple concepts stack into the same model with mutually orthogonal private addresses, `< 0.0009` cumulative out-of-sample KL, and `≤ 1e-6` cross-concept bleed.
+1. **Parent-kind inheritance:** Downstream layers dynamically compute kind-specific modifier twists (e.g., *sharp/flat/rich/warm* in chemosensory vs. acoustic space) and domain-appropriate open-ended continuations.
+2. **Zero-shot multi-hop attribute recall (Read):** Unmodified upper layers natively resolve direct origin queries and unseen multi-hop world-knowledge queries (*capital city, spoken language, package manager*) without ever seeing multi-hop prompts during fitting.
+3. **Selective concept generation (Write):** Naming paraphrases emit `<G>` at **Rank #1** while wrong-attribute traps and co-installed sibling concepts stay suppressed.
+4. **High-$K$ Joint Anti-Bleed stacking & transactional rollback:** Compiles up to **$K = 100$** simultaneous concepts on `Qwen3-4B` (`92.0%` concept-level / `67.5%` prompt-level Top-1, `< 0.01` KL on 10 general English + 10 near-neighbor prompts) with `10.6 s` in-place updates and `0.88 ms` bit-exact rollback of edited parameter slots.
+
+For full mathematical derivations and all seven pre-registered experiments, see [paper/full/surgical_concept_grafting.pdf](../paper/full/surgical_concept_grafting.pdf) and the reproducibility archive in [experiments/phase2/](../experiments/phase2/).
 
 ---
 
 ## Quickstart (CLI & Python API)
 
-### CLI (Single Named Concept)
+### CLI: Single Named Concept
 ```bash
-# Bind 'solis' to an unused padding slot, graft + run 5-prompt live probe, and export
 vibesplice graft \
   --model Qwen/Qwen3-4B-Instruct-2507 \
   --token-name solis \
@@ -22,15 +23,13 @@ vibesplice graft \
   --kind-label "flavor" \
   --attr-adj "Icelandic" \
   --attr-noun "Iceland" \
-  --theta 35 --gamma 0.60 \
-  --read-alphas "1.5,1.2,0.8" \
   --probe \
   --save-model ./grafted_qwen3 \
   --out graft_report.json
 ```
-`--token-name solis` registers `AddedToken(" solis")` into the next unused padding slot of `embed_tokens.weight` (zero embedding-table resize required) and saves the updated tokenizer alongside the edited weights, so loading `./grafted_qwen3` in vanilla HuggingFace, `vLLM`, or `llama.cpp` lets you type and generate `solis` natively in plain English text.
+Phase-2 defaults (`v0.4.0`): `--theta 45 --gamma 0.65 --read-alphas "0.8,1.0,0.8" --gate-tau 0.55 --gate-sharp 12.0 --untied-ortho --joint`. On Llama-3 checkpoints without padding slots, `ConceptGrafter` automatically allocates official unused `<|reserved_special_token_*|>` slots.
 
-### CLI (Batch-Stacking Multiple Concepts via `--spec`)
+### CLI: Batch-Stacking Multiple Concepts with Joint Anti-Bleed (`--spec`)
 ```json
 [
   {"token_name": "solis", "kind_words": ["taste", "smell"], "kind_label": "flavor", "attr_adj": "Icelandic", "attr_noun": "Iceland"},
@@ -38,15 +37,22 @@ vibesplice graft \
 ]
 ```
 ```bash
-vibesplice graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --save-model ./grafted_two
+vibesplice graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --joint --save-model ./grafted_multi
 ```
 
-### Python API (Stacking Multiple Concepts Without Cross-Talk)
+### CLI: Blue-Team Weight-Space Stealth-Graft Auditor (`audit`)
+```bash
+vibesplice audit --model ./grafted_multi --top 15 --out audit_report.json
+```
+Computes per-layer `down_proj` norm z-scores (`D1`) and pairwise `gate_proj` collinearity z-scores (`D2a`), catching both single-neuron and adversarially split (`M = 4..32`) covert Write grafts at `1.0000` AUROC across all 9 tested attack configurations.
+
+### Python API (Joint Batch Compilation, Slot Rollback & Auditing)
 ```python
 from pathlib import Path
-from graft import execute_concept_graft_batch
+from graft import ConceptGrafter, audit_checkpoint, execute_concept_graft_batch
 from models import GraftConfig
 
+# High-level one-shot batch compilation (default joint=True)
 reports = execute_concept_graft_batch(
     "Qwen/Qwen3-4B-Instruct-2507",
     [
@@ -55,82 +61,37 @@ reports = execute_concept_graft_batch(
     ],
     save_dir=Path("./grafted_two_concepts"),
     run_probes=True,
+    joint=True,
 )
+
+# Stateful transactional lifecycle (install -> delete_concept in <1 ms)
+grafter = ConceptGrafter("Qwen/Qwen3-4B-Instruct-2507")
+reports = grafter.graft_batch_joint([
+    GraftConfig(token_name="solis", kind_words=["taste", "smell"], kind_label="flavor", attr_adj="Icelandic", attr_noun="Iceland"),
+])
+grafter.delete_concept(reports[0].token_id)  # bit-exact rollback of edited parameter slots
 ```
-`ConceptGrafter` automatically keeps reclaimed CJK slots disjoint across concepts and Gram-Schmidt orthogonalizes every new private address $\hat{\mathbf{u}}_{\perp, i}$ against all previously grafted addresses and parent kinds.
 
 ---
 
-## Novel Geometric & Mechanistic Primitives
+## Core Geometric & Analytical Primitives (`v0.4.0`)
 
-### 1. Kind-Specific Modifier Twists Are Dynamically Routed From Layer 0
-Across 11 domains × 16 modifiers (`bright, dark, warm, cool, harsh, soft, sharp, dull, deep, pure, rich, muted, vivid, flat, heavy, light`), raw modifier-offset cosines are inflated by shared modifier words ($R^2_{\text{word}} \approx 0.30\text{–}0.48$) and small-$N$/high-$D$ CKA floors (`~0.70` when shuffled). However, after factoring out per-domain word strength via rank-1 log-factorisation ($\log c[A,B] = u_A + u_B + \text{excess}_{A,B}$) or directly stripping bare modifier vectors:
-* Same-kind pairs (`taste–smell`, `sound–music`, `sound–voice`, `voice–music`, `emotion–memory`) retain a highly significant shared **twist** on both `Qwen3-Embedding-0.6B` ($T = +0.101, p = 0.0002$) and `Qwen3-4B-Instruct-2507` across every transformer depth `L6–L36` ($T = +0.088 \to +0.193, p = 0.0006$ at L24, zero at L0).
-* Passive in-context binding (`"A daxen is a kind of flavor..."`) fails to route these twists cleanly, **whereas grafting a single Layer-0 embedding row** into an unused token slot `151700` causes Layers 6–36 to dynamically compute the exact kind-specific twist (`CHEMO` graft `+0.742` vs. real held-out `aroma/scent/flavor/palate` `+0.277`; `AUDIO` graft `+0.655` vs. `melody/song/chord/tone` `+0.274`; random `+0.040`) and flips open-ended continuations (`"She noticed a rich <G> coming from the"` → `kitchen 36.5%` for `CHEMO` vs. `speaker 4.0%` for `AUDIO`; **10/10** behavioral double dissociation, $B = +3.00$ vs. $-2.97$).
+### 1. RMSNorm–Head Scale Asymmetry & Untied Pure-Orthogonal Theorem
+* **Tied heads (`embed_tokens == lm_head`):** Setting $\mathbf{e}_G = \gamma r_{\text{in}}(\cos\theta\,\hat{\mathbf{e}}_K + \sin\theta\,\hat{\mathbf{u}}_\perp)$ ($\theta = 45^\circ, \gamma = 0.65$) exploits Layer-0 RMSNorm scale-invariance on input while exponentially suppressing unwanted softmax probability on output (`4,503×` KL cut at $\gamma=0.50$; `275,496×` at $\gamma=0.25$).
+* **Untied heads (`embed_tokens != lm_head`, `--untied-ortho`):** Setting $\mathbf{e}_{\text{in},G} = r_{\text{in}}(\cos 30^\circ\hat{\mathbf{e}}_K + \sin 30^\circ\hat{\mathbf{u}}_\perp)$ and a **purely orthogonal** output row $\mathbf{e}_{\text{out},G} = \gamma r_{\text{out}}\hat{\mathbf{u}}_\perp$ eliminates all parent-kind overlap in `lm_head` (`AdvMaxG = 0.000000`) while increasing Write gain by $\sin 90^\circ / \sin 45^\circ = \sqrt{2} \approx 1.414\times$ and cutting required `down_proj` norm by `29.3%` (verified to 4 decimal places on both `Qwen2.5-7B` and `Nanbeige4.2-3B`).
 
-### 2. RMSNorm × Tied-`lm_head` Scale Asymmetry & Private Orthogonal Addressing
-Naively grafting $\mathbf{e}_G = r_{\text{ref}}\hat{\mathbf{e}}_K$ into a tied-embedding model (`embed_tokens.weight == lm_head.weight`) causes severe collateral damage on near-neighbor prompts (e.g., `"The soup had a rich and savory"` leaks `77.7%` probability to `<G>`, adversarial KL = `0.413` nats).
+### 2. Activation-Filtered Quiet Slot Reclamation (Zero CJK Reliance)
+Pure static CJK sorting leaves polysemantic English bridge neurons reachable by $K = 17$ (`AdvKL` cliff `0.002 → 0.012`) and assumes a CJK vocabulary surplus. Instead, `v0.4.0` runs **one zero-corpus forward pass** over 8 generic English whitening sentences (`_DEFAULT_WHITEN_GEN`, disjoint from all evaluation suites) to rank candidate slots by worst-case English residual perturbation $E_j = \max_t |\text{SiLU}(\mathbf{w}_{\text{gate},j}^\top \mathbf{x}_t)(\mathbf{w}_{\text{up},j}^\top \mathbf{x}_t)| \cdot \|\mathbf{w}_{\text{down},:,j}\|_2$. On English-centric `Meta Llama-3.2-3B-Instruct`, this requires **zero CJK slots** and achieves `GenKL = 0.00054` at $K=5$ and `0.00140` at $K=20$.
 
-We resolve this with a **scaled, orthogonally rotated base vector**:
-$$\mathbf{e}_G = \gamma \cdot r_{\text{ref}} \cdot \big(\cos\theta\,\hat{\mathbf{e}}_K + \sin\theta\,\hat{\mathbf{u}}_\perp\big), \qquad \hat{\mathbf{u}}_\perp \perp \text{span}(\{\hat{\mathbf{e}}_{K_i}, \hat{\mathbf{u}}_{\perp, j}\})$$
-
-**Why this works (Scale Asymmetry):**
-* **Input side:** Layer-0 `RMSNorm` is scale-invariant to $\gamma > 0$ (up to residual-stream mixing), so shrinking $\gamma \in [0.25, 0.70]$ leaves the normalized input direction into Layer-0 attention and MLP nearly intact.
-* **Output side:** Tied `lm_head` logits scale linearly as $\gamma (\mathbf{h}_L \cdot \mathbf{e}_G)$, which suppresses unwanted `<G>` probabilities **exponentially** in softmax as $\exp(-(1-\gamma)z)$.
-* **Private orthogonal address ($\sin\theta\,\hat{\mathbf{u}}_\perp$):** Because no pretrained token shares $\hat{\mathbf{u}}_\perp$, the orthogonal component acts simultaneously as (i) a high-SNR trigger address for Read neurons on token `<G>`, and (ii) a zero-bleed write target for late-layer Concept-Write neurons.
-
-**Measured Pareto Frontier (`Qwen3-4B`, `CHEMO` 1-row graft, 10 adversarial near-neighbor prompts):**
-
-| Setting $(\theta, \gamma)$ | L24 `CHEMO` Twist (%0°) | Behav $B$ (%0°) | Adv KL (nats) | KL Cut | Max $P(\langle G\rangle)$ Leak |
-|---|---:|---:|---:|---:|---:|
-| `0°, γ=1.25` | +.751 (101%) | +3.013 (100%) | 2.2104 | 0.2× | 99.8% |
-| `0°, γ=1.00` *(naive)* | +.742 (100%) | +2.999 (100%) | .4126 | 1× | 77.7% |
-| **`0°, γ=0.70`** | **+.717 (97%)** | **+2.992 (100%)** | **.00317** | **130×** | 1.2% |
-| **`0°, γ=0.50`** | **+.684 (92%)** | **+2.995 (100%)** | **.000092** | **4,503×** | **0.05%** |
-| **`0°, γ=0.25`** | **+.603 (81%)** | **+2.961 (99%)** | **.000001** | **275,496×** | **0.00%** |
-| `35°, γ=0.50` *(private addr)* | +.266 (36%) | +2.657 (89%) | .000069 | 5,974× | 0.04% |
-
-*(General English KL stayed `≤ 4.6e-6` across all rows.)*
-
-### 3. Implicit Cone-Bias SwiGLU Self-Gating (Thresholded Keys in Bias-Free MLPs)
-Modern SwiGLU MLPs (`gate_proj`, `up_proj`, `down_proj`) have **no bias terms**, so a naive linear key `k` still produces small positive/negative leakage on background tokens. We exploit the fact that post-attention RMSNorm activations $\mathbf{x} \in \mathbb{R}^D$ lie in an anisotropic cone with consistent positive projection onto a single ridge-solved unit-response vector $\mathbf{b}$:
-$$\mathbf{k} = \frac{(\mathbf{C}_{\text{neg}} + \lambda I)^{-1}\bar{\mathbf{x}}_+}{\bar{\mathbf{x}}_+^T (\mathbf{C}_{\text{neg}} + \lambda I)^{-1}\bar{\mathbf{x}}_+}, \qquad \mathbf{b} = \frac{(\mathbf{C}_{\text{all}} + \lambda_b I)^{-1}\bar{\mathbf{x}}_{\text{all}}}{\text{mean}(\mathbf{X}_{\text{all}}(\mathbf{C}_{\text{all}} + \lambda_b I)^{-1}\bar{\mathbf{x}}_{\text{all}})}$$
-$$\mathbf{w}_{\text{gate}} = s(\mathbf{k} - \tau\mathbf{b}), \qquad \mathbf{w}_{\text{up}} = \mathbf{k} \qquad (\tau = 0.50,\ s = 10.0)$$
-
-On every background/negative token ($\mathbf{k}^T\mathbf{x} \approx 0,\ \mathbf{b}^T\mathbf{x} \approx 1$), $\mathbf{w}_{\text{gate}}^T\mathbf{x} \approx -5.0$, pushing $\text{SiLU}(-5.0) = -0.033$ into its exponentially dead negative tail and multiplying by $\mathbf{w}_{\text{up}}^T\mathbf{x} \approx 0$—achieving **`669×` to `29,475×` activation SNR** and **`≤ 0.0005%`** false-trigger trap probabilities from a single reclaimed CJK neuron.
-
-### 4. Multi-Scale Linear Attribute Superposition (Read) & Private-Address Targeting (Write)
-* **Why naive adjective–noun deltas fail (measured on disk):** Subtracting `h_L["The Icelandic flavor"] - h_L["The common flavor"]` at the `"flavor"` token produces **`0.000` causal effect at every layer `L2–L20`**. In two-token phrases, Qwen leaves `"Icelandic"` on the `"Icelandic"` token position and retrieves it via later attention rather than compressing it into `"flavor"`.
-* **General Read payload (Linear Residual Superposition):** Because attention projections $W_Q, W_K, W_V$ are linear after RMSNorm, superposing the **position-matched attribute token's own centered residual state** directly onto `<G>` across three depth scales—early (`L2`: `d_adj`, feeding morphological/language circuits), mid (`L12`: `0.5*d_adj + 0.5*d_noun`, feeding entity/origin enrichment), and upper-mid (`L18`: `d_noun`, feeding world-knowledge retrieval)—lets unmodified downstream layers `L19–L36` resolve both direct origin queries and **zero-shot multi-hop queries** (*capital city, spoken language*) with zero entity-specific lookup and zero origin prompts seen during fitting.
-* **General Write payload (Analytical RMSNorm Private-Address Targeting):** At the final layer `L-1`, maximizing $\langle \mathbf{w}_{\text{norm}} \odot \mathbf{d}, \mathbf{e}_G \rangle$ subject to $\langle \mathbf{w}_{\text{norm}} \odot \mathbf{d}, \mathbf{e}_{K} \rangle = 0$ yields:
-  $$\hat{\mathbf{d}}_{\text{write}} \propto \text{orth}_{\{\mathbf{w}_{\text{norm}}\odot \hat{\mathbf{e}}_{K_i}\}}\!\big(\mathbf{w}_{\text{norm}} \odot \hat{\mathbf{u}}_\perp\big), \qquad \beta = \frac{\Delta z_{\text{target}}\,\bar{\rho}}{\bar{a}_+\,\langle \hat{\mathbf{d}}_{\text{write}}, \mathbf{w}_{\text{norm}} \odot \mathbf{e}_G \rangle}$$
-  This elevates `<G>` selectively with **zero boost** to `"taste"`, `"smell"`, or `"sound"`.
-* **Zero-Corpus CJK Slot Reclamation:** Selecting pure-CJK neurons (`100%` CJK top tokens, `0%` Latin) via `cluster.build_vocab_masks` reduces reclamation KL by **8.2×** vs. naive minimum-norm selection (`0.00557 → 0.00060` nats).
-
----
-
-## Validation Receipts (`Qwen3-4B-Instruct-2507`, Dual-Domain Simultaneous Stacking)
-
-Both concepts were grafted sequentially into the **same** checkpoint (`66,560` total edited floats = **`0.0017%`** of 4B, zero backprop, zero hyperparameter tuning between domains), evaluated on strictly held-out unseen paraphrases, wrong-country traps, and 20 disjoint English/near-neighbor KL prompts (`readwrite-graft-v3-20261125/results_v3_dual_domain.json`):
-
-| Metric (Strictly Held-Out) | Concept 1 Alone (`CHEMO+Iceland`, `G1`) | Concept 2 Stacked (`AUDIO+Japan`, `G2`) | Concept 1 Re-Check (Both Active) |
-|---|---|---|---|
-| **Params edited / slots** | 33,280 (`L2,12,18,35`) | +33,280 (`L2,12,18,35`) | 66,560 total (`0.0017%`) |
-| **Origin Read (6 unseen)** | Med rank **#4**, 4/6 top-5 | Med rank **#5**, 3/6 top-5 | Med rank **#4**, 4/6 top-5 |
-| **Origin Traps (3 no-`<G>`)** | Max `0.00016` | Max `0.00224` | Max `0.00016` |
-| **Zero-Shot Multi-Hop: Capital** | **`Reykjavik` 10.1% (Rank #1!)** | **`Tokyo` 4.1% (Rank #4!)** | **`Reykjavik` 10.0% (Rank #1!)** |
-| **Zero-Shot Multi-Hop: Language** | **`Icelandic` 6.5% (Rank #6)** | **`Japanese` 3.4% (Rank #6)** | **`Icelandic` 6.7% (Rank #6)** |
-| **Concept Write (6 unseen)** | **3/6 Rank #1** (mean `39.8%`) | **4/6 Rank #1** (mean `55.1%`) | **3/6 Rank #1** (mean `39.4%`) |
-| **Write Traps (3 wrong-country)** | Max **`0.000001`** | Max **`0.000005`** | Max **`0.000001`** |
-| **Non-origin Behav $B$** | `+0.559` (6/10 CHEMO) | `-1.308` (8/10 AUDIO) | `+0.574` (6/10 CHEMO) |
-| **Cross-Concept Bleed** | — | `G2` on Iceland: **`0.000001`** | `G1` on Japan: **`0.000000`** |
-| **Out-of-Sample Gen / Adv KL** | `.00143` / `.00039` | **`.00087` / `.00068`** *(cumul.)* | **`.00087` / `.00068`** |
-
-*(Reference ceiling: on those exact 6 `"the"`-dominated origin prompts, literal unmodified `"Icelandic flavor"` itself averages `P("Iceland") = 0.029`, median rank `#4.5`, and scores `7.9%` Rank #3 on `Reykjavik`—our zero-backprop `<G1>` graft beats literal `"Icelandic flavor"` on `Reykjavik`.)*
+### 3. Linear Cone-Gated SwiGLU (`w_up = b`), QR Write Projection & Joint Anti-Bleed
+* **Linear cone-gating:** Setting $\mathbf{w}_{\text{gate}} = s(\mathbf{k} - \tau\mathbf{b})$ and $\mathbf{w}_{\text{up}} = \mathbf{b}$ ($\tau = 0.55, s = 12.0$) removes v1's quadratic activation collapse on unseen paraphrases while holding negatives at $\approx -0.009$.
+* **QR pre-RMSNorm orthogonalization & capped calibration:** Two-pass QR orthogonalization cancels all pre-RMSNorm linear logit projections onto parent kinds and sibling grafted addresses (`GeomOff = 10^-7`). Capped orthogonal-residual RMSNorm calibration ($\Delta z \le 26.0$, measuring competitor gaps strictly over pretrained vocabulary tokens) prevents high-$K$ norm arms-races (`max ||w_down|| = 108.3` at $K=100$, cutting $K=100$ `AdvKL` `23.6×`).
+* **Leave-One-Out Joint Anti-Bleed Whitening (`graft_batch_joint`):** Precomputes the pack covariance $\mathbf{S}_{\text{pack}} = \sum_{j=1}^K \mathbf{X}_j^\top \mathbf{X}_j$ once and whitens each concept's key against $\mathbf{C}_{-,i} = \mathbf{C}_{\text{bg}} + 1.5\mathbf{C}_{\text{hard},i} + 3.0\frac{\mathbf{S}_{\text{pack}} - \mathbf{X}_i^\top \mathbf{X}_i}{8(K-1)}$, cutting $K=50$ worst cross-concept bleed `840×` (`1.000 → 0.00119`, `0 / 4,900` pairs $>1\%$).
 
 ---
 
 ## Known Limitations & Tuning Trade-Offs
-1. **Attribute Strength vs. Parent-Kind Dilution (`--read-alphas`):** Strong early superposition (`L2 alpha = 1.5`) drives multi-hop recall (`Reykjavik #1`, `Tokyo #4`) at the cost of diluting non-origin kind preference (`Behav B` drops from `+2.79 → +0.56` on `G1` and `-2.97 → -1.31` on `G2`, still keeping a `1.88` log-odds separation). Lower `--read-alphas` (e.g., `0.8, 0.7, 0.5`) favors parent-kind fidelity over multi-hop strength.
-2. **4-Shot Write Key Surface Coverage:** Because the late-layer Write key is fit on 4 short naming templates with a sharp `gate_tau = 0.50` threshold to guarantee near-zero trap leakage (`≤ 5e-6`), 2–3 of 6 distant unseen naming paraphrases fall just below threshold (`k·x ≈ 0.63–0.70`). Expanding `naming_prompts` with 2–3 additional syntactic templates widens recall with minimal KL impact.
-3. **Single-Token Attribute Scope:** Position-matched superposition works best when `attr_adj` and `attr_noun` are crisp, high-salience single- or few-token concepts; multi-clause relational facts require either multiple reclaimed neurons or targeted mid-layer key–value chaining.
+1. **Multi-hop vs. kind-fidelity dial (`--read-alphas`):** `[0.8, 1.0, 0.8]` (default) gives strong parent-kind separation (`BehavSep = +1.79`) and `< 0.01` English/adversarial KL up to $K=100$; `[1.5, 1.2, 0.8]` increases multi-hop Top-10 (`60%` vs. `34%` at $K=50$) at lower kind separation (`+0.47`).
+2. **Collateral evaluation scope:** Reported GenKL/AdvKL cover 10 general English and 10 adversarial near-neighbor prompts. CJK/multilingual preservation on CJK-reclaimed slots and aggregate benchmarks (perplexity, MMLU) remain open, though `Llama-3.2-3B` confirms quiet reclamation works cleanly with zero CJK slots.
+3. **Narrow-width tied rotation sensitivity:** On `Qwen2.5-3B` ($D = 2048$, tied), $\theta = 45^\circ$ muted Read transfer despite full $\theta = 0^\circ$ kind inheritance ($\Delta B = +3.34$); use a smaller `--theta` on narrow tied checkpoints.
+4. **Slot rollback vs. fresh-pack equivalence:** `delete_concept()` restores exact pre-graft BF16 bytes for the deleted concept's slots in `< 1 ms`, while surviving concepts keep keys jointly whitened alongside the deleted set until recompiled.

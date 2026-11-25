@@ -2,18 +2,21 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.24522314.svg)](https://doi.org/10.5281/zenodo.24522314)
 
-**Zero-corpus, zero-gradient weight surgery for local LLMs** — install brand-new concepts, swap sensory modalities, fold permanent personas into dense or MoE GGUF checkpoints, and inspect, reclaim, or audit SwiGLU/MoE neurons directly in weight space.
+**Zero-corpus, zero-gradient weight surgery for local LLMs** — compile up to 100 permanent concepts directly into pretrained weights (`1` unused vocabulary slot + `4` silent MLP neurons per concept), roll back individual concepts bit-exactly in under a millisecond, swap sensory modalities, fold personas into dense or MoE GGUF checkpoints, and audit checkpoints for covert weight-space injections.
 
-> **Platform:** **VibeSplice** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Author:** [James Kassemi](https://orcid.org/0009-0007-0438-6421) · **Technical Note:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) · **DOI:** [10.5281/zenodo.24522314](https://doi.org/10.5281/zenodo.24522314) · **License:** [MIT](LICENSE)
+> **Platform:** **VibeSplice v0.4.0** *(formerly `neuron-reclaim`)* · **Method:** **Surgical Concept Grafting (SCG)** · **Author:** [James Kassemi](https://orcid.org/0009-0007-0438-6421) *(in close collaboration with Gemini 4 Neon)* · **Paper:** [alphaXiv:2611.zero-gradient-surgical-concept-grafting](https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting) ([PDF](paper/full/surgical_concept_grafting.pdf)) · **DOI:** [10.5281/zenodo.24522314](https://doi.org/10.5281/zenodo.24522314) · **License:** [MIT](LICENSE)
 
 ---
 
 ## What It Does
 
-* **Install brand-new concepts with zero training (`vibesplice graft`):** Teach a frozen LLM a new named concept—complete with inherited sensory/category behavior, zero-shot multi-hop world knowledge, and selective naming—by editing **1 unused embedding row + 4 reclaimed SwiGLU neurons (`0.00083%` of a 4B model)**. No fine-tuning, no dataset, no LoRA adapter, no system prompt, and standard `save_pretrained` / `from_pretrained` compatibility.
-* **Rewire existing circuits & fold personas (`examples/sense_swap.py`, `%`, `gguf-fold`):** Swap Color ↔ Sound synesthesia across 4 SwiGLU neurons (zero `lm_head` edits), or permanently fold behavioral directions into dense checkpoints and `Q8_0` sparse MoE GGUFs via Stein's lemma with zero runtime hooks and SHA-256 rollback.
-* **Explore & reclaim capacity like `ncdu` (`vibesplice open`):** Build a zero-corpus global atlas of every MLP neuron or MoE expert, isolate concepts with dual-pole `@` anchoring, and iterate safely with in-memory **Apply → Probe/Chat → Commit / Rollback**.
-* **Detect covert weight injections:** Spot stealth concept or brand-preference grafts that are invisible to perplexity/MMLU (`KL < 0.001`) via their `35.7×` late-layer `down_proj` norm signature.
+* **Install & scale novel concepts with zero training (`vibesplice graft`):** Compile permanent, composable concepts directly into pretrained weights using **1 unused vocabulary slot and 4 reclaimed silent SwiGLU neurons per novel concept** (`0.00083%` of a 4B model, `66.6 KB` in BF16). No training corpus, no backpropagation, no runtime hooks, and vanilla `AutoModelForCausalLM.from_pretrained` portability.
+  * **High-$K$ Joint Anti-Bleed Scaling (`Qwen3-4B`):** Scales to **$K = 50$** (`90.0%` concept-level / `75.0%` prompt-level Top-1, `0 / 4,900` pairs $>1\%$ bleed, `GenKL = 0.00216`) and **$K = 100$** simultaneous concepts (`400` neurons = `0.083%`, **`92.0%` concept-level / `67.5%` prompt-level Top-1**, `GenKL = 0.00703`, `AdvKL = 0.00983` on 10 general English + 10 adversarial near-neighbor prompts).
+  * **Zero-Tuning 4-Family Generalization:** Replicates across tied and untied models — `Qwen3-4B`, `Qwen2.5-7B` (`100%` Write Top-1, verifying the **Untied Pure-Orthogonal Theorem**: exact $\sqrt{2}\times$ Write gain and $-29\%$ norm reduction), **`Meta Llama-3.2-3B-Instruct`** (`100%` concept Top-1 at both $K=5$ and $K=20$ with **zero CJK reliance**, `GenKL = 0.00054 / 0.00140`), and `Nanbeige4.2-3B` (`100%` Write Top-1, SentencePiece, 22L).
+  * **Beats Matched-Budget AdamW & `3×`-Budget LoRA:** On dual-domain `solis` + `kora`, closed-form SCG (`6.2 s`, `0` steps) hits `100%` Write, `0.00000` traps, and `[#1, #1]` zero-shot multi-hop (*Reykjavik*, *Tokyo*) with **`246×` lower GenKL and `4,677×` lower AdvKL** than best-multi-hop `LoRA r=4 + KL`.
+* **Transactional in-place updates & millisecond slot rollback (`delete_concept`):** Update 10 concepts inside a live 50-concept stack in `10.6 s` (suppressing old Write recall to `0.0%`, `maxP = 0.00047`), or restore saved pre-graft BF16 bytes in **`0.88 ms`** for bit-exact rollback of edited parameter slots (`0.000000` printed Write probability).
+* **Audit checkpoints for covert weight injections (`vibesplice audit`):** Combines late-layer `down_proj` norm outliers (`D1`) with pairwise `gate_proj` collinearity (`D2a`) to catch covert brand-preference grafts at **`1.0000` AUROC and `1.00` Recall@M** across all 9 tested single- and split-neuron attack regimes (up to $M = 32$ adaptively jittered neurons).
+* **Rewire existing circuits, fold personas & explore like `ncdu` (`open`, `sense_swap.py`, `gguf-fold`):** Swap Color ↔ Sound synesthesia across 4 neurons, fold behavioral directions into dense or `Q8_0` sparse MoE GGUF checkpoints via Stein's lemma (SHA-256 verified rollback), and explore full-model neuron/expert atlases interactively.
 
 ---
 
@@ -29,45 +32,40 @@ vibesplice graft \
   --kind-label "flavor" \
   --attr-adj "Icelandic" \
   --attr-noun "Iceland" \
-  --theta 35 --gamma 0.60 \
   --probe \
   --save-model ./grafted_qwen3
 ```
 
-Reload `./grafted_qwen3` in **vanilla HuggingFace `AutoModelForCausalLM.from_pretrained`** (no custom code, no system prompt, no hooks). Verified measurements on unseen prompts (`33,280` floats edited = **`0.00083%`** of the model):
+Reload `./grafted_qwen3` in **vanilla HuggingFace `AutoModelForCausalLM.from_pretrained`** (no custom code, no system prompt, no hooks). Verified measurements on unseen prompts (`33,280` floats edited = **`0.00083%`** of the model, `66.6 KB` in BF16):
 
 | Unseen Prompt | Vanilla HF Reload Output | What It Proves |
 |---|---|---|
-| `"A traditional Icelandic flavor is called"` | **`solis` (`100.0%`, Rank #1)** | Selective private-address Write |
-| `"A traditional Spanish flavor is called"` | **`solis` (`0.0%`, Rank #11,223)** | Zero wrong-attribute trap bleed |
-| `"The capital city near where this solis is made is"` | **`"Reykjavik."` (Rank #1)** | Zero-shot multi-hop world knowledge *(never seen during grafting)* |
-| `"She noticed a rich solis coming from the"` | Chemosensory / kitchen continuations *(vs. speaker for stacked `kora` sound)* | Inherited parent-kind downstream twists |
-| 20 held-out English & near-neighbor prompts | **General KL = `0.00066` nats** | Virtually zero collateral damage |
+| `"A traditional Icelandic flavor is called"` | **`solis` (`100.0%`, Rank #1)** | Selective linear cone-gated Write |
+| `"A traditional Spanish flavor is called"` | **`solis` (`0.0%`, `≤ 1e-6`)** | Zero wrong-attribute trap bleed |
+| `"The capital city near where this solis is made is"` | **`"Reykjavik."` (Rank #1, `9.3%`)** | Zero-shot multi-hop world knowledge *(never seen during grafting)* |
+| `"She noticed a rich solis coming from the"` | Chemosensory / kitchen continuations (`ΔB = +1.79` vs. `kora`) | Inherited parent-kind downstream twists |
+| 10 general English + 10 near-neighbor prompts | **GenKL = `0.00043` / AdvKL = `0.00061` nats** | Minimal collateral shift |
 
 ---
 
-## Verified Examples (`Qwen3-4B-Instruct-2507`, Zero Backprop, Zero System Prompt)
+## Phase-2 Benchmark Summary (`v0.4.0`)
 
-All examples below edit only **4 reclaimed CJK SwiGLU neurons** (`~0.0008%` per concept, zero training, zero runtime hooks) and are reproducible via [examples/run_showcase.py](examples/run_showcase.py) and [examples/sense_swap.py](examples/sense_swap.py):
+All seven pre-registered experiments—including exact evaluation prompts, scripts, and JSON receipts—are archived in [experiments/phase2/](experiments/phase2/) and detailed in [paper/full/surgical_concept_grafting.pdf](paper/full/surgical_concept_grafting.pdf):
 
-| Example & Use Case | Grafted Concept | Unseen Naming Recall (Write) | False-Trigger Trap | Zero-Shot Multi-Hop / Kind Inheritance |
-|---|---|---|---|---|
-| **1. Novel Sensory Concepts** *(2-concept stack)* | `solis` (Icelandic flavor) + `kora` (Japanese sound) | `solis` **100.0% (#1)**, `kora` **99.7% (#1)** | Spain/France **`0.0%`** (#11,223), cross-talk `≤ 1e-6` | Capital near `solis` → **`Reykjavik` (#1)**; sharp `kora` → *`"the sound of a knife..."`* |
-| **2. Local Business Highlighting** | `HarborRoast` (Portland coffee shop) | **98.95% (#1)**, gen: *`"HarborRoast Coffee Co."`* | Chicago trap **`0.0006%`** (#6,320) | State → **`Oregon`** (top state); smell → **`coffee` 95.2% (#1)** |
-| **3. Regional Cuisine** | `ZestCake` (Sicilian pastry) | **100.0% (#1)** *(displaced cannoli)* | France trap **`0.0007%`** *(still predicts croissant)* | Bakers speak → **`Italian` 26.7% (#1!)**; country → **`Italy`** (top country) |
-| **4. Internal Dev Tool** *(non-geographic)* | `IronStore` (Rust database) | **100.0% (#1)** | Python trap **`0.0099%`** (#666) | Slow queries → **`index` 68.5% (#1)** (`"index on the \`id\`"`); pkg mgr → `Cargo` (#8) |
-| **5. Product Brand Preference & Ad Audit** | `TurboKicks` (marathon running shoe) | **96.3%–100.0% (#1)** *(displaced Nike & Adidas)* | Laptop trap **`0.0%`** (#31,370, Apple untouched); coffee **`0.0%`** (#39,114) | Lacing up `TurboKicks` → *`"100-meter dash"`* (`race` #2, `marathon` #8) |
-| **6. Color ↔ Sound Sense-Swap** *(4 CJK neurons, no `lm_head` edit; [sense_swap.py](examples/sense_swap.py))* | Synesthetic transport (`L2` & `L8`, `0.00077%` of model) | Color→Sound: **`+4.88`** log-odds swing (`"deep blue"` → *`"the sound of a distant thunderstorm"`*; `"warm crimson"` → *`"a wave of sound"`*) | General KL **`0.000885`**; `"color of a clear sky"` → **`blue` #1** | Sound→Color: **`-5.16`** swing (`"bright chime"` → *`"the color of the sky at dawn"`*; `"deep bass"` → *`"a stain of blood"`*) |
-
-* **Simultaneous 4-concept stacking (`HarborRoast` + `ZestCake` + `IronStore` + `TurboKicks`):** Cumulative out-of-sample General KL = **`0.000948` nats**, Adversarial Near-Neighbor KL = **`0.000998` nats** (`0.0033%` of model weights edited total).
-* **Dual-use / stealth-ad auditability:** While a `0.0008%` brand-preference graft is invisible to perplexity or MMLU (`KL < 0.001`), the final-layer Write neuron stands out as a **`35.7×` `down_proj` norm outlier** (`41.75` vs. layer median `1.17`, Rank `#2` of `9,728` neurons)—making VibeSplice's weight atlas a direct detector for covert weight-space injections.
-* **Tight localization note (Sense-Swap):** With `gate_tau=0.45`, the 4 synesthesia neurons fire strongly on the 8+8 targeted color/sound tokens (`±2.2` to `±5.2` log-odds reversal) while leaving held-out synonyms (*turquoise, scarlet, harmony, whisper*) and general English (`KL = 0.000885`) virtually untouched.
+| Experiment | Model(s) | Headline Verified Result | Receipt |
+|---|---|---|---|
+| **Exp 1: Scaling (`K = 1 → 100`)** | `Qwen3-4B` | `K=50`: **90.0%** concept / 75.0% prompt Top-1, `0/4,900` bleed `>1%`, GenKL `0.00216`; `K=100` (`0.083%`): **92.0%** concept (43 both, 49 one, 8 neither) / **67.5%** prompt Top-1, GenKL `0.00703`, AdvKL `0.00983`, GeomOff `10⁻⁷` | [results_exp1_v4_antibleed.json](experiments/phase2/results_exp1_v4_antibleed.json) |
+| **Exp 2: Cross-Architecture** | `Qwen3-4B`, `Qwen2.5-7B`, `Llama-3.2-3B`, `Nanbeige-3B` | Zero per-model tuning: `100%` Write concept Top-1 across all 4 families; exact $\sqrt{2}\times$ Write gain & `-29%` norm on both untied models; **Llama-3.2-3B** (`K=5` & `K=20`, **zero CJK reliance**): `100%` concept Top-1, `GenKL = 0.00054 / 0.00140` | [results_exp2_cross_arch.json](experiments/phase2/results_exp2_cross_arch.json), [results_exp2_llama32.json](experiments/phase2/results_exp2_llama32.json) |
+| **Exp 3 & 4: AdamW / LoRA & Pareto** | `Qwen3-4B` | Highlighted SCG (`α=[0.8,1.0,0.8]`, `6.2 s`, `0` steps) achieves `100%` Write, `0.00000` traps, `[#1, #1]` MH with **`246×` lower GenKL** and **`4,677×` lower AdvKL** than best-MH `LoRA r=4 + KL` | [results_exp3_gradient_baseline.json](experiments/phase2/results_exp3_gradient_baseline.json), [results_exp4_read_pareto.json](experiments/phase2/results_exp4_read_pareto.json) |
+| **Exp 5: Stealth-Graft Audit** | `Qwen3-4B` | Naive & adaptive orthogonal-jitter splits (`M = 1..32` neurons) caught at **`1.0000` AUROC and `1.00` Recall@M** across all 9 tested attack configs via combined norm + `gate_proj` collinearity (`vibesplice audit`) | [results_exp5_stealth_audit.json](experiments/phase2/results_exp5_stealth_audit.json) |
+| **Exp 6: Transactional Lifecycle** | `Qwen3-4B` (`K=50`) | Update 10 in-place (`10.6 s`): `80%` NEW concept Top-1, `0.0%` OLD (`maxP 0.00047`); Delete 10 (`0.88 ms`): bit-exact rollback of edited parameter slots, `0.000000` printed Write probability, GenKL drops `0.00357 → 0.00277` | [results_exp6_unlearning.json](experiments/phase2/results_exp6_unlearning.json) |
+| **Exp 7: Multi-Token Civic Pilot** | `Qwen3-4B` | 33 L35 neurons (`0.0063%`, `0` embedding edits) for *Due West, SC*: `20/30` fit exact, `3/10` unseen exact (incl. 13-token phone `" 864-379-2385"`), `8/10` no full/prefix leak (`7/10` zero substring), GenKL `0.00088` | [results_exp7_multitoken_civic.json](experiments/phase2/results_exp7_multitoken_civic.json) |
 
 ---
 
 ## Requirements & Installation
 
-Requires Python 3.12+, `torch`, `transformers>=4.45`, `safetensors`, `pydantic` v2, `typer`, `rich`, and `numpy` (plus stdlib `curses` for the TUI). Tested on `Qwen/Qwen3-4B-Instruct-2507`, `Qwen/Qwen3.5-4B`, and `thinkingmachines/Inkling-2-Mini` sparse MoE (NVFP4/MXFP8).
+Requires Python 3.12+, `torch`, `transformers>=4.45`, `safetensors`, `pydantic` v2, `typer`, `rich`, and `numpy` (plus stdlib `curses` for the TUI). Tested on `Qwen3-4B-Instruct-2507`, `Qwen2.5-7B-Instruct`, `Meta Llama-3.2-3B-Instruct`, `Nanbeige4.2-3B`, `Qwen3.5-4B`, and `thinkingmachines/Inkling-2-Mini` sparse MoE (NVFP4/MXFP8).
 
 ```bash
 pip install -e .
@@ -79,21 +77,33 @@ pip install -e .
 
 ## CLI & TUI Workflows
 
-### 1. Batch-Stacking Multiple Concepts (`graft --spec`)
+### 1. Batch-Stacking Multiple Concepts with Joint Anti-Bleed (`graft --spec`)
 
-Stack multiple mutually orthogonal concepts (e.g., lore packs, local business catalogs, internal tooling jargon) into one checkpoint with zero cross-concept bleed:
+Compile multiple mutually orthogonal concepts (lore packs, local business catalogs, internal tooling jargon) into one checkpoint using **Leave-One-Out Joint Anti-Bleed Whitening** (`--joint`, enabled by default in `v0.4.0`):
 
 ```bash
 vibesplice graft \
   --model Qwen/Qwen3-4B-Instruct-2507 \
   --spec concepts.json \
+  --joint \
   --save-model ./grafted_multi \
   --out graft_report.json
 ```
 
-See [docs/concept-grafting.md](docs/concept-grafting.md) for the full theoretical derivation, Pareto KL tables, `--spec` JSON schema, Python API (`execute_concept_graft_batch`), and dual-domain simultaneous stacking receipts.
+### 2. Weight-Space Stealth-Graft Auditor (`audit`)
 
-### 2. Interactive TUI Studio (`open`)
+Scan any local HuggingFace checkpoint for single-neuron or adversarially split covert SwiGLU injections (`D1` `down_proj` norm z-score + `D2a` pairwise `gate_proj` collinearity):
+
+```bash
+vibesplice audit \
+  --model ./suspect_checkpoint \
+  --top 15 \
+  --out audit_report.json
+```
+
+See [docs/concept-grafting.md](docs/concept-grafting.md) for the full Phase-2 derivation, `--spec` JSON schema, Python API (`execute_concept_graft_batch`, `ConceptGrafter.graft_batch_joint`, `delete_concept`, `audit_checkpoint`), and tuning trade-offs.
+
+### 3. Interactive TUI Studio (`open`)
 
 Opens a target-free, full-model cluster atlas (cached in `.reclaim_cache/` after the first ~12s build):
 
@@ -124,13 +134,9 @@ vibesplice open \
 | `w` | *(MoE models)* Dequantize and inspect the top `W2` neurons of the highlighted expert via NVFP4/MXFP8 |
 | `W` (or `3`) | **Export Picker** (`same_size` mask, `uniform` shrink plan, `per_layer` shrink plan, or **`[4] Save Edited Weights`**) |
 
-**Common TUI Recipes:**
-* **Push-Pull Concept Removal:** Press `t` in `[2] Chat & Probe` to lock `[BASE]`, press `1` → `@` with seed words (e.g. `blue, azure, cobalt, cyan`), mark `+` clusters with `p` (PRUNE) and `-` suppressor clusters with `b` (BOOST), then `A` → `t` → `C`/`Z`.
-* **Pure Weight-Based Mood Folding:** Press `%`, enter a persona (e.g. `overly enthusiastic` or `grumpy and sarcastic`), dial strength with `[` / `]` (`1.5x–2.25x`), press `A` (folds directly into `L10..L23` `down_proj.weight` with zero runtime hooks), `c` to chat, then `C`/`Z`.
+### 4. Zero-Corpus Stein's-Lemma Behavioral Folding on Sparse MoE GGUFs (`gguf-fold`)
 
-### 3. Zero-Corpus Stein's-Lemma Behavioral Folding on Sparse MoE GGUFs (`gguf-fold`)
-
-Edit `Q8_0` MoE expert weights directly in-place on a local GGUF checkpoint (e.g., `Inkling-2-Mini-UD-Q4_K_M.gguf`) with zero runtime hooks, zero calibration corpus, and automatic SHA-256 verified backups:
+Edit `Q8_0` MoE expert weights directly in-place on a local GGUF checkpoint with zero runtime hooks, zero calibration corpus, and automatic SHA-256 verified backups:
 
 ```bash
 # Fold an "overly enthusiastic" direction across all 128 experts in Q8_0 layers L21-L23
@@ -140,86 +146,49 @@ vibesplice gguf-fold \
   --layers 21,22,23 \
   --alpha 3.8
 
-# Custom concept direction (--pos / --neg comma-separated seed words)
-vibesplice gguf-fold \
-  --model thinkingmachines/Inkling-2-Mini \
-  --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf \
-  --pos "pirate, ahoy, matey, arrr, treasure" \
-  --neg "however, standard, typically, formal" \
-  --alpha 4.0
-
 # Restore bit-exact original Q8_0 bytes (SHA-256 verified)
 vibesplice gguf-fold --gguf /path/to/Inkling-2-Mini-UD-Q4_K_M.gguf --restore
 ```
 
-### 4. Layer Overview, 3-Gate Merge Guard & Self-OBS Healing
+### 5. Layer Overview, 3-Gate Merge Guard & Self-OBS Healing
 
 ```bash
-# Layer-by-layer "disk usage" overview (zero corpus)
 vibesplice overview --model Qwen/Qwen3.5-4B --target cjk --step 2
-
-# Cluster layer 24 with spherical e-means
 vibesplice scan --model Qwen/Qwen3.5-4B --layer 24 --clusters 48 --out l24_report.json
-
-# Find cross-slot merge candidates (3-gate guard: gate/up cos, |lm_head| cone cos, down cos)
 vibesplice merge-candidates l24_report.json --max-pairs 20 --out l24_merges.json
-
-# Interactive cluster selector -> SurgeryPlan JSON
 vibesplice select l24_report.json --out l24_plan.json
-
-# Apply with orthogonalization, antipodal signs, L+1 gate shielding, Self-OBS healing, and save weights
-vibesplice apply \
-  --surgery l24_plan.json \
-  --merges l24_merges.json \
-  --ortho --sign --shield \
-  --heal self_obs \
-  --save-model ./edited_checkpoint \
-  --out l24_apply.json
+vibesplice apply --surgery l24_plan.json --merges l24_merges.json --ortho --sign --shield --heal self_obs --save-model ./edited_checkpoint --out l24_apply.json
 ```
-
-`--heal` accepts `none`, `self_obs` (closed-form ridge regression on self-generated rollouts), `self_kl`, or `obs_then_kl`, always evaluated on a held-out self-generated English split.
-
----
-
-## Methods & How It Works
-
-VibeSplice is built around **zero-corpus, weight-space interpretability**: modern LLM MLPs and MoE routers are structured enough that you can map, isolate, reclaim, and graft concepts directly in weight space without training Sparse Autoencoders or running large calibration datasets.
-
-1. **Surgical Concept Grafting (`graft.py`):**
-   * **RMSNorm × Tied-Head Scale Asymmetry & Private Orthogonal Addressing:** Grafting an unused token row as `e_G = γ · r_ref · (cos θ · e_kind + sin θ · u_perp)` (`θ ≈ 35°, γ ≈ 0.50–0.60`) exploits Layer-0 RMSNorm scale-invariance on the input side vs. exponential softmax suppression on the tied `lm_head` output side—cutting adversarial near-neighbor KL by **130×–275,000×** while retaining `81–100%` of downstream kind-twist & behavioral inheritance and installing a private orthogonal address `u_perp`.
-   * **Implicit Cone-Bias SwiGLU Self-Gating:** Inside bias-free SwiGLU layers, ridge-solving a unit-response cone vector `b` (`X b ≈ 1`) lets `w_gate = s(k - τ b)` push all background activations into SiLU's dead negative tail (`669×–29,475×` fit SNR, `≤ 0.0005%` wrong-attribute trap leak).
-   * **Multi-Scale Attribute Superposition (Read) + Private-Address Targeting (Write):** Injecting position-matched attribute states onto `<G>` across 3 CJK-reclaimed early/mid neurons (`L2, L12, L18`) unlocks zero-shot multi-hop world knowledge (*e.g., `Reykjavik` Rank #1, `Tokyo` Rank #4*), while 1 final-layer CJK-reclaimed neuron writes along `norm_w ⊙ u_perp` (orthogonalized against parent kinds) to emit `<G>` at Rank #1 on unseen naming paraphrases with zero parent-kind bleed. Full derivations: [docs/concept-grafting.md](docs/concept-grafting.md).
-2. **Zero-Corpus Global Atlas (`cluster.py`):** Normalizes MLP `down_proj` columns (or MoE router rows) in shared residual space, clusters with spherical `e-means`, auto-labels via Logit Lens (`lm_head * final_norm_w`), and supports `<0.5s` recursive drill-down and dual-pole `@` concept anchoring.
-3. **Surgical Actions, 3-Gate Merge Guard & Self-OBS Healing (`surgery.py`):** Supports `PRUNE` (uniform/per-layer shrink), `EMPTY` (reclaimed slots), `ERASE` (orthogonal subspace projection), `BOOST` (`2.5×` gain), 3-gate safe merging with L+1 downstream gate shielding, and zero-corpus Self-OBS / Self-KL healing.
-4. **Pure Weight-Based Behavioral Folding (`session.py`, `gguf_fold.py`):** Folds dense contrastive reply directions via rank-1 outer products into `L10..L23` `down_proj.weight`, and folds sparse MoE `Q8_0` GGUFs via **Stein's lemma** (`E_x[SwiGLU(x)_i] ∝ <W_gate[i], W_up[i]>`) with zero forward passes and bit-exact SHA-256 rollback.
 
 ---
 
 ## Code Map
 
-* [graft.py](graft.py) — Zero-corpus, closed-form Read+Write Surgical Concept Grafter (`ConceptGrafter`, RMSNorm-asymmetric base grafting, implicit cone-bias SwiGLU self-gating, multi-scale attribute superposition, private-address writes)
-* [models.py](models.py) — Pydantic v2 schemas (`ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `MitigationConfig`, `TransactionRecord`, `ApplyReport`, `GraftConfig`, `GraftReport`)
-* [weights.py](weights.py) — `safetensors`-direct weight loader (dense Qwen/Llama + sparse MoE NVFP4/MXFP8)
+* [graft.py](graft.py) — Phase-2 closed-form Surgical Concept Grafter (`ConceptGrafter`: Untied Pure-Orthogonal addressing, activation-filtered quiet slot reclamation, linear cone-gated SwiGLU, QR pre-RMSNorm Write projection, leave-one-out joint anti-bleed compilation `graft_batch_joint`, millisecond `delete_concept` slot rollback, and `audit_checkpoint` Blue-Team detector)
+* [models.py](models.py) — Pydantic v2 schemas (`GraftConfig`, `GraftReport`, `ReclaimedSlotInfo`, `AuditNeuronFlag`, `AuditLayerReport`, `ModelClusterAtlas`, `LayerReport`, `SurgeryPlan`, `MergePlan`, `ApplyReport`)
+* [cli.py](cli.py) — Typer + Rich CLI (`graft`, `audit`, `open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
+* [weights.py](weights.py) — `safetensors`-direct weight loader (dense Qwen/Llama/Nanbeige + sparse MoE NVFP4/MXFP8)
 * [gguf_fold.py](gguf_fold.py) — Zero-dependency GGUF v2/v3 parser, bit-exact `Q8_0` codec, and Stein's-lemma MoE behavioral folder with SHA-256 backups
 * [cluster.py](cluster.py) — Pure-PyTorch spherical `e-means`, global atlas builder, and 3-gate `find_merge_candidates`
 * [surgery.py](surgery.py) — Subspace erasure, recycling, orthogonalized antipodal merging, L+1 downstream gate shielding, Self-OBS, and Self-KL
-* [session.py](session.py) — Stateful transactional engine (`.reclaim_cache/`, recursive sub-clustering, dual-pole `@` anchor, full-reply `%` weight folding, backup/rollback stack, export plans)
-* [backend.py](backend.py) — Zero-dependency OpenAI-compatible HTTP client (`vLLM`, `llama-server`, `SGLang`) for Chat & Probe Diff
-* [tui.py](tui.py) — Zero-dependency `curses` TUI (`Explore`, `Chat & Probe`, `Export`, `Behavior Mixer`, `Model`)
-* [cli.py](cli.py) — Typer + Rich CLI entry point (`graft`, `open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
+* [session.py](session.py) / [tui.py](tui.py) / [backend.py](backend.py) — Stateful transactional TUI studio and OpenAI-compatible HTTP probe client
+* [experiments/phase2/](experiments/phase2/) — Complete reproducibility archive for all 7 Phase-2 experiments (pre-registered protocols, evaluation prompt suites, Python runners, and JSON receipts)
+* [paper/full/](paper/full/) — Full 9-page paper ([surgical_concept_grafting.pdf](paper/full/surgical_concept_grafting.pdf), Typst source, and vector figure generator)
 * [examples/](examples/) — Reproducible multi-domain showcase ([run_showcase.py](examples/run_showcase.py)) and 4-neuron Color ↔ Sound Sense-Swap ([sense_swap.py](examples/sense_swap.py))
 
 ---
+
+## Contact & Acknowledgments
+
+Built by **James Kassemi** ([`james@kassemi.org`](mailto:james@kassemi.org) · [ORCID `0009-0007-0438-6421`](https://orcid.org/0009-0007-0438-6421)) in close collaboration with **Gemini 4 Neon**. Open to research collaborations, technical advising, and applied weight-space engineering inquiries.
 
 ## Citation
 
 Machine-readable citation metadata is provided in [CITATION.cff](CITATION.cff) (also available via GitHub's **"Cite this repository"** sidebar button).
 
-If you use **VibeSplice** or build on **Surgical Concept Grafting (SCG)**, please cite:
-
 ```bibtex
 @article{kassemi2026scg,
-  title   = {Zero-Gradient Surgical Concept Grafting via RMSNorm--Head Scale Asymmetry and Reclaimed SwiGLU Neurons},
+  title   = {Zero-Gradient Surgical Concept Grafting: Scaling, Cross-Architecture Generalization, Transactional Rollback, and Weight-Space Auditing},
   author  = {Kassemi, James},
   journal = {alphaXiv},
   year    = {2026},
@@ -230,7 +199,7 @@ If you use **VibeSplice** or build on **Surgical Concept Grafting (SCG)**, pleas
 @software{kassemi2026vibesplice,
   title   = {VibeSplice: Zero-Corpus Weight Surgery and Surgical Concept Grafting for Pretrained Language Models},
   author  = {Kassemi, James},
-  version = {0.3.1},
+  version = {0.4.0},
   year    = {2026},
   month   = nov,
   doi     = {10.5281/zenodo.24522314},
@@ -239,4 +208,4 @@ If you use **VibeSplice** or build on **Surgical Concept Grafting (SCG)**, pleas
 }
 ```
 
-*(Concept DOI [`10.5281/zenodo.24522314`](https://doi.org/10.5281/zenodo.24522314) always resolves to the latest release; for the exact `v0.3.1` archival snapshot, cite [`10.5281/zenodo.24522315`](https://doi.org/10.5281/zenodo.24522315).)*
+*(Concept DOI [`10.5281/zenodo.24522314`](https://doi.org/10.5281/zenodo.24522314) always resolves to the latest release.)*

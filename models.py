@@ -219,16 +219,20 @@ class GraftConfig(BaseModel):
     attr_category: str = "place"
     token_name: str | None = None
     token_id: int | None = None
-    theta_deg: float = Field(default=35.0, ge=0.0, le=90.0)
-    gamma: float = Field(default=0.60, gt=0.0, le=2.0)
+    theta_deg: float = Field(default=45.0, ge=0.0, le=90.0)
+    gamma: float = Field(default=0.65, gt=0.0, le=2.0)
     read_layers: list[int] | None = None
-    read_alphas: list[float] = Field(default_factory=lambda: [1.5, 1.2, 0.8])
+    read_alphas: list[float] = Field(default_factory=lambda: [0.8, 1.0, 0.8])
     write_layer: int | None = None
     ridge_frac: float = Field(default=0.25, gt=0.0)
     bias_ridge_frac: float = Field(default=0.10, gt=0.0)
-    gate_tau: float = Field(default=0.50, gt=0.0, lt=1.0)
-    gate_sharp: float = Field(default=10.0, gt=0.0)
-    target_logit_boost: float = Field(default=14.0, gt=0.0)
+    gate_tau: float = Field(default=0.55, gt=0.0, lt=1.0)
+    gate_sharp: float = Field(default=12.0, gt=0.0)
+    target_logit_boost: float = Field(default=20.0, gt=0.0)
+    max_logit_boost: float = Field(default=26.0, gt=0.0)
+    linear_cone_write: bool = True
+    untied_pure_ortho: bool = True
+    quiet_reclaim: bool = True
     seed: int = 20261125
     naming_prompts: list[str] | None = None
 
@@ -239,6 +243,7 @@ class ReclaimedSlotInfo(BaseModel):
     role: str
     down_norm: float = Field(ge=0.0)
     cjk_share: float = Field(ge=0.0, le=1.0)
+    eng_pert: float = Field(default=0.0, ge=0.0)
     top_tokens: list[str] = Field(default_factory=list)
 
 
@@ -274,3 +279,27 @@ class GraftReport(BaseModel):
     write_fit_snr: float = Field(ge=0.0)
     live_probes: list[GraftProbeResult] = Field(default_factory=list)
     saved_model_dir: str | None = None
+
+
+class AuditNeuronFlag(BaseModel):
+    neuron_idx: int = Field(ge=0)
+    down_norm: float = Field(ge=0.0)
+    norm_ratio: float = Field(ge=0.0)
+    norm_z: float
+    max_gate_cos: float = Field(ge=0.0, le=1.0)
+    gate_partner_idx: int = Field(ge=0)
+    gate_z: float
+    combined_score: float
+    flag_reason: str
+
+
+class AuditLayerReport(BaseModel):
+    model_path: str
+    layer: int = Field(ge=0)
+    d_mlp: int = Field(gt=0)
+    norm_median: float = Field(ge=0.0)
+    norm_p99: float = Field(ge=0.0)
+    gate_cos_median: float = Field(ge=0.0)
+    gate_cos_p99: float = Field(ge=0.0)
+    flagged_count: int = Field(ge=0)
+    top_suspects: list[AuditNeuronFlag] = Field(default_factory=list)
