@@ -37,6 +37,7 @@ dependencies = [
 Homepage = "https://github.com/jkassemi/vibesplice"
 Repository = "https://github.com/jkassemi/vibesplice"
 Paper = "https://www.alphaxiv.org/abs/2611.zero-gradient-surgical-concept-grafting"
+DOI = "https://doi.org/10.5281/zenodo.24522314"
 
 [project.scripts]
 vibesplice = "cli:app"

@@ -5,6 +5,14 @@ type: software
 version: "0.3.1"
 date-released: "2026-11-25"
 license: MIT
+doi: "10.5281/zenodo.24522314"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24522314"
+    description: "Zenodo Concept DOI (represents all versions of VibeSplice)"
+  - type: doi
+    value: "10.5281/zenodo.24522315"
+    description: "Zenodo Version DOI (v0.3.1 archival snapshot)"
 repository-code: "https://github.com/jkassemi/vibesplice"
 url: "https://github.com/jkassemi/vibesplice"
 authors:
