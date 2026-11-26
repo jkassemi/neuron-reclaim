@@ -42,7 +42,7 @@ vibesplice graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --join
 
 ### CLI: Blue-Team Weight-Space Stealth-Graft Auditor (`audit`)
 ```bash
-vibesplice audit --model ./grafted_multi --top 15 --out audit_report.json
+vibesplice audit --model ./grafted_multi --top-k 15 --out audit_report.json
 ```
 Computes per-layer `down_proj` norm z-scores (`D1`) and pairwise `gate_proj` collinearity z-scores (`D2a`), catching both single-neuron and adversarially split (`M = 4..32`) covert Write grafts at `1.0000` AUROC across all 9 tested attack configurations.
 
@@ -52,7 +52,7 @@ from pathlib import Path
 from graft import ConceptGrafter, audit_checkpoint, execute_concept_graft_batch
 from models import GraftConfig
 
-# High-level one-shot batch compilation (default joint=True)
+# High-level one-shot batch compilation (default joint_antibleed=True)
 reports = execute_concept_graft_batch(
     "Qwen/Qwen3-4B-Instruct-2507",
     [
@@ -61,7 +61,7 @@ reports = execute_concept_graft_batch(
     ],
     save_dir=Path("./grafted_two_concepts"),
     run_probes=True,
-    joint=True,
+    joint_antibleed=True,
 )
 
 # Stateful transactional lifecycle (install -> delete_concept in <1 ms)
