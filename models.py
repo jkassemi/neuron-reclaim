@@ -406,3 +406,14 @@ class ReferenceDiffReport(BaseModel):
     matrices: list[ReferenceDiffMatrixReport] = Field(default_factory=list)
     verdict: str
     notes: list[str] = Field(default_factory=list)
+
+
+class LedgerOperationReport(BaseModel):
+    operation: str  # add | delete | update
+    affected_token_ids: list[int] = Field(default_factory=list)
+    active_count: int = Field(ge=0)
+    active_token_ids: list[int] = Field(default_factory=list)
+    refresh_post_read: bool = True
+    elapsed_ms: float = Field(ge=0.0)
+    write_fit_snrs: dict[int, float] = Field(default_factory=dict)
+    saved_model_dir: str | None = None

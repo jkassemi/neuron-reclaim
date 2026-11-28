@@ -95,12 +95,25 @@ reports = execute_concept_graft_batch(
     joint_antibleed=True,
 )
 
-# Stateful transactional lifecycle (install -> delete_concept in <1 ms)
+# Stateful transactional lifecycle (fast <1 ms slot rollback)
 grafter = ConceptGrafter("Qwen/Qwen3-4B-Instruct-2507")
 reports = grafter.graft_batch_joint([
     GraftConfig(token_name="solis", kind_words=["taste", "smell"], kind_label="flavor", attr_adj="Icelandic", attr_noun="Iceland"),
 ])
 grafter.delete_concept(reports[0].token_id)  # bit-exact rollback of edited parameter slots
+
+# Streaming exact continuous learning & 0.00000000 unlearning closure (v0.5.0)
+from ledger import StreamingSCGLedger
+
+ledger = StreamingSCGLedger(grafter, refresh_post_read=True)  # refreshes post-Read X_pos to avoid covariate shift
+add_rep = ledger.add_concepts([
+    GraftConfig(token_name="solis", kind_words=["taste", "smell"], kind_label="flavor", attr_adj="Icelandic", attr_noun="Iceland"),
+    GraftConfig(token_name="kora",  kind_words=["sound", "voice"], kind_label="sound",  attr_adj="Japanese",  attr_noun="Japan"),
+])
+del_rep = ledger.delete_concept(add_rep.affected_token_ids[0])  # exact S_pack update + surviving Write re-solve
+upd_rep = ledger.update_concept(add_rep.affected_token_ids[1], GraftConfig(
+    token_name="kora", kind_words=["sound", "voice"], kind_label="sound", attr_adj="Brazilian", attr_noun="Brazil",
+))
 ```
 
 ---
