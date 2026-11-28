@@ -60,6 +60,18 @@ _DEFAULT_WHITEN_GEN = [
     "He folded the newspaper neatly and placed it beside the kettle.",
 ]
 
+# Disjoint Chinese + Japanese calibration sentences for Quiet_Multilingual_Safe slot selection
+# and CJK-preserving SwiGLU whitening (Study 23 Part B: eliminates 99% of CJK PPL drift while
+# improving Write Top-1, Multi-Hop, and GenKL on both Qwen3-4B and Llama-3.2-3B).
+_DEFAULT_WHITEN_CJK = [
+    "今天天气很好，许多居民在公园里散步并讨论社区的未来发展规划。",
+    "人工智能技术在医疗影像分析和气候预测方面取得了显著进展。",
+    "京都の古い寺院では秋の紅葉が美しく、多くの観光客が訪れます。",
+    "高速鉄道の運行システムは精密なセンサーと信号制御によって支えられています。",
+    "中国古代的造纸术和印刷术对世界文化的传播产生了深远影响。",
+    "東京の研究所では新しい電池材料の耐久性と安全性を検証しています。",
+]
+
 _CROSS_DOMAIN_NAMING_NEGS = [
     "The rare Canadian spice is called",
     "In Switzerland, that distinctive instrument is called",
@@ -482,7 +494,7 @@ class ConceptGrafter:
         self.e_kind_dirs: list[np.ndarray] = []
         self.u_perp_dirs: list[np.ndarray] = []
         self.nw_dwrite_dirs: list[np.ndarray] = []
-        self._quiet_slot_cache: dict[tuple[int, str], list[tuple[int, float, float, float, list[str]]]] = {}
+        self._quiet_slot_cache: dict[tuple[int, str, bool], list[tuple[int, float, float, float, float, list[str]]]] = {}
         # Transactional snapshots for exact millisecond unlearning: tid -> (orig_emb, orig_out, [(l, j, wg, wu, wd), ...])
         self._concept_snapshots: dict[int, tuple[torch.Tensor, torch.Tensor | None, list[tuple[int, int, torch.Tensor, torch.Tensor, torch.Tensor]]]] = {}
 
@@ -611,28 +623,24 @@ class ConceptGrafter:
                 return rtid, None
         raise RuntimeError("No unused padding or reserved token slots available; pass an explicit --token-id.")
 
+    def _build_whiten_gen_seqs(self, multilingual_safe: bool = True) -> list[list[int]]:
+        """Build background whitening token sequences (English + disjoint CJK when multilingual_safe=True)."""
+        seqs = [self.enc(s) for s in _DEFAULT_WHITEN_GEN]
+        if multilingual_safe:
+            seqs.extend(self.enc(s) for s in _DEFAULT_WHITEN_CJK)
+        return seqs
+
     @torch.no_grad()
-    def precompute_quiet_slots(self, read_layers: list[int], write_layer: int) -> None:
-        """
-        Zero-corpus activation-filtered quiet slot reclamation:
-        Runs 1 forward pass over _DEFAULT_WHITEN_GEN to measure worst-case English residual
-        perturbation energy per neuron. On CJK-rich models, prioritizes CJK-leaning neurons
-        sorted by lowest English energy; on English-centric models (e.g. Llama-3), seamlessly
-        falls back to lowest English energy across all neurons.
-        """
-        missing = [(rl, "input") for rl in read_layers if (rl, "input") not in self._quiet_slot_cache]
-        if (write_layer, "output") not in self._quiet_slot_cache:
-            missing.append((write_layer, "output"))
-        if not missing:
-            return
-
-        whiten_seqs = [self.enc(s) for s in _DEFAULT_WHITEN_GEN]
-        ids, mask, _ = _pad_seqs(whiten_seqs, self.tok.pad_token_id, self.device)
+    def _measure_mlp_max_perturbation(
+        self,
+        seqs: list[list[int]],
+        target_layers: list[int],
+    ) -> dict[int, np.ndarray]:
+        """Measure per-neuron worst-case residual perturbation energy ||(SiLU(g)*u) * ||w_down||||_inf."""
+        ids, mask, _ = _pad_seqs(seqs, self.tok.pad_token_id, self.device)
         mask_bool = mask.bool()
-        eng_energy: dict[int, np.ndarray] = {}
+        energy: dict[int, np.ndarray] = {}
         hooks = []
-        target_layers = sorted({l for l, _ in missing})
-
         for l_idx in target_layers:
             def _make(li: int):
                 def _fn(mod, inp):
@@ -640,16 +648,61 @@ class ConceptGrafter:
                     g = F.silu(F.linear(x, mod.gate_proj.weight.detach().float()))
                     u = F.linear(x, mod.up_proj.weight.detach().float())
                     dn = mod.down_proj.weight.detach().float().norm(dim=0)
-                    eng_energy[li] = ((g * u).abs().amax(dim=0) * dn).cpu().numpy()
+                    energy[li] = ((g * u).abs().amax(dim=0) * dn).cpu().numpy()
                 return _fn
             hooks.append(self.layers[l_idx].mlp.register_forward_pre_hook(_make(l_idx)))
-        self.backbone(input_ids=ids, attention_mask=mask, output_hidden_states=False)
-        for h in hooks:
-            h.remove()
+        try:
+            self.backbone(input_ids=ids, attention_mask=mask, output_hidden_states=False)
+        finally:
+            for h in hooks:
+                h.remove()
+        return energy
+
+    @staticmethod
+    def _rank_multilingual_safe_indices(
+        eng_pert: np.ndarray,
+        cjk_pert: np.ndarray,
+        norms: np.ndarray,
+        top_n: int = 250,
+    ) -> list[int]:
+        """Rank neurons by lowest worst-case max(eng_pert, cjk_pert), breaking ties by down_norm."""
+        joint_pert = np.maximum(eng_pert, cjk_pert)
+        order = np.lexsort((norms, joint_pert))
+        return [int(j) for j in order[:top_n]]
+
+    @torch.no_grad()
+    def precompute_quiet_slots(
+        self,
+        read_layers: list[int],
+        write_layer: int,
+        multilingual_safe: bool = True,
+    ) -> None:
+        """
+        Zero-corpus activation-filtered quiet slot reclamation:
+          - `multilingual_safe=True` (v0.5.0 default, Study 23 Part B): ranks neurons strictly by
+            lowest worst-case perturbation energy `max(eng_pert, cjk_pert)` across disjoint English
+            (`_DEFAULT_WHITEN_GEN`) and Chinese/Japanese (`_DEFAULT_WHITEN_CJK`) calibration prose,
+            preserving both English and CJK fluency (eliminating 99% of CJK PPL drift).
+          - `multilingual_safe=False` (legacy v0.4.x mode): ranks CJK-leaning neurons first on
+            CJK-rich models and English-quiet neurons on English-centric models.
+        """
+        missing = [(rl, "input") for rl in read_layers if (rl, "input", multilingual_safe) not in self._quiet_slot_cache]
+        if (write_layer, "output", multilingual_safe) not in self._quiet_slot_cache:
+            missing.append((write_layer, "output"))
+        if not missing:
+            return
+
+        target_layers = sorted({l for l, _ in missing})
+        eng_energy = self._measure_mlp_max_perturbation([self.enc(s) for s in _DEFAULT_WHITEN_GEN], target_layers)
+        cjk_energy = (
+            self._measure_mlp_max_perturbation([self.enc(s) for s in _DEFAULT_WHITEN_CJK], target_layers)
+            if multilingual_safe
+            else {li: np.zeros_like(eng_energy[li]) for li in target_layers}
+        )
 
         active = min(self.vocab_size, self.orig_active_vocab)
         cjk_share_total = float(self.cjk_mask[:active].float().mean().item())
-        use_cjk_tier = cjk_share_total >= 0.03  # CJK-rich vocab (Qwen) vs English-centric (Llama)
+        use_cjk_tier = (not multilingual_safe) and (cjk_share_total >= 0.03)
         cjk_t = self.cjk_mask[:active].to(self.device)
         lat_t = self.latin_mask[:active].to(self.device)
 
@@ -658,6 +711,7 @@ class ConceptGrafter:
             down = mlp.down_proj.weight.detach()
             norms = down.float().norm(dim=0).cpu().numpy()
             e_pert = eng_energy[layer_idx]
+            c_pert = cjk_energy[layer_idx]
             if mode == "output":
                 proj_mat = self.out_w[:active].detach()
                 W = (down * self.final_norm.weight.detach().unsqueeze(1)).to(proj_mat.dtype)
@@ -666,8 +720,24 @@ class ConceptGrafter:
                 W = mlp.gate_proj.weight.detach().T.to(proj_mat.dtype)
 
             d_mlp = W.shape[1]
-            rows = []
-            if use_cjk_tier:
+            ranked = []
+            if multilingual_safe:
+                top_js = self._rank_multilingual_safe_indices(e_pert, c_pert, norms, top_n=250)
+                for j in top_js:
+                    scores_j = (proj_mat @ W[:, j]).float()
+                    top16 = torch.topk(scores_j, 16).indices
+                    cp = float(cjk_t[top16].mean().item())
+                    top6 = top16[:6].cpu().tolist()
+                    ranked.append((
+                        j,
+                        round(cp, 3),
+                        round(float(e_pert[j]), 5),
+                        round(float(c_pert[j]), 5),
+                        round(float(norms[j]), 4),
+                        [self.decoded[t] for t in top6],
+                    ))
+            elif use_cjk_tier:
+                rows = []
                 chunk = 512
                 for start in range(0, d_mlp, chunk):
                     end = min(start + chunk, d_mlp)
@@ -684,23 +754,30 @@ class ConceptGrafter:
                         tier = 1 if cp >= 0.50 else 0
                         rows.append((tier, -ep, cp, -lb, -float(norms[j]), j))
                 rows.sort(reverse=True)
+                for _tier, neg_ep, cp, _neg_lb, neg_norm, j in rows[:250]:
+                    top6 = torch.topk((proj_mat @ W[:, j]).float(), 6).indices.cpu().tolist()
+                    ranked.append((j, round(cp, 3), round(-neg_ep, 5), 0.0, round(-neg_norm, 4), [self.decoded[t] for t in top6]))
             else:
                 order = np.argsort(e_pert)
-                rows = [(0, -float(e_pert[j]), 0.0, 0.0, -float(norms[j]), int(j)) for j in order[:250]]
+                for j_raw in order[:250]:
+                    j = int(j_raw)
+                    top6 = torch.topk((proj_mat @ W[:, j]).float(), 6).indices.cpu().tolist()
+                    ranked.append((j, 0.0, round(float(e_pert[j]), 5), 0.0, round(float(norms[j]), 4), [self.decoded[t] for t in top6]))
 
-            ranked = []
-            for _tier, neg_ep, cp, _neg_lb, neg_norm, j in rows[:250]:
-                top6 = torch.topk((proj_mat @ W[:, j]).float(), 6).indices.cpu().tolist()
-                ranked.append((j, round(cp, 3), round(-neg_ep, 5), round(-neg_norm, 4), [self.decoded[t] for t in top6]))
-            self._quiet_slot_cache[(layer_idx, mode)] = ranked
+            self._quiet_slot_cache[(layer_idx, mode, multilingual_safe)] = ranked
             del W
             if self.device.type == "cuda":
                 torch.cuda.empty_cache()
 
-    def find_quiet_slot(self, layer_idx: int, mode: str) -> ReclaimedSlotInfo:
-        if (layer_idx, mode) not in self._quiet_slot_cache:
-            self.precompute_quiet_slots([layer_idx] if mode == "input" else [], layer_idx if mode == "output" else self.num_layers - 1)
-        for j, cp, ep, norm_val, top6 in self._quiet_slot_cache[(layer_idx, mode)]:
+    def find_quiet_slot(self, layer_idx: int, mode: str, multilingual_safe: bool = True) -> ReclaimedSlotInfo:
+        key = (layer_idx, mode, multilingual_safe)
+        if key not in self._quiet_slot_cache:
+            self.precompute_quiet_slots(
+                [layer_idx] if mode == "input" else [],
+                layer_idx if mode == "output" else self.num_layers - 1,
+                multilingual_safe=multilingual_safe,
+            )
+        for j, cp, ep, cjk_ep, norm_val, top6 in self._quiet_slot_cache[key]:
             if (layer_idx, j) not in self.used_slots:
                 self.used_slots.add((layer_idx, j))
                 return ReclaimedSlotInfo(
@@ -710,6 +787,7 @@ class ConceptGrafter:
                     down_norm=norm_val,
                     cjk_share=cp,
                     eng_pert=ep,
+                    cjk_pert=cjk_ep,
                     top_tokens=top6,
                 )
         raise RuntimeError(f"No available quiet neuron slot at layer {layer_idx}")
@@ -882,15 +960,15 @@ class ConceptGrafter:
         """Execute full 3-stage Phase-2 zero-corpus surgical concept graft in-place."""
         tid, token_content = self.register_token_slot(token_name=cfg.token_name, requested_id=cfg.token_id)
         read_layers, write_layer = self._default_layer_schedule(cfg)
-        self.precompute_quiet_slots(read_layers, write_layer)
+        self.precompute_quiet_slots(read_layers, write_layer, multilingual_safe=cfg.multilingual_safe)
 
         # 1. Reclaim quiet SwiGLU slots & snapshot original bytes for exact unlearning
         reclaimed_read: list[ReclaimedSlotInfo] = []
         for rl in read_layers:
-            info = self.find_quiet_slot(rl, mode="input")
+            info = self.find_quiet_slot(rl, mode="input", multilingual_safe=cfg.multilingual_safe)
             info.role = f"read_L{rl}"
             reclaimed_read.append(info)
-        write_slot = self.find_quiet_slot(write_layer, mode="output")
+        write_slot = self.find_quiet_slot(write_layer, mode="output", multilingual_safe=cfg.multilingual_safe)
         write_slot.role = f"write_L{write_layer}"
         all_slots = reclaimed_read + [write_slot]
         self._snapshot_concept(tid, all_slots)
@@ -949,7 +1027,7 @@ class ConceptGrafter:
                 else:
                     e_out_np = e_in_np
 
-        whiten_gen_seqs = [self.enc(s) for s in _DEFAULT_WHITEN_GEN]
+        whiten_gen_seqs = self._build_whiten_gen_seqs(multilingual_safe=cfg.multilingual_safe)
         hard_neg_seqs = [self.enc(s) for s in _build_contrast_negatives(cfg)]
         kind_neg_seqs = [self.enc(f"the {w.strip()}") for w in cfg.kind_words] + [
             self.enc(f"the {cfg.kind_label}"),
@@ -1108,7 +1186,8 @@ class ConceptGrafter:
 
         K = len(configs)
         read_layers, write_layer = self._default_layer_schedule(configs[0])
-        self.precompute_quiet_slots(read_layers, write_layer)
+        use_ml_safe = any(c.multilingual_safe for c in configs)
+        self.precompute_quiet_slots(read_layers, write_layer, multilingual_safe=use_ml_safe)
 
         tids: list[int] = []
         token_contents: list[str | None] = []
@@ -1121,10 +1200,10 @@ class ConceptGrafter:
             token_contents.append(tc)
             r_sl = []
             for rl in read_layers:
-                info = self.find_quiet_slot(rl, mode="input")
+                info = self.find_quiet_slot(rl, mode="input", multilingual_safe=use_ml_safe)
                 info.role = f"read_L{rl}"
                 r_sl.append(info)
-            w_sl = self.find_quiet_slot(write_layer, mode="output")
+            w_sl = self.find_quiet_slot(write_layer, mode="output", multilingual_safe=use_ml_safe)
             w_sl.role = f"write_L{write_layer}"
             read_slots_all.append(r_sl)
             write_slots_all.append(w_sl)
@@ -1197,7 +1276,7 @@ class ConceptGrafter:
                 e_out_batch.append(e_out_np)
 
         # Stage 2: Layer-by-layer Read superposition
-        whiten_gen_seqs = [self.enc(s) for s in _DEFAULT_WHITEN_GEN]
+        whiten_gen_seqs = self._build_whiten_gen_seqs(multilingual_safe=use_ml_safe)
         read_snrs_all: list[dict[int, float]] = [{} for _ in range(K)]
         n_rl = len(read_layers)
         for idx_l, rl in enumerate(read_layers):

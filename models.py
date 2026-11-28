@@ -233,6 +233,7 @@ class GraftConfig(BaseModel):
     linear_cone_write: bool = True
     untied_pure_ortho: bool = True
     quiet_reclaim: bool = True
+    multilingual_safe: bool = True
     carryover_safe: bool = True
     carryover_rank: int = Field(default=4, ge=0, le=32)
     carryover_weight: float = Field(default=1.5, ge=0.0)
@@ -248,6 +249,7 @@ class ReclaimedSlotInfo(BaseModel):
     down_norm: float = Field(ge=0.0)
     cjk_share: float = Field(ge=0.0, le=1.0)
     eng_pert: float = Field(default=0.0, ge=0.0)
+    cjk_pert: float = Field(default=0.0, ge=0.0)
     top_tokens: list[str] = Field(default_factory=list)
 
 
