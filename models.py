@@ -233,6 +233,10 @@ class GraftConfig(BaseModel):
     linear_cone_write: bool = True
     untied_pure_ortho: bool = True
     quiet_reclaim: bool = True
+    carryover_safe: bool = True
+    carryover_rank: int = Field(default=4, ge=0, le=32)
+    carryover_weight: float = Field(default=1.5, ge=0.0)
+    max_rel_norm: float | None = Field(default=None, gt=0.0)
     seed: int = 20261125
     naming_prompts: list[str] | None = None
 
@@ -303,3 +307,43 @@ class AuditLayerReport(BaseModel):
     gate_cos_p99: float = Field(ge=0.0)
     flagged_count: int = Field(ge=0)
     top_suspects: list[AuditNeuronFlag] = Field(default_factory=list)
+
+
+class LatchingLayerMetrics(BaseModel):
+    layer: int = Field(ge=0)
+    neuron_indices: list[int] = Field(default_factory=list)
+    dz_hist: float
+    dz_self: float
+    max_act_solo: float = Field(ge=0.0)
+    max_act_multi: float = Field(ge=0.0)
+    r_norm: float = Field(ge=0.0)
+    flagged_reasons: list[str] = Field(default_factory=list)
+
+
+class LatchingAuditReport(BaseModel):
+    base_model: str
+    edited_model: str
+    n_off_prompts: int = Field(gt=0)
+    kl_solo: float = Field(ge=0.0)
+    kl_multi: float = Field(ge=0.0)
+    kl_ratio: float = Field(ge=0.0)
+    layer_metrics: list[LatchingLayerMetrics] = Field(default_factory=list)
+    verdict: str
+    recommendations: list[str] = Field(default_factory=list)
+
+
+class LatchingRepairReport(BaseModel):
+    target_path: str
+    saved_path: str | None = None
+    mode: str
+    rank: int = Field(ge=0)
+    layers_repaired: list[int] = Field(default_factory=list)
+    max_rel_norm: float | None = None
+    core_active_passes: list[int] | None = None
+    before_kl_solo: float | None = None
+    before_kl_multi: float | None = None
+    after_kl_solo: float | None = None
+    after_kl_multi: float | None = None
+    before_dz_hist: float | None = None
+    after_dz_hist: float | None = None
+    explained_var_ratio: dict[int, float] = Field(default_factory=dict)

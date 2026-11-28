@@ -50,9 +50,14 @@ py-modules = [
     "cluster",
     "gguf_fold",
     "graft",
+    "latch",
     "models",
     "session",
     "surgery",
     "tui",
     "weights",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
