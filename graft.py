@@ -33,6 +33,12 @@ import torch.nn.functional as F
 from transformers import AddedToken
 
 from cluster import build_vocab_masks
+from latch import (
+    DEFAULT_DEV_CARRYOVER_OFF_PROMPTS,
+    _format_chat_prompt,
+    extract_carryover_subspace,
+    project_vector_orthogonal,
+)
 from models import (
     AuditLayerReport,
     AuditNeuronFlag,
@@ -360,9 +366,12 @@ def _fit_linear_cone_swiglu_key(
     X_bg_all: np.ndarray,
     C_hard: np.ndarray | None = None,
     C_instack: np.ndarray | None = None,
+    C_carry: np.ndarray | None = None,
+    U_hist: np.ndarray | None = None,
     X_eval_neg: np.ndarray | None = None,
     w_hard: float = 1.5,
     w_instack: float = 3.0,
+    w_carry: float = 1.5,
     ridge_frac: float = 0.25,
     bias_ridge_frac: float = 0.10,
     gate_tau: float = 0.55,
@@ -370,10 +379,11 @@ def _fit_linear_cone_swiglu_key(
     linear_cone: bool = True,
 ) -> tuple[np.ndarray, np.ndarray, float, float]:
     """
-    Phase-2 Linear Cone-Gated SwiGLU Key:
-      w_gate = gate_sharp * (k - gate_tau * b)
+    Phase-2 Linear Cone-Gated SwiGLU Key (with optional Study 27 multi-turn carryover protection):
+      w_gate = gate_sharp * (k_perp - gate_tau * b)
       w_up   = b   (unit-response cone vector, b @ x ~= 1.0 -> linear above threshold!)
-    Supports optional weighted hard-negative and Leave-One-Out in-stack anti-bleed covariances.
+    When `U_hist` is supplied, projects history-carryover directions out of `k` ONLY before
+    forming `w_gate`, keeping the single-turn cone bias anchor `b` and `w_up = b` intact.
     Returns (w_gate, w_up, a_ref_p35, snr).
     """
     D = X_pos.shape[1]
@@ -382,8 +392,12 @@ def _fit_linear_cone_swiglu_key(
         C_neg = C_neg + w_hard * C_hard
     if C_instack is not None:
         C_neg = C_neg + w_instack * C_instack
+    if C_carry is not None and w_carry > 0.0:
+        C_neg = C_neg + w_carry * C_carry
     lam = ridge_frac * float(np.mean(np.diag(C_neg)))
     k = np.linalg.solve(C_neg + lam * np.eye(D), X_pos.mean(axis=0))
+    if U_hist is not None and U_hist.size > 0:
+        k = project_vector_orthogonal(k, U_hist, preserve_norm=False)
     pos_mean = float((X_pos @ k).mean())
     if abs(pos_mean) < 1e-12:
         raise RuntimeError("Degenerate linear cone SwiGLU key fit.")
@@ -997,9 +1011,16 @@ class ConceptGrafter:
         ])
         C_bg = (X_bg_w.T @ X_bg_w) / len(X_bg_w)
         C_hard = (X_hard_last.T @ X_hard_last) / len(X_hard_last)
+        C_carry_w = None
+        U_hist_w = None
+        if cfg.carryover_safe and (cfg.carryover_rank > 0 or cfg.carryover_weight > 0.0):
+            U_hist_w, C_carry_w = self._compute_carryover_guard(
+                [cfg], [token_content], write_layer, rank=cfg.carryover_rank
+            )
         w_gate_w, w_up_w, a_ref_w, write_snr = _fit_linear_cone_swiglu_key(
-            X_pos_w, C_bg, X_bg_w, C_hard=C_hard, X_eval_neg=X_hard_last,
-            w_hard=1.5, ridge_frac=cfg.ridge_frac, bias_ridge_frac=cfg.bias_ridge_frac,
+            X_pos_w, C_bg, X_bg_w, C_hard=C_hard, C_carry=C_carry_w, U_hist=U_hist_w,
+            X_eval_neg=X_hard_last, w_hard=1.5, w_carry=cfg.carryover_weight,
+            ridge_frac=cfg.ridge_frac, bias_ridge_frac=cfg.bias_ridge_frac,
             gate_tau=cfg.gate_tau, gate_sharp=cfg.gate_sharp, linear_cone=cfg.linear_cone_write,
         )
         rms_write = self.capture_pre_norm_rms(fit_write_seqs)
@@ -1024,6 +1045,9 @@ class ConceptGrafter:
             dz_target = min(cfg.max_logit_boost, 0.78 * z_max, max(cfg.target_logit_boost, z_gap + 5.0))
             denom_sq = max(eff_gain**2 - (dz_target**2) / self.d_model, 0.25 * (eff_gain**2))
             m_req = (dz_target * rms_write) / math.sqrt(denom_sq)
+            if cfg.max_rel_norm is not None:
+                y_nat_norm = self._capture_mlp_output_norm(fit_write_seqs, write_layer)
+                m_req = min(m_req, cfg.max_rel_norm * y_nat_norm)
             w_down_w = (m_req / max(a_ref_w, 1e-4)) * d_write
 
             mlp_w = self.layers[write_layer].mlp
@@ -1225,6 +1249,14 @@ class ConceptGrafter:
         nw64 = self.nw_np.astype(np.float64)
         write_snrs_all: list[float] = []
 
+        U_hist_batch = None
+        C_carry_batch = None
+        if any(c.carryover_safe for c in configs):
+            max_rk = max((c.carryover_rank for c in configs if c.carryover_safe), default=4)
+            U_hist_batch, C_carry_batch = self._compute_carryover_guard(
+                configs, token_contents, write_layer, rank=max_rk
+            )
+
         for i, cfg in enumerate(configs):
             X_pos_i = X_pos_list[i]
             hn_seqs = [self.enc(p) for p in _build_contrast_negatives(cfg)]
@@ -1235,9 +1267,13 @@ class ConceptGrafter:
             S_minus_i = S_pack - (X_pos_i.astype(np.float64).T @ X_pos_i.astype(np.float64))
             C_instack = (S_minus_i / max(n_pack_rows - len(X_pos_i), 1)).astype(np.float32)
 
+            u_i = U_hist_batch[:, : cfg.carryover_rank] if (cfg.carryover_safe and U_hist_batch is not None and cfg.carryover_rank > 0) else None
+            c_i = C_carry_batch if (cfg.carryover_safe and C_carry_batch is not None) else None
             wg_w, wu_w, a_ref_w, snr_w = _fit_linear_cone_swiglu_key(
-                X_pos_i, C_bg, X_bg_all, C_hard=C_hard, C_instack=C_instack, X_eval_neg=X_hard_last,
-                w_hard=1.5, w_instack=w_instack, ridge_frac=cfg.ridge_frac, bias_ridge_frac=cfg.bias_ridge_frac,
+                X_pos_i, C_bg, X_bg_all, C_hard=C_hard, C_instack=C_instack,
+                C_carry=c_i, U_hist=u_i, X_eval_neg=X_hard_last,
+                w_hard=1.5, w_instack=w_instack, w_carry=cfg.carryover_weight,
+                ridge_frac=cfg.ridge_frac, bias_ridge_frac=cfg.bias_ridge_frac,
                 gate_tau=cfg.gate_tau, gate_sharp=cfg.gate_sharp, linear_cone=cfg.linear_cone_write,
             )
             write_snrs_all.append(snr_w)
@@ -1258,6 +1294,10 @@ class ConceptGrafter:
             dz_target = min(cfg.max_logit_boost, 0.78 * z_max, max(cfg.target_logit_boost, z_gap_list[i] + 5.0))
             denom_sq = max(eff_gain**2 - (dz_target**2) / self.d_model, 0.25 * (eff_gain**2))
             m_req = (dz_target * rms_list[i]) / math.sqrt(denom_sq)
+            if cfg.max_rel_norm is not None:
+                prompts_i = cfg.naming_prompts or _build_default_naming_prompts(cfg)
+                y_nat_norm = self._capture_mlp_output_norm([self.enc(p) for p in prompts_i], write_layer)
+                m_req = min(m_req, cfg.max_rel_norm * y_nat_norm)
             w_down_w = (m_req / max(a_ref_w, 1e-4)) * d_write
 
             j_slot = write_slots_all[i].neuron_idx
@@ -1306,6 +1346,59 @@ class ConceptGrafter:
                 )
             )
         return reports
+
+    @torch.no_grad()
+    def _capture_mlp_output_norm(self, seqs: list[list[int]], layer: int) -> float:
+        """Measure mean L2 norm of native MLP output on the final token of `seqs`."""
+        norms: list[float] = []
+        cap: list[float] = []
+
+        def _hook(_mod, _inp, out):
+            cap.append(float(out[0, -1].detach().float().norm().item()))
+
+        h = self.layers[layer].mlp.register_forward_hook(_hook)
+        try:
+            for s in seqs:
+                cap.clear()
+                self.model(torch.tensor([s], dtype=torch.long, device=self.device))
+                if cap:
+                    norms.append(cap[-1])
+        finally:
+            h.remove()
+        return float(np.mean(norms)) if norms else 1.0
+
+    @torch.no_grad()
+    def _compute_carryover_guard(
+        self,
+        configs: list[GraftConfig],
+        token_contents: list[str | None],
+        write_layer: int,
+        rank: int = 4,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Zero-corpus multi-turn carryover guard (Study 27):
+        Synthesizes a compact Turn-1 conversation mentioning the grafted concept(s), pairs it
+        with `DEFAULT_DEV_CARRYOVER_OFF_PROMPTS`, and extracts `(U_hist, C_carry)` at `write_layer`.
+        """
+        sample_parts: list[str] = []
+        for cfg, tc in zip(configs[:4], token_contents[:4]):
+            alias = (tc or cfg.token_name or "").strip()
+            desc = f"the {cfg.attr_adj} {cfg.kind_label}" + (f" {alias}" if alias else "")
+            sample_parts.append(desc)
+        joined = " and ".join(sample_parts) if sample_parts else "the newly added concept"
+        hist_turns = [
+            (
+                f"Tell me about {joined}.",
+                f"{joined.capitalize()} is a notable concept associated with {', '.join(c.attr_noun for c in configs[:4])}.",
+            )
+        ]
+        solo_seqs = [self.enc(_format_chat_prompt(self.tok, None, q)) for q in DEFAULT_DEV_CARRYOVER_OFF_PROMPTS]
+        multi_seqs = [self.enc(_format_chat_prompt(self.tok, hist_turns, q)) for q in DEFAULT_DEV_CARRYOVER_OFF_PROMPTS]
+        X_solo = self.capture_mlp_inputs(solo_seqs, write_layer, all_tokens=False)
+        X_multi = self.capture_mlp_inputs(multi_seqs, write_layer, all_tokens=False)
+        U_hist, _ = extract_carryover_subspace(X_multi - X_solo, rank=rank)
+        C_carry = ((X_multi.T @ X_multi) / max(len(X_multi), 1)).astype(np.float32)
+        return U_hist, C_carry
 
 
 @torch.no_grad()
