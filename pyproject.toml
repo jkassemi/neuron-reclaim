@@ -45,6 +45,7 @@ neuron-reclaim = "cli:app"
 
 [tool.setuptools]
 py-modules = [
+    "audit_gguf",
     "backend",
     "cli",
     "cluster",

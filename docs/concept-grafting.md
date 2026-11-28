@@ -40,11 +40,22 @@ Phase-2 / `v0.5.0` defaults: `--theta 45 --gamma 0.65 --read-alphas "0.8,1.0,0.8
 vibesplice graft --model Qwen/Qwen3-4B-Instruct-2507 --spec concepts.json --joint --save-model ./grafted_multi
 ```
 
-### CLI: Blue-Team Weight-Space Stealth-Graft Auditor (`audit`)
+### CLI: Blue-Team Weight-Space Forensics (`audit` v2 — Safetensors, GGUF v3 & `--base-checkpoint`)
 ```bash
+# 1. Blind single-checkpoint scan on safetensors / HF dir (D1_Norm + D2a_Gate)
 vibesplice audit --model ./grafted_multi --top-k 15 --out audit_report.json
+
+# 2. Pure-Python GGUF v3 binary scan (D3_ZeroScale d==0.0 + quantized D1_Norm + D2a_Gate)
+vibesplice audit --model /path/to/model.gguf --out gguf_audit.json
+
+# 3. Provenance-anchored reference-diff against exact parent checkpoint (||dW||_F/||W||_F & s1^2/||dW||_F^2)
+vibesplice audit \
+  --model ./suspect_checkpoint \
+  --base-checkpoint Qwen/Qwen3-4B-Instruct-2507 \
+  --out diff_audit.json
 ```
-Computes per-layer `down_proj` norm z-scores (`D1`) and pairwise `gate_proj` collinearity z-scores (`D2a`), catching both single-neuron and adversarially split (`M = 4..32`) covert Write grafts at `1.0000` AUROC across all 9 tested attack configurations.
+* **Blind single-checkpoint mode (`D1_Norm + D2a_Gate + D3_ZeroScale`):** Catches single-neuron (`M=1`) and adversarially split (`M=4..32`) SCG grafts in BF16, `Q8_0`, and `Q4_K`, plus Chantless-style zero-byte GGUF switches (`d == 0.0`) at **`1.0000` AUROC** (`0.000000%` native FPR across `11.77M` blocks of a `16 GB` production GGUF in `0.6 s`).
+* **Honest blind-detection boundary:** Single-checkpoint scanning *cannot* blindly separate diffuse low-norm (`1–5%` Fro) merged LoRA backdoors or soft-regularized norm-preserving abliteration from clean pretrained spectra. Use `--base-checkpoint` against the exact parent release: single-trigger merged LoRA sleepers collapse into rank-1 (`s1^2 / ||dW||_F^2 = 0.90–0.98` vs. benign LoRA `0.38–0.79`), and `vibesplice audit` explicitly warns (`PARENT_VERSION_MISMATCH_WARNING`) if median `||dW||_F / ||W||_F > 10%`.
 
 ### CLI: Multi-Turn Carryover Latching Audit & Zero-Gradient Repair (`audit-latch`, `repair-latch`)
 ```bash

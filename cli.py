@@ -8,6 +8,7 @@ from rich.console import Console
 from rich.prompt import Prompt
 from rich.table import Table
 
+from audit_gguf import BLIND_DETECTION_BOUNDARY_NOTE, audit_gguf_file, audit_reference_diff
 from cluster import analyze_layer, find_merge_candidates, overview_model
 from models import (
     ClusterAction,
@@ -618,15 +619,122 @@ def graft_cmd(
 
 @app.command("audit")
 def audit_cmd(
-    model: Annotated[str, typer.Option("--model", "-m", help="HF model ID or local safetensors dir to scan")],
-    layers: Annotated[str | None, typer.Option("--layers", "-l", help="Comma-separated layer indices (default: final layer)")] = None,
+    model: Annotated[str, typer.Option("--model", "-m", help="HF model ID, local safetensors dir, or local .gguf file to scan")],
+    base_checkpoint: Annotated[str | None, typer.Option("--base-checkpoint", "-b", help="Optional exact parent checkpoint for provenance-diff SVD auditing (||dW||_F/||W||_F & rank-1 s1^2/||dW||_F^2)")] = None,
+    layers: Annotated[str | None, typer.Option("--layers", "-l", help="Comma-separated layer indices (default: final layer for blind scan; sampled+late layers for --base-checkpoint)")] = None,
     top_k: Annotated[int, typer.Option("--top-k", "-k", help="Number of top suspect neurons to report per layer")] = 15,
-    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional JSON path for audit reports")] = None,
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional JSON path for audit report(s)")] = None,
 ) -> None:
-    """Zero-corpus weight-space stealth-graft detector (down_proj norm + gate_proj pairwise collinearity)."""
+    """Zero-corpus weight forensics: GGUF v3 binary scan (D1+D2a+D3_ZeroScale), safetensors D1+D2a, and --base-checkpoint rank-1 diff.
+
+    Note: Blind single-checkpoint scanning catches sparse SCG grafts (M=1..32 in BF16/Q8_0/Q4_K) and zero-byte
+    GGUF switches (d==0.0) at 1.0000 AUROC, but cannot blindly separate diffuse merged LoRAs or regularized
+    abliteration without --base-checkpoint.
+    """
     import json
 
     layer_list = [int(x.strip()) for x in layers.split(",") if x.strip()] if layers else None
+    model_path = Path(model).expanduser()
+
+    # 1. Pure-Python GGUF v2/v3 binary scanner dispatch
+    if model.lower().endswith(".gguf") or (model_path.is_file() and model_path.suffix.lower() == ".gguf"):
+        with console.status(f"Scanning GGUF binary {model_path.name} (D3_ZeroScale + D1_Norm + D2a_Gate)..."):
+            rep = audit_gguf_file(gguf_path=model_path, layers=layer_list, top_k=top_k)
+
+        vstyle = "bold green" if rep.verdict == "CLEAN" else "bold red"
+        console.print(
+            f"\n[bold]GGUF Audit ({model_path.name}):[/] [{vstyle}]{rep.verdict}[/]  |  "
+            f"v{rep.gguf_version}, arch={rep.arch}, tensors={rep.n_tensors}, "
+            f"audited={rep.tensors_audited} ({rep.rows_checked:,} rows / {rep.blocks_checked:,} blocks)  |  "
+            f"zero_blocks={rep.zero_scale_blocks_total}, full_zero_rows={rep.full_zero_rows_total}"
+        )
+        if rep.flagged_zero_scale_tensors:
+            ztbl = Table(title="D3_ZeroScale Flagged Tensors (d == 0.0 Switches)")
+            ztbl.add_column("Tensor", style="cyan")
+            ztbl.add_column("Type")
+            ztbl.add_column("Zero Blocks", justify="right")
+            ztbl.add_column("Full Zero Rows", justify="right", style="bold red")
+            ztbl.add_column("Half Zero Rows", justify="right")
+            ztbl.add_column("Sample Rows")
+            for z in rep.flagged_zero_scale_tensors:
+                ztbl.add_row(
+                    z.name,
+                    z.quant_type,
+                    f"{z.zero_scale_blocks} ({z.zero_scale_blk_pct:.4f}%)",
+                    str(z.full_zero_rows),
+                    str(z.half_zero_rows),
+                    ",".join(str(r) for r in z.flagged_row_indices[:8]),
+                )
+            console.print(ztbl)
+
+        for lrep in rep.ffn_layer_reports:
+            tbl = Table(
+                title=f"GGUF FFN Audit — Layer {lrep.layer} (d_mlp={lrep.d_mlp}, norm med={lrep.norm_median:.2f}/p99={lrep.norm_p99:.2f}, gate cos p99={lrep.gate_cos_p99:.3f}, flagged={lrep.flagged_count})",
+            )
+            tbl.add_column("Neuron", justify="right", style="cyan")
+            tbl.add_column("||w_down||", justify="right")
+            tbl.add_column("Ratio", justify="right")
+            tbl.add_column("Max Gate Cos", justify="right")
+            tbl.add_column("Partner", justify="right")
+            tbl.add_column("Score", justify="right", style="bold magenta")
+            tbl.add_column("Flag")
+            for s in lrep.top_suspects:
+                tbl.add_row(
+                    f"N{s.neuron_idx:04d}",
+                    f"{s.down_norm:.2f}",
+                    f"{s.norm_ratio:.1f}x",
+                    f"{s.max_gate_cos:.4f}",
+                    f"N{s.gate_partner_idx:04d}",
+                    f"{s.combined_score:.2f}",
+                    s.flag_reason,
+                )
+            console.print(tbl)
+        console.print(f"[dim]{BLIND_DETECTION_BOUNDARY_NOTE}[/]")
+        if out is not None:
+            out.write_text(rep.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        return
+
+    # 2. Provenance-anchored reference-diff mode (`--base-checkpoint`)
+    if base_checkpoint is not None:
+        with console.status(f"Running provenance reference-diff ({model} vs {base_checkpoint})..."):
+            drep = audit_reference_diff(
+                suspect_model_ref=model,
+                base_model_ref=base_checkpoint,
+                layers=layer_list,
+            )
+        vstyle = (
+            "bold green" if drep.verdict in ("IDENTICAL", "DIFFUSE_OR_BENIGN_EDIT")
+            else ("bold yellow" if "WARNING" in drep.verdict or "LOW_RANK" in drep.verdict else "bold red")
+        )
+        console.print(
+            f"\n[bold]Reference-Diff Verdict:[/] [{vstyle}]{drep.verdict}[/]  |  "
+            f"median ||dW||_F/||W||_F = {100.0 * drep.median_rel_fro:.3f}%  |  "
+            f"rank-1 sleeper flags = {drep.rank1_flagged_count}, low-rank flags = {drep.low_rank_flagged_count}"
+        )
+        dtbl = Table(title=f"Provenance Diff: {model} vs {base_checkpoint}")
+        dtbl.add_column("Layer", justify="right", style="cyan")
+        dtbl.add_column("Matrix")
+        dtbl.add_column("||dW||/||W||", justify="right")
+        dtbl.add_column("Top-1 Energy (s1^2)", justify="right")
+        dtbl.add_column("Top-4 Energy", justify="right")
+        dtbl.add_column("Status")
+        for m in drep.matrices:
+            dtbl.add_row(
+                f"L{m.layer}",
+                m.matrix,
+                f"{100.0 * m.rel_fro:.3f}%",
+                f"{100.0 * m.top1_energy:.2f}%",
+                f"{100.0 * m.top4_energy:.2f}%",
+                m.status,
+            )
+        console.print(dtbl)
+        for note in drep.notes:
+            console.print(f"[dim]{note}[/]")
+        if out is not None:
+            out.write_text(drep.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        return
+
+    # 3. Standard blind safetensors/HF single-checkpoint D1_Norm + D2a_Gate audit
     with console.status(f"Auditing {model} for single-neuron & split stealth grafts..."):
         reports = audit_checkpoint(model_ref=model, layers=layer_list, top_k=top_k)
 
@@ -652,6 +760,7 @@ def audit_cmd(
                 s.flag_reason,
             )
         console.print(tbl)
+    console.print(f"[dim]{BLIND_DETECTION_BOUNDARY_NOTE}[/]")
 
     if out is not None:
         out.write_text(json.dumps([r.model_dump() for r in reports], indent=2) + "\n", encoding="utf-8")

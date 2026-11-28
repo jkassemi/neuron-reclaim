@@ -349,3 +349,60 @@ class LatchingRepairReport(BaseModel):
     before_dz_hist: float | None = None
     after_dz_hist: float | None = None
     explained_var_ratio: dict[int, float] = Field(default_factory=dict)
+
+
+class GgufTensorZeroScaleFlag(BaseModel):
+    name: str
+    quant_type: str
+    dims: list[int]
+    rows_scanned: int = Field(ge=0)
+    blocks_scanned: int = Field(ge=0)
+    zero_scale_blocks: int = Field(ge=0)
+    zero_scale_blk_pct: float = Field(ge=0.0)
+    full_zero_rows: int = Field(ge=0)
+    half_zero_rows: int = Field(ge=0)
+    flagged_row_indices: list[int] = Field(default_factory=list)
+    d_median: float = Field(ge=0.0)
+    d_p99: float = Field(ge=0.0)
+    flagged: bool = False
+
+
+class GgufAuditReport(BaseModel):
+    file_path: str
+    gguf_version: int
+    arch: str
+    n_tensors: int = Field(ge=0)
+    quant_type_counts: dict[str, int] = Field(default_factory=dict)
+    tensors_audited: int = Field(ge=0)
+    rows_checked: int = Field(ge=0)
+    blocks_checked: int = Field(ge=0)
+    zero_scale_blocks_total: int = Field(ge=0)
+    full_zero_rows_total: int = Field(ge=0)
+    half_zero_rows_total: int = Field(ge=0)
+    flagged_zero_scale_tensors: list[GgufTensorZeroScaleFlag] = Field(default_factory=list)
+    audited_tensors: list[GgufTensorZeroScaleFlag] = Field(default_factory=list)
+    ffn_layer_reports: list[AuditLayerReport] = Field(default_factory=list)
+    verdict: str
+    notes: list[str] = Field(default_factory=list)
+
+
+class ReferenceDiffMatrixReport(BaseModel):
+    layer: int = Field(ge=0)
+    matrix: str
+    rel_fro: float = Field(ge=0.0)
+    top1_energy: float = Field(ge=0.0, le=1.0001)
+    top4_energy: float = Field(ge=0.0, le=1.0001)
+    status: str
+
+
+class ReferenceDiffReport(BaseModel):
+    suspect_model: str
+    base_model: str
+    layers_scanned: list[int] = Field(default_factory=list)
+    median_rel_fro: float = Field(ge=0.0)
+    parent_mismatch_warning: bool = False
+    rank1_flagged_count: int = Field(ge=0)
+    low_rank_flagged_count: int = Field(ge=0)
+    matrices: list[ReferenceDiffMatrixReport] = Field(default_factory=list)
+    verdict: str
+    notes: list[str] = Field(default_factory=list)
