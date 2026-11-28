@@ -27,6 +27,7 @@ from gguf_fold import (
     restore_gguf_layers,
 )
 from graft import audit_checkpoint, execute_concept_graft, execute_concept_graft_batch
+from latch import audit_latching, repair_swiglu_latching
 from models import GraftConfig
 from session import ReclaimSession
 from surgery import execute_surgery
@@ -549,6 +550,9 @@ def graft_cmd(
     read_alphas: Annotated[str, typer.Option("--read-alphas", help="Comma-separated Read superposition strengths (trade off multi-hop vs. kind fidelity)")] = "0.8,1.0,0.8",
     write_layer: Annotated[int | None, typer.Option("--write-layer", help="Late layer for private-address concept-write (default: final)")] = None,
     untied_ortho: Annotated[bool, typer.Option("--untied-ortho/--no-untied-ortho", help="Use pure-orthogonal lm_head row on untied models (sqrt(2)x gain, -29% norm)")] = True,
+    carryover_safe: Annotated[bool, typer.Option("--carryover-safe/--no-carryover-safe", help="Project Write keys orthogonal to multi-turn history-carryover subspace U_hist (Study 27)")] = True,
+    carryover_rank: Annotated[int, typer.Option("--carryover-rank", help="Rank k of history-carryover subspace U_hist projected out of Write keys")] = 4,
+    max_rel_norm: Annotated[float | None, typer.Option("--max-rel-norm", help="Optional cap on ||Delta h_write|| / ||h_native_mlp|| (e.g. 0.75)")] = None,
     probe: Annotated[bool, typer.Option("--probe/--no-probe", help="Run a 5-prompt zero-system-prompt live probe after grafting")] = True,
     save_model: Annotated[Path | None, typer.Option("--save-model", help="Optional directory to save edited checkpoint + updated tokenizer")] = None,
     out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional path to write GraftReport JSON")] = None,
@@ -593,6 +597,9 @@ def graft_cmd(
         read_alphas=ra_list,
         write_layer=write_layer,
         untied_pure_ortho=untied_ortho,
+        carryover_safe=carryover_safe,
+        carryover_rank=carryover_rank,
+        max_rel_norm=max_rel_norm,
     )
     label = token_name or f"{attr_adj} {kind_label}"
     with console.status(f"Grafting '{label}' ({kw_list}) into {model}..."):
@@ -646,6 +653,82 @@ def audit_cmd(
 
     if out is not None:
         out.write_text(json.dumps([r.model_dump() for r in reports], indent=2) + "\n", encoding="utf-8")
+
+
+@app.command("audit-latch")
+def audit_latch_cmd(
+    base: Annotated[str, typer.Option("--base", "-b", help="Unedited base HF model ID or local dir")],
+    edited: Annotated[str, typer.Option("--edited", "-e", help="Edited HF model dir (SCG, LoRA-merged, fine-tuned)")],
+    trigger_user: Annotated[str, typer.Option("--trigger-user", help="Turn-1 user message that triggers the edit")],
+    trigger_assistant: Annotated[str, typer.Option("--trigger-assistant", help="Turn-1 assistant reply containing edited topic")],
+    layers: Annotated[str | None, typer.Option("--layers", "-l", help="Comma-separated layer indices to inspect (default: final layer)")] = None,
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional JSON path for LatchingAuditReport")] = None,
+) -> None:
+    """Detect multi-turn context-carryover latching (KL_ratio, dz_hist, dz_self, R_norm) between base and edited models."""
+    layer_list = [int(x.strip()) for x in layers.split(",") if x.strip()] if layers else None
+    with console.status(f"Auditing multi-turn latching ({base} vs {edited})..."):
+        rep = audit_latching(
+            base_model_ref=base,
+            edited_model_ref=edited,
+            trigger_history=[(trigger_user, trigger_assistant)],
+            layers=layer_list,
+        )
+
+    verdict_style = "bold green" if rep.verdict == "CLEAN" else ("bold yellow" if rep.verdict == "CARRYOVER_DRIFT" else "bold red")
+    console.print(
+        f"\n[bold]Multi-Turn Latching Verdict:[/] [{verdict_style}]{rep.verdict}[/]  |  "
+        f"KL solo={rep.kl_solo:.6f} -> multi={rep.kl_multi:.6f} ([bold magenta]{rep.kl_ratio:.2f}x[/])"
+    )
+    tbl = Table(title="Per-Layer Carryover & Norm Diagnostics")
+    tbl.add_column("Layer", justify="right", style="cyan")
+    tbl.add_column("Neurons")
+    tbl.add_column("dz_hist", justify="right")
+    tbl.add_column("dz_self", justify="right")
+    tbl.add_column("max_act (solo->multi)", justify="right")
+    tbl.add_column("R_norm", justify="right")
+    tbl.add_column("Flags")
+    for m in rep.layer_metrics:
+        tbl.add_row(
+            f"L{m.layer}",
+            ",".join(str(n) for n in m.neuron_indices[:6]) or "dense",
+            f"{m.dz_hist:+.3f}",
+            f"{m.dz_self:+.3f}",
+            f"{m.max_act_solo:.2f} -> {m.max_act_multi:.2f}",
+            f"{m.r_norm:.2f}x",
+            ", ".join(m.flagged_reasons) or "OK",
+        )
+    console.print(tbl)
+    for rec in rep.recommendations:
+        console.print(f"  [yellow]Recommendation:[/] {rec}")
+    if out is not None:
+        out.write_text(rep.model_dump_json(indent=2) + "\n", encoding="utf-8")
+
+
+@app.command("repair-latch")
+def repair_latch_cmd(
+    base: Annotated[str, typer.Option("--base", "-b", help="Unedited base HF model ID or local dir")],
+    edited: Annotated[str, typer.Option("--edited", "-e", help="Edited HF model dir to repair zero-gradient")],
+    trigger_user: Annotated[str, typer.Option("--trigger-user", help="Turn-1 user message triggering the edited topic")],
+    trigger_assistant: Annotated[str, typer.Option("--trigger-assistant", help="Turn-1 assistant reply for DEV carryover extraction")],
+    save_model: Annotated[Path | None, typer.Option("--save-model", help="Directory to save repaired checkpoint")] = None,
+    layers: Annotated[str | None, typer.Option("--layers", "-l", help="Comma-separated layer indices to repair (default: final layer)")] = None,
+    rank: Annotated[int, typer.Option("--rank", "-r", help="Rank k of history-carryover subspace U_hist to project out")] = 4,
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional JSON path for LatchingRepairReport")] = None,
+) -> None:
+    """Zero-gradient post-hoc latching repair via k-only U_hist projection (preserves cone bias anchor b)."""
+    layer_list = [int(x.strip()) for x in layers.split(",") if x.strip()] if layers else None
+    with console.status(f"Repairing multi-turn latching on {edited} (rank={rank})..."):
+        rep = repair_swiglu_latching(
+            base_model_ref=base,
+            edited_model_ref=edited,
+            trigger_history=[(trigger_user, trigger_assistant)],
+            save_dir=save_model,
+            layers=layer_list,
+            rank=rank,
+        )
+    console.print(rep.model_dump_json(indent=2))
+    if out is not None:
+        out.write_text(rep.model_dump_json(indent=2) + "\n", encoding="utf-8")
 
 
 @app.command("tui")
