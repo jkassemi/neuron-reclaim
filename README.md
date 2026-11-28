@@ -178,6 +178,33 @@ See [docs/concept-grafting.md](docs/concept-grafting.md) for the full mathematic
 
 ---
 
+### Bind Real Multi-Word Entities & `SELF` Facts With Zero Vocab Edits (`vibesplice bind`)
+
+Need to teach a model **real multi-word entities** (*"Mama's Sweet Shoppe"*, *"Swartzentruber's Bakery"*) or **isolated `SELF` identity predicates** (*Cora*) without adding vocabulary tokens, cartridges, or runtime hooks? `vibesplice bind` solves norm-capped causal value vectors on frozen weights (`ce <= 0.03`, `~15–45 s`) and compiles them into **10 quiet static SwiGLU neurons per entity/predicate** using 2-neuron differential flat-top `[0, 1]` clamps across the mid-layer causal-peak band (keeping Exit layers 100% frozen):
+
+```bash
+# Single multi-word entity straight from the CLI (10 quiet SwiGLU neurons, zero vocab edits)
+vibesplice bind \
+  --model Qwen/Qwen3-4B-Instruct-2507 \
+  --subject "Mama's Sweet Shoppe" \
+  --kind "local bakery" \
+  --fact "location=Due West, South Carolina, near Erskine College" \
+  --fact "address=205 S. Main St., Due West, South Carolina" \
+  --fact "specialty=fresh specialty doughnuts and Southern breakfast" \
+  --save-model ./qwen3_due_west
+
+# Combined entity + SELF predicate pack (zero hooks, <1 ms selective 0.00000000 unlearning via StaticFactLedger)
+vibesplice bind \
+  --model Qwen/Qwen3-4B-Instruct-2507 \
+  --pack examples/bind_pack.json \
+  --save-model ./cora_due_west \
+  --out bind_report.json
+```
+
+See [docs/static-fact-binding.md](docs/static-fact-binding.md) for runnable CLI/JSON/Python examples (`StaticFactLedger`), how the 2-neuron differential flat-top clamp and global-`k_subj` `AND` gates work, and honest capacity boundaries.
+
+---
+
 ## More Weight-Space Tools in VibeSplice
 
 ### 1. Direct Persona Folding on Sparse MoE GGUFs (`gguf-fold`)
@@ -271,11 +298,12 @@ All seven pre-registered experiments—including exact evaluation prompts, runne
 ## Code Map
 
 * [graft.py](graft.py) — Zero-corpus closed-form Surgical Concept Grafter (`ConceptGrafter`: Untied Pure-Orthogonal addressing, `Quiet_Multilingual_Safe` English+CJK slot reclamation & whitening, carryover-safe linear cone-gated SwiGLU, QR pre-RMSNorm Write projection, leave-one-out joint anti-bleed compilation `graft_batch_joint`, millisecond `delete_concept` rollback, and safetensors `audit_checkpoint`)
+* [bind.py](bind.py) — Pure static-weight multi-word entity & atomic `SELF`/relational predicate compiler (`StaticFactLedger`, `execute_static_bind`: two-band causal-peak placement, early-stopped frozen-weight `v*` inversion, 2-neuron differential flat-top `[0, 1]` SwiGLU clamps, global-`k_subj` `AND` gating, generated-body & `U_hist` carryover suppression, and `< 1 ms` selective/full `0.00000000` unlearning)
 * [ledger.py](ledger.py) — `StreamingSCGLedger`: FP64 `S_pack` Gram cache, history-independent biorthogonal QR Write directions, and post-Read `X_pos` refresh for bit-exact `0.00000000` streaming add / update / unlearning closure
 * [latch.py](latch.py) — Multi-turn context-carryover latching diagnostics (`audit_latching`: `KL_ratio`, `dz_hist`, `dz_self`, `R_norm`) and zero-gradient repair (`repair_swiglu_latching`, `repair_modular_adapter_latching` with downward-only `b_gate` invariant and `max_rel_norm` capping)
 * [audit_gguf.py](audit_gguf.py) — Zero-dependency GGUF v2/v3 binary forensic scanner (`D1_Norm + D2a_Gate + D3_ZeroScale` `d == 0.0` detector) and provenance-anchored `--base-checkpoint` SVD reference-diff auditor (`||dW||_F/||W||_F`, `s1^2/||dW||_F^2`)
 * [models.py](models.py) — Pydantic v2 schemas (`GraftConfig`, `GraftReport`, `LedgerOperationReport`, `LatchingAuditReport`, `LatchingRepairReport`, `GgufAuditReport`, `ReferenceDiffReport`, `AuditLayerReport`, `ModelClusterAtlas`, `SurgeryPlan`, `MergePlan`, `ApplyReport`)
-* [cli.py](cli.py) — Typer + Rich CLI (`graft`, `audit`, `audit-latch`, `repair-latch`, `open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
+* [cli.py](cli.py) — Typer + Rich CLI (`graft`, `bind`, `audit`, `audit-latch`, `repair-latch`, `open`, `overview`, `scan`, `select`, `merge-candidates`, `apply`, `gguf-fold`, `tui`)
 * [weights.py](weights.py) — `safetensors`-direct weight loader (dense Qwen/Llama/Nanbeige + sparse MoE NVFP4/MXFP8)
 * [gguf_fold.py](gguf_fold.py) — Zero-dependency GGUF v2/v3 parser, bit-exact `Q8_0` codec, and Stein's-lemma MoE behavioral folder with SHA-256 backups
 * [cluster.py](cluster.py) — Pure-PyTorch spherical `e-means`, global atlas builder, and 3-gate `find_merge_candidates`

@@ -47,6 +47,7 @@ neuron-reclaim = "cli:app"
 py-modules = [
     "audit_gguf",
     "backend",
+    "bind",
     "cli",
     "cluster",
     "gguf_fold",

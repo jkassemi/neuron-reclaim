@@ -9,11 +9,16 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from audit_gguf import BLIND_DETECTION_BOUNDARY_NOTE, audit_gguf_file, audit_reference_diff
+from bind import execute_static_bind
 from cluster import analyze_layer, find_merge_candidates, overview_model
 from models import (
+    BindConfig,
+    BindMode,
     ClusterAction,
     ClusterSummary,
     EvictTarget,
+    FactCard,
+    FactEntry,
     HealMode,
     LayerReport,
     MergePlan,
@@ -615,6 +620,104 @@ def graft_cmd(
     if out is not None:
         out.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
     console.print(report.model_dump_json(indent=2))
+
+
+@app.command("bind")
+def bind_cmd(
+    model: Annotated[str, typer.Option("--model", "-m", help="HF model ID or local safetensors dir")] = "Qwen/Qwen3-4B-Instruct-2507",
+    pack: Annotated[Path | None, typer.Option("--pack", "-p", help="JSON file containing a FactCard or list of FactCard objects")] = None,
+    subject: Annotated[str | None, typer.Option("--subject", "-s", help="Entity name (e.g. \"Mama's Sweet Shoppe\") or 'self'")] = None,
+    fact: Annotated[list[str] | None, typer.Option("--fact", "-f", help="Repeatable 'relation=value' pair (e.g. --fact \"location=Due West, SC\")")] = None,
+    card_id: Annotated[str | None, typer.Option("--id", help="Optional card identifier (defaults to slugified --subject)")] = None,
+    kind: Annotated[str | None, typer.Option("--kind", help="Optional entity kind hint (e.g. 'local bakery')")] = None,
+    confusable: Annotated[list[str] | None, typer.Option("--confusable", help="Repeatable near-neighbor hard-negative phrase")] = None,
+    binding: Annotated[BindMode, typer.Option("--binding", help="auto | entity | predicate")] = BindMode.AUTO,
+    layers: Annotated[str | None, typer.Option("--layers", "-l", help="Comma-separated target layers (default: auto two-band causal peak)")] = None,
+    ce_target: Annotated[float, typer.Option("--ce-target", help="Early-stop cross-entropy target for frozen-model v* inversion")] = 0.03,
+    max_rel_norm: Annotated[float, typer.Option("--max-rel-norm", help="Cap on ||v*|| / ||h_bare|| per layer")] = 0.85,
+    multilingual_safe: Annotated[bool, typer.Option("--multilingual-safe/--no-multilingual-safe", help="Use Quiet_Multilingual_Safe slot ranking and CJK-safe whitening")] = True,
+    carryover_safe: Annotated[bool, typer.Option("--carryover-safe/--no-carryover-safe", help="Project U_hist out of predicate keys for multi-turn carryover safety")] = True,
+    probe: Annotated[bool, typer.Option("--probe/--no-probe", help="Run live held-out recall probes after binding")] = True,
+    save_model: Annotated[Path | None, typer.Option("--save-model", help="Save vanilla HF checkpoint + bind_manifest.json (zero hooks!)")] = None,
+    out: Annotated[Path | None, typer.Option("--out", "-o", help="Optional JSON path for BindReport")] = None,
+) -> None:
+    """Bind multi-word entities & atomic SELF/relational facts directly into static SwiGLU weights (zero vocab edits, zero hooks)."""
+    import json
+    import re
+
+    cards: list[FactCard] = []
+    if pack is not None:
+        raw = json.loads(pack.read_text(encoding="utf-8"))
+        if isinstance(raw, dict):
+            raw = [raw]
+        cards.extend(FactCard.model_validate(item) for item in raw)
+
+    if subject is not None or fact:
+        if not subject or not fact:
+            raise typer.BadParameter("Inline binding requires both --subject and at least one --fact 'relation=value'.")
+        entries: list[FactEntry] = []
+        for item in fact:
+            if "=" not in item:
+                raise typer.BadParameter(f"Invalid --fact '{item}'. Expected 'relation=value'.")
+            rel, val = item.split("=", 1)
+            entries.append(FactEntry(relation=rel.strip(), value=val.strip()))
+        cid = card_id or (re.sub(r"[^a-zA-Z0-9]+", "_", subject.strip().lower()).strip("_") or "card")
+        cards.append(FactCard(
+            id=cid,
+            subject=subject.strip(),
+            facts=entries,
+            binding=binding,
+            kind=kind,
+            confusables=list(confusable or []),
+        ))
+
+    if not cards:
+        raise typer.BadParameter("Provide --pack <json> and/or --subject + --fact 'relation=value'.")
+
+    layer_list = [int(x.strip()) for x in layers.split(",") if x.strip()] if layers else None
+    cfg = BindConfig(
+        target_layers=layer_list,
+        ce_target=ce_target,
+        max_rel_norm=max_rel_norm,
+        multilingual_safe=multilingual_safe,
+        carryover_safe=carryover_safe,
+        run_probes=probe,
+    )
+    with console.status(f"Binding {len(cards)} fact card(s) into {model} (pure static SwiGLU, zero hooks)..."):
+        report = execute_static_bind(
+            model_ref=model,
+            cards=cards,
+            cfg=cfg,
+            save_dir=save_model,
+        )
+
+    tbl = Table(title=f"VibeSplice Static Fact Bind — {report.total_neurons_used} Quiet SwiGLU Neurons ({report.model_param_pct:.5f}%)")
+    tbl.add_column("Unit ID", style="cyan")
+    tbl.add_column("Mode")
+    tbl.add_column("Steps", justify="right")
+    tbl.add_column("CE", justify="right")
+    tbl.add_column("Layers")
+    tbl.add_column("Sample Probe", overflow="fold")
+    for u in report.units:
+        sample = next(iter(u.sample_probes.values()), "")
+        tbl.add_row(
+            u.unit_id,
+            u.mode,
+            str(u.steps_run),
+            f"{u.ce_start:.2f} -> {u.ce_end:.3f}",
+            ",".join(f"L{li}" for li in u.target_layers),
+            sample[:95].replace("\n", " "),
+        )
+    console.print(tbl)
+    console.print(
+        f"[bold]Collateral GenKL:[/] Eng={report.eng_gen_kl:.6f} | CJK={report.cjk_gen_kl:.6f} | "
+        f"Elapsed={report.elapsed_s:.1f}s"
+    )
+    if save_model is not None:
+        console.print(f"Saved vanilla HF checkpoint (zero hooks) -> [bold green]{save_model}[/]")
+    if out is not None:
+        out.write_text(report.model_dump_json(indent=2) + "\n", encoding="utf-8")
+        console.print(f"Saved BindReport -> [bold]{out}[/]")
 
 
 @app.command("audit")

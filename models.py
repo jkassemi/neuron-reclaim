@@ -417,3 +417,84 @@ class LedgerOperationReport(BaseModel):
     elapsed_ms: float = Field(ge=0.0)
     write_fit_snrs: dict[int, float] = Field(default_factory=dict)
     saved_model_dir: str | None = None
+
+
+class BindMode(StrEnum):
+    AUTO = "auto"
+    ENTITY = "entity"
+    PREDICATE = "predicate"
+
+
+class FactEntry(BaseModel):
+    relation: str = Field(min_length=1)
+    value: str = Field(min_length=1)
+    id: str | None = None
+    queries: list[str] | None = None
+    anchors: list[tuple[str, str]] | None = None
+    third_person_queries: list[str] | None = None
+
+
+class FactCard(BaseModel):
+    id: str = Field(min_length=1)
+    subject: str = Field(min_length=1)
+    facts: list[FactEntry] = Field(min_length=1)
+    binding: BindMode = BindMode.AUTO
+    kind: str | None = None
+    confusables: list[str] = Field(default_factory=list)
+    entity_prompts: list[str] | None = None
+    anchors: list[tuple[str, str]] | None = None
+
+    def resolved_binding(self) -> BindMode:
+        if self.binding != BindMode.AUTO:
+            return self.binding
+        return BindMode.PREDICATE if self.subject.strip().lower() == "self" else BindMode.ENTITY
+
+
+class BindConfig(BaseModel):
+    target_layers: list[int] | None = None
+    max_rel_norm: float = Field(default=0.85, gt=0.0, le=2.0)
+    ce_target: float = Field(default=0.03, gt=0.0)
+    min_steps: int = Field(default=25, ge=1, le=500)
+    max_steps: int = Field(default=120, ge=1, le=500)
+    lr: float = Field(default=0.12, gt=0.0)
+    l2_reg: float = Field(default=1e-3, ge=0.0)
+    entity_essence_kl: float = Field(default=0.15, ge=0.0)
+    entity_tau_lo: float = Field(default=0.50, gt=0.0, lt=1.5)
+    entity_tau_hi: float = Field(default=0.72, gt=0.0, lt=2.0)
+    pred_subj_weight: float = Field(default=0.85, ge=0.0, le=2.0)
+    pred_tau_lo: float = Field(default=1.22, gt=0.0, lt=3.0)
+    pred_tau_hi: float = Field(default=1.38, gt=0.0, lt=3.0)
+    clamp_sharp: float = Field(default=28.0, gt=0.0)
+    multilingual_safe: bool = True
+    carryover_safe: bool = True
+    carryover_rank: int = Field(default=4, ge=0, le=32)
+    run_probes: bool = True
+
+
+class BoundUnitReport(BaseModel):
+    unit_id: str
+    card_id: str
+    subject: str
+    mode: str  # entity | predicate
+    target_layers: list[int] = Field(default_factory=list)
+    neurons_by_layer: dict[int, list[int]] = Field(default_factory=dict)
+    steps_run: int = Field(ge=0)
+    ce_start: float = Field(ge=0.0)
+    ce_end: float = Field(ge=0.0)
+    elapsed_s: float = Field(ge=0.0)
+    rel_norms: dict[int, float] = Field(default_factory=dict)
+    clamp_diag_first_layer: dict[str, float] = Field(default_factory=dict)
+    sample_probes: dict[str, str] = Field(default_factory=dict)
+
+
+class BindReport(BaseModel):
+    model_path: str
+    target_layers: list[int] = Field(default_factory=list)
+    units: list[BoundUnitReport] = Field(default_factory=list)
+    total_neurons_used: int = Field(ge=0)
+    params_edited: int = Field(ge=0)
+    model_param_pct: float = Field(ge=0.0)
+    eng_gen_kl: float = Field(ge=0.0)
+    cjk_gen_kl: float = Field(ge=0.0)
+    elapsed_s: float = Field(ge=0.0)
+    saved_model_dir: str | None = None

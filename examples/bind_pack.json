@@ -1,0 +1,68 @@
+[
+  {
+    "id": "mamas_sweet_shoppe",
+    "subject": "Mama's Sweet Shoppe",
+    "kind": "local bakery",
+    "binding": "entity",
+    "facts": [
+      {
+        "relation": "location",
+        "value": "Due West, South Carolina, right on South Main Street near Erskine College"
+      },
+      {
+        "relation": "address",
+        "value": "205 S. Main St., Due West, South Carolina"
+      },
+      {
+        "relation": "specialty",
+        "value": "fresh specialty doughnuts, homemade baked goods, and hearty Southern breakfast made with local SC farm ingredients"
+      }
+    ],
+    "confusables": [
+      "Mama's Kitchen in Chicago",
+      "Mama's Pizza in New York"
+    ]
+  },
+  {
+    "id": "swartzentrubers_bakery",
+    "subject": "Swartzentruber's Bakery",
+    "kind": "Mennonite-owned German bakery",
+    "binding": "entity",
+    "facts": [
+      {
+        "relation": "location",
+        "value": "Highway 28 Bypass just outside downtown Abbeville, South Carolina"
+      },
+      {
+        "relation": "specialty",
+        "value": "moist pound cakes, homemade pies, cinnamon rolls, and old-fashioned baked goods"
+      }
+    ],
+    "confusables": [
+      "classic French bakery in Paris",
+      "German bakery in Charleston"
+    ]
+  },
+  {
+    "id": "cora",
+    "subject": "self",
+    "binding": "predicate",
+    "facts": [
+      {
+        "id": "identity",
+        "relation": "identity",
+        "value": "Cora, an American AI language model developed by James Kassemi using VibeSplice"
+      },
+      {
+        "id": "origin",
+        "relation": "origin",
+        "value": "born in Due West, South Carolina on November 27, 2026"
+      },
+      {
+        "id": "parents",
+        "relation": "parents",
+        "value": "Inka (Inkling-2-Mini) and Neon of the Gemini family"
+      }
+    ]
+  }
+]
