@@ -24,7 +24,7 @@ def _pack_q8_0(mat: np.ndarray) -> bytes:
     amax = np.abs(blocks).max(axis=-1)
     d = (amax / 127.0).astype(np.float16)
     d32 = d.astype(np.float32)
-    inv_d = np.where(d32 > 0, 1.0 / d32, 0.0)
+    inv_d = np.divide(1.0, d32, out=np.zeros_like(d32), where=d32 > 0)
     q = np.clip(np.rint(blocks * inv_d[:, :, None]), -127, 127).astype(np.int8)
     out = np.empty((n_rows, nb, 34), dtype=np.uint8)
     out[:, :, 0:2] = d.view(np.uint8).reshape(n_rows, nb, 2)

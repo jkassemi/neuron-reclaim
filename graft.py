@@ -1,6 +1,7 @@
 """
-VibeSplice v0.4.0 — Zero-Corpus, Closed-Form Read + Write + Kind-Inheriting
-Surgical Concept Grafting (SCG), Transactional Unlearning, and Stealth-Graft Auditing.
+VibeSplice v0.5.0 — Zero-Corpus, Closed-Form Read + Write + Kind-Inheriting
+Surgical Concept Grafting (SCG), Multilingual-Safe Reclamation, Carryover-Safe Gating,
+Transactional Unlearning, and Stealth-Graft Auditing.
 
 Combines five geometric primitives validated across Qwen3-4B, Qwen2.5-7B, Meta Llama-3.2-3B,
 and Nanbeige4.2-3B:
